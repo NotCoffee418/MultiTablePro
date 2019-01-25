@@ -25,7 +25,7 @@ namespace BetterPokerTableManager
             InitializeComponent();
 
             // debug
-            PSLogHandler.InitPsLogReaders();
+            PSLogHandler.Start();
         }
     }
 }

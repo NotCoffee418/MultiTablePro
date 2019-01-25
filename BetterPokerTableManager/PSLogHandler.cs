@@ -11,16 +11,21 @@ namespace BetterPokerTableManager
 {
     class PSLogHandler
     {
-        public bool IsRunning { get; set; }
+        public static void Start()
+        {
+            // Look for new files every 10 seconds since stars client can switch from log.0 to log.1 in the middle of a session.
+            Timer timer = new Timer(WatchNewLogFiles, null, 0, 10000);
+        }
 
-        private List<string> activeLogFiles = new List<string>();
+        // Lists files that are currently being watched
+        private static List<string> activeLogFiles = new List<string>();
+
 
         /// <summary>
         /// Starts a watcher threads for each PS log file (should be only PokerStars.log.0 and sometimes PokerStars.log.1)
         /// </summary>
-        public void WatchNewLogFiles()
+        private static void WatchNewLogFiles(object state)
         {
-            /// NOTE: It can switch from log.0 to log.1 in the middle of a session.  
             /// For future reference: FullTilt's log files are AppData\Local\FullTilt.xx\FullTilt.log.x - it's window titles work the same way
             /// The PS .com client's log folder DOES NOT have the .COM extension in it's directory name. (tested & confirmed)
 
@@ -56,13 +61,14 @@ namespace BetterPokerTableManager
             }
         }
 
-        void WatchLog(string path)
+        private static void WatchLog(string path)
         {
             // Register log file
             activeLogFiles.Add(path);
 
             // Loading vars
             DateTime startAnalysisTime = DateTime.Now;
+            DateTime loadFoundTimeStamp = DateTime.MinValue;
             bool loading = true;
             string currRead = "";
 
@@ -78,8 +84,9 @@ namespace BetterPokerTableManager
                         {
                             if (loading) // Don't analyse old log entries.
                             {
-                                if (currRead[0] == '[' && // if line contains timestamp
-                                    startAnalysisTime < DateTime.ParseExact(currRead, "[yyyy/MM/dd H:mm:ss]", CultureInfo.InvariantCulture))
+                                if (currRead[0] == '[' && DateTime.TryParseExact(currRead, // if line likely contains timestamp, can parse and new
+                                     "[yyyy/MM/dd H:mm:ss]", CultureInfo.InvariantCulture, DateTimeStyles.None, out loadFoundTimeStamp)
+                                      && loadFoundTimeStamp > startAnalysisTime)
                                 {
                                     loading = false;
                                 }
