@@ -104,11 +104,9 @@ namespace BetterPokerTableManager
         }
 
         // Analysis Regex Collections
-        private static Regex rFindOnlyHex = new Regex(@"\b[a-fA-F0-9]+\b");
-        private static Regex rTableClose = new Regex(@"table window [a-fA-F0-9]+ has been destroyed");
-        private static Regex rUserFolded = new Regex(@"USR ACT button 'Fold' [a-fA-F0-9]+");
-        private static Regex rNewHandDealt = new Regex(@"MyPrivateCard 0: c[a-fA-F0-9]+ \[[a-fA-F0-9]+\]+");
-        private static Regex rNewHandDealtFindHex = new Regex(@"\[[a-fA-F0-9]+\]"); 
+        private static Regex rTableClose = new Regex(@"table window ([a-fA-F0-9]{8}) has been destroyed");
+        private static Regex rUserFolded = new Regex(@"USR ACT button 'Fold' ([a-fA-F0-9]{8})");
+        private static Regex rNewHandDealt = new Regex(@"MyPrivateCard 0: c[a-fA-F0-9]+ \[([a-fA-F0-9]+)\]+");
 
 
         /// <summary>
@@ -121,7 +119,7 @@ namespace BetterPokerTableManager
             // Example: USR ACT button 'Fold' 00300B96
             if (rUserFolded.IsMatch(line))
             {
-                IntPtr wHnd = StrToIntPtr(rFindOnlyHex.Match(line).Value);
+                IntPtr wHnd = StrToIntPtr(rUserFolded.Match(line).Groups[0].Value);
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.MakeInactive();
@@ -129,20 +127,18 @@ namespace BetterPokerTableManager
 
             // Hand is over (new hand dealt), make inactive (if not already)
             // Example: MyPrivateCard 0: c21 [300B96]
-            if (rNewHandDealt.IsMatch(line))
+            else if (rNewHandDealt.IsMatch(line))
             {
-                // todo: Can this find hex between [] but exclude [] since it runs so often? I'm no good at regex...
-                IntPtr wHnd = StrToIntPtr(rNewHandDealtFindHex.Match(line).Value.Replace("[", "").Replace("]", ""));
-                Table t = Table.Find(wHnd);
+                Table t = Table.Find(StrToIntPtr(rNewHandDealt.Match(line).Groups[0].Value));
                 if (t != null)
                     t.MakeInactive();
             }
 
             // Report that table has been closed
             // Example: table window 003717F8 has been destroyed
-            if (rTableClose.IsMatch(line))
+            else if (rTableClose.IsMatch(line))
             {
-                IntPtr wHnd = StrToIntPtr(rFindOnlyHex.Match(line).Value);
+                IntPtr wHnd = StrToIntPtr(rTableClose.Match(line).Groups[0].Value);
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.Close();
