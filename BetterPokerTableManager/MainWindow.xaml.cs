@@ -25,7 +25,10 @@ namespace BetterPokerTableManager
             InitializeComponent();
 
             // debug
-            PSLogHandler.Start();
+            // Start manual table finder before logs to ensure loghandler doesn't try to run commands on unknown tables (in case BPTM is started during a session)
+            //PSLogHandler.Start();
+
+            PSLogHandler.AnalyzeLine("table window 000E13DE has been destroyed");
         }
     }
 }

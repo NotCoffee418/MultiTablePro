@@ -168,3 +168,8 @@ CONFIRMED 31A20 references the window handle of the table, WOO ^^
 examples:
 UpdateMyCard 0: c35 [31A20]
 -> MSG_0x0009-T 4325529109 00031A20
+
+---
+Table close pops:
+Table::_shutdown( 1 ) 000E13DE
+table window 000E13DE has been destroyed

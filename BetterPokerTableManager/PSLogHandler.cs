@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace BetterPokerTableManager
         private static void WatchNewLogFiles(object state)
         {
             /// For future reference: FullTilt's log files are AppData\Local\FullTilt.xx\FullTilt.log.x - it's window titles work the same way
-            /// The PS .com client's log folder DOES NOT have the .COM extension in it's directory name. (tested & confirmed)
+            /// The PS.com (and likely FT.com) client's log folder DOES NOT have the .COM extension in it's directory name. (tested & confirmed)
 
             // Find PS folder for user's client
             string appDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -94,12 +95,39 @@ namespace BetterPokerTableManager
                             }
 
                             // Send in for analysis
-                            Console.WriteLine(currRead);
+                            AnalyzeLine(currRead);
                         }
                         else Thread.Sleep(50); // Sleep on no activity
                     }
                 }
             }
+        }
+
+        // Analysis Regex Collections
+        private static Regex rTableClose = new Regex(@"table window [a-fA-F0-9]+ has been destroyed");
+        private static Regex rTableCloseFindHex = new Regex(@"\b[a-fA-F0-9]+\b");
+
+
+        /// <summary>
+        /// Analyses line & runs log-based commands
+        /// </summary>
+        /// <param name="line"></param>
+        public static void AnalyzeLine(string line)
+        {
+            // Report that table has been closed
+            if (rTableClose.IsMatch(line))
+            {
+                IntPtr wHnd = StrToIntPtr(rTableCloseFindHex.Match(line).Value);
+                Table t = Table.Find(wHnd);
+                if (t != null)
+                    t.Close();
+            }
+
+        }
+
+        private static IntPtr StrToIntPtr(string input)
+        {
+            return new IntPtr(Convert.ToInt32(input.Replace("0x",""), 16));
         }
     }
 }
