@@ -173,3 +173,7 @@ UpdateMyCard 0: c35 [31A20]
 Table close pops:
 Table::_shutdown( 1 ) 000E13DE
 table window 000E13DE has been destroyed
+
+--
+Window create:
+table window 003717F8 has been created { theme: "nova.P7"; size: 105%; }

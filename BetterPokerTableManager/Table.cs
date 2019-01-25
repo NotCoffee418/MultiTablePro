@@ -21,6 +21,8 @@ namespace BetterPokerTableManager
             get { return _windowHandle; }
             private set { _windowHandle = value; }
         }
+        public bool IsAside { get; set; }
+        public bool IsActive { get; set; }
 
         public static List<Table> ActiveTables = new List<Table>();
 
@@ -34,13 +36,34 @@ namespace BetterPokerTableManager
         /// </summary>
         public void MakeActive()
         {
-
+            if (IsAside && !IsActive)
+                return;
         }
 
         /// <summary>
         /// Places the table in an available inactive position.
         /// </summary>
         public void MakeInactive()
+        {
+            if (IsAside && IsActive)
+                return;
+
+        }
+
+        /// <summary>
+        /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
+        /// Aside tables need to be manually made inactive before they return to their normal rotation. 
+        /// </summary>
+        public void MakeAside()
+        {
+
+        }
+
+        /// <summary>
+        /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
+        /// Aside tables need to be manually made inactive before they return to their normal rotation.
+        /// </summary>
+        public void MakeUnAside()
         {
 
         }

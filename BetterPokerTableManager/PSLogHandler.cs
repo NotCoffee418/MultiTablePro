@@ -104,8 +104,11 @@ namespace BetterPokerTableManager
         }
 
         // Analysis Regex Collections
+        private static Regex rFindOnlyHex = new Regex(@"\b[a-fA-F0-9]+\b");
         private static Regex rTableClose = new Regex(@"table window [a-fA-F0-9]+ has been destroyed");
-        private static Regex rTableCloseFindHex = new Regex(@"\b[a-fA-F0-9]+\b");
+        private static Regex rUserFolded = new Regex(@"USR ACT button 'Fold' [a-fA-F0-9]+");
+        private static Regex rNewHandDealt = new Regex(@"MyPrivateCard 0: c[a-fA-F0-9]+ \[[a-fA-F0-9]+\]+");
+        private static Regex rNewHandDealtFindHex = new Regex(@"\[[a-fA-F0-9]+\]"); 
 
 
         /// <summary>
@@ -114,15 +117,38 @@ namespace BetterPokerTableManager
         /// <param name="line"></param>
         public static void AnalyzeLine(string line)
         {
+            // User has folded, make inactive
+            // Example: USR ACT button 'Fold' 00300B96
+            if (rUserFolded.IsMatch(line))
+            {
+                IntPtr wHnd = StrToIntPtr(rFindOnlyHex.Match(line).Value);
+                Table t = Table.Find(wHnd);
+                if (t != null)
+                    t.MakeInactive();
+            }
+
+            // Hand is over (new hand dealt), make inactive (if not already)
+            // Example: MyPrivateCard 0: c21 [300B96]
+            if (rNewHandDealt.IsMatch(line))
+            {
+                // todo: Can this find hex between [] but exclude [] since it runs so often? I'm no good at regex...
+                IntPtr wHnd = StrToIntPtr(rNewHandDealtFindHex.Match(line).Value.Replace("[", "").Replace("]", ""));
+                Table t = Table.Find(wHnd);
+                if (t != null)
+                    t.MakeInactive();
+            }
+
             // Report that table has been closed
+            // Example: table window 003717F8 has been destroyed
             if (rTableClose.IsMatch(line))
             {
-                IntPtr wHnd = StrToIntPtr(rTableCloseFindHex.Match(line).Value);
+                IntPtr wHnd = StrToIntPtr(rFindOnlyHex.Match(line).Value);
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.Close();
             }
 
+            // todo: action required, priority table, new table found (has reference), 
         }
 
         private static IntPtr StrToIntPtr(string input)
