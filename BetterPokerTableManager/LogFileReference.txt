@@ -205,3 +205,67 @@ USR ACT button 'CallX' 00041A64
 ^limp
 
 
+---- Action required (zoom)
+configAdvActions 000C1A60
+box[ 1 ] 0
+ act 'F' -1
+box[ 4 ] 0
+ act 'C' 3
+box[ 5 ] 0
+ act 'C' -1
+ 'F' 0
+ 'C' 3
+ '*' 'E' 8, 200, 2, 1
+configAdvActions 000C1A60
+time=30
+^ user action required preflop
+--
+configAdvActions 000C1A60
+box[ 1 ] 0
+ act 'F' -1
+box[ 4 ] 0
+ act 'C' 2
+box[ 5 ] 0
+ act 'C' -1
+ configAdvActions 000C1A60
+box[ 1 ] 0
+ act 'F' -1
+box[ 4 ] 0
+ act 'C' 2
+box[ 5 ] 0
+ act 'C' -1
+configAdvActions 000C1A60
+box[ 1 ] 0
+ act 'F' -1
+box[ 4 ] 0
+ act 'C' 2
+box[ 5 ] 0
+ act 'C' -1
+ ^^ similar but no action required
+Only clear difference seems the three extra lines ending with: '*' 'E' 8, 200, 2, 1
+
+box[ 0 ] 0
+ act 'c' -1
+ act 'F' -1
+box[ 2 ] 0
+ act 'c' -1
+box[ 3 ] 0
+ act 'c' -1
+ act 'C' -1
+^multiple act lines possible...
+
+box[ 0 ] 0
+ act 'c' -1
+ act 'F' -1
+box[ 2 ] 0
+ act 'c' -1
+box[ 3 ] 0
+ act 'c' -1
+ act 'C' -1
+ 'F' 0
+ 'c' 0
+ '*' 'E' 4, 200, 2, 1
+ ^ 
+--
+^^ disregard all that, relevant -> MSG_s were being filtered out
+Action required example: -> MSG_0x0007-T unknownnumbers wHnd

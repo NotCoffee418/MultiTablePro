@@ -28,9 +28,22 @@ namespace BetterPokerTableManager
         public static List<Table> KnownTables = new List<Table>();
         public static Queue<Table> ActionQueue = new Queue<Table>();
 
-        public static Table Find(IntPtr wHnd)
+        /// <summary>
+        /// Finds a known table.
+        /// </summary>
+        /// <param name="wHnd">Search by window handle</param>
+        /// <param name="makeMissing">Register the table if it's unknown?</param>
+        /// <returns>null or Table matching the wHnd</returns>
+        public static Table Find(IntPtr wHnd, bool registerMissing = false)
         {
-            return KnownTables.FirstOrDefault(t => t.WindowHandle == wHnd);
+            Table table = KnownTables.FirstOrDefault(t => t.WindowHandle == wHnd);
+            if (table == null && registerMissing)
+            {
+                table = new Table(wHnd);
+                Logger.Log($"Table.Find() could not find table ({wHnd}). " +
+                    "Registering missing table. Likely a result of tables running before BPTM started.", Logger.Status.Warning);
+            }
+            return table;
         }
 
         /// <summary>
@@ -47,7 +60,6 @@ namespace BetterPokerTableManager
             }
             if (!fromQueue)
                 ActionQueue.Enqueue(this);
-
 
             return true;
         }

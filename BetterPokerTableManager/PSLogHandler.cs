@@ -66,11 +66,12 @@ namespace BetterPokerTableManager
         {
             // Register log file
             activeLogFiles.Add(path);
+            Logger.Log("Watching log file: {path}");
 
             // Loading vars
             DateTime startAnalysisTime = DateTime.Now;
             DateTime loadFoundTimeStamp = DateTime.MinValue;
-            bool loading = true;
+            bool loading = true; // Should be true - false will analyse the whole log
             string currRead = "";
 
             // Multiline vars
@@ -126,13 +127,14 @@ namespace BetterPokerTableManager
 
 
         // Finds relevant lines
-        private static Regex rUselessLines = new Regex(@"^_?Comm+|^->+|^\[+|^\<+|^[+]+|^Thread+|^SaG+|^BASEADDR+");
+        private static Regex rUselessLines = new Regex(@"^_?Comm+|^\[+|^\<+|^[+]+|^Thread+|^SaG+|^BASEADDR+");
         private static Regex rFindTimestamp = new Regex(@"\[(.{19})\]");
         private static Regex rTableClose = new Regex(@"table window ([a-fA-F0-9]{8}) has been destroyed");
         private static Regex rUserFolded = new Regex(@"USR ACT button 'Fold' ([a-fA-F0-9]{8})");
         private static Regex rNewHandDealt = new Regex(@"MyPrivateCard 0: c[a-fA-F0-9]+ \[([a-fA-F0-9]+)\]+");
         private static Regex rNewTableFound = new Regex(@"table window ([a-fA-F0-9]{8}) has been created");
         private static Regex rFoldWasCheck = new Regex(@"USR ACT Check/Fold - Check confirmed [a-fA-F0-9]{8}");
+        private static Regex rActionRequired = new Regex(@"-> MSG_0x0007-T [0-9]+ ([a-fA-F0-9]{8})");
 
 
         /// <summary>
@@ -143,9 +145,19 @@ namespace BetterPokerTableManager
         public static List<string> AnalyzeLine(List<string> lines, ref Queue<string> reAnalysisQueue)
         {
             // Quickly skip common useless lines that start with:
-            // [,<,+,->, Comm, _Comm and all obvious visible words.
+            // [,<,+, Comm, _Comm and all obvious visible words.
             if (rUselessLines.IsMatch(lines[0]))
                 return lines.Count() == 1 ? null : lines;
+
+            // Action required on table
+            // Example: -> MSG_0x0007-T 4271832804 00021DAC
+            else if (rActionRequired.IsMatch(lines[0]))
+            {
+                IntPtr wHnd = StrToIntPtr(rActionRequired.Match(lines[0]).Groups[1].Value);
+                Table t = Table.Find(wHnd, registerMissing:true); // Find or register
+                Logger.Log($"Action required on table ({wHnd})", Logger.Status.Warning);
+                t.MakeActive();
+            }
 
             // User has folded, make inactive
             // Example: USR ACT button 'Fold' 00300B96
