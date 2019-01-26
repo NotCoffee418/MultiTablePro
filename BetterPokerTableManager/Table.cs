@@ -101,6 +101,7 @@ namespace BetterPokerTableManager
         /// </summary>
         public void Close()
         {
+            Logger.Log($"Closing table {WindowHandle}.");
             KnownTables.RemoveAll(t => t.WindowHandle == WindowHandle);
         }
     }

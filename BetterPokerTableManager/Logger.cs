@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,11 +32,14 @@ namespace BetterPokerTableManager
                     SessionLog += Environment.NewLine;
                 SessionLog += entry;
 
+                Debug.WriteLine(entry);
                 // add to log file
+                /*
                 using (StreamWriter sw = File.AppendText("error.log"))
                 {
                     //sw.WriteLine(entry);
                 }
+                */
             }
         }
     }
