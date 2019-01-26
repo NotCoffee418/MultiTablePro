@@ -85,7 +85,7 @@ namespace BetterPokerTableManager
                         {
                             if (loading) // Don't analyse old log entries.
                             {
-                                if (currRead[0] == '[' && DateTime.TryParseExact(currRead, // if line likely contains timestamp, can parse and new
+                                if (rFindTimestamp.IsMatch(currRead) && DateTime.TryParseExact(currRead, // if line likely contains timestamp, can parse and new
                                      "[yyyy/MM/dd H:mm:ss]", CultureInfo.InvariantCulture, DateTimeStyles.None, out loadFoundTimeStamp)
                                       && loadFoundTimeStamp > startAnalysisTime)
                                 {
@@ -103,10 +103,14 @@ namespace BetterPokerTableManager
             }
         }
 
-        // Analysis Regex Collections
+
+        // Finds relevant lines
+        private static Regex rUselessLines = new Regex(@"^_?Comm+|^->+|^\[+|^\<+|^[+]+|^Thread+|^SaG+|^BASEADDR+");
+        private static Regex rFindTimestamp = new Regex(@"\[(.{19})\]");
         private static Regex rTableClose = new Regex(@"table window ([a-fA-F0-9]{8}) has been destroyed");
         private static Regex rUserFolded = new Regex(@"USR ACT button 'Fold' ([a-fA-F0-9]{8})");
         private static Regex rNewHandDealt = new Regex(@"MyPrivateCard 0: c[a-fA-F0-9]+ \[([a-fA-F0-9]+)\]+");
+        private static Regex rNewTableFound = new Regex(@"table window ([a-fA-F0-9]{8}) has been created");
 
 
         /// <summary>
@@ -115,14 +119,20 @@ namespace BetterPokerTableManager
         /// <param name="line"></param>
         public static void AnalyzeLine(string line)
         {
+            // Quickly skip common useless lines that start with:
+            // [,<,+,->, Comm, _Comm and all obvious visible words.
+            if (rUselessLines.IsMatch(line))
+                return;
+
             // User has folded, make inactive
             // Example: USR ACT button 'Fold' 00300B96
-            if (rUserFolded.IsMatch(line))
+            else if (rUserFolded.IsMatch(line))
             {
                 IntPtr wHnd = StrToIntPtr(rUserFolded.Match(line).Groups[0].Value);
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.MakeInactive();
+                else Logger.Log("Attempting to make a table inactive that could not be found (user folded)", Logger.Status.Warning);
             }
 
             // Hand is over (new hand dealt), make inactive (if not already)
@@ -132,6 +142,7 @@ namespace BetterPokerTableManager
                 Table t = Table.Find(StrToIntPtr(rNewHandDealt.Match(line).Groups[0].Value));
                 if (t != null)
                     t.MakeInactive();
+                else Logger.Log("Attempting to make a table inactive that could not be found (hand ended)", Logger.Status.Warning);
             }
 
             // Report that table has been closed
@@ -142,9 +153,18 @@ namespace BetterPokerTableManager
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.Close();
+                else Logger.Log("Attempting to close a table that could not be found", Logger.Status.Warning);
             }
 
-            // todo: action required, priority table, new table found (has reference), 
+            // Report that a new table has been found
+            // Example: table window 003717F8 has been created { theme: "nova.P7"; size: 105%; }
+            else if (rNewTableFound.IsMatch(line))
+            {
+                IntPtr wHnd = StrToIntPtr(rNewTableFound.Match(line).Groups[0].Value);
+                new Table(wHnd); // constructor does the rest
+            }
+
+            // todo: action required, priority table 
         }
 
         private static IntPtr StrToIntPtr(string input)

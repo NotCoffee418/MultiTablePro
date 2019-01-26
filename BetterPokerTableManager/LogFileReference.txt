@@ -177,3 +177,31 @@ table window 000E13DE has been destroyed
 --
 Window create:
 table window 003717F8 has been created { theme: "nova.P7"; size: 105%; }
+
+
+-- More details about user actions - this complicates things
+time=30
+HotKey actuated: Shift + & (Fold)
+USR ACT HotKey: 'Fold' for 00041A64 (4327369944), hand 196224813439
+USR ACT button 'Fold' 00041A64
+USR ACT Check/Fold - Check confirmed 00041A64
+^ press fold when only check is available.
+^ also going into timebank. Beyond time=30 you get nothing.
+
+HotKey actuated: Shift + & (Fold)
+USR ACT HotKey: 'Fold' for 00041A64 (4327369944), hand 196224644612
+USR ACT button 'Fold' 00041A64
+5797 'F' 0 - 0
+^actual fold
+
+
+HotKey actuated: Shift + é (Check/Call)
+USR ACT HotKey: 'Check/Call' for 00041A64 (4327369944), hand 196224706594
+USR ACT button 'Check' 00041A64
+5850 'c' 0 - 0
+^ actual check
+
+USR ACT button 'CallX' 00041A64
+^limp
+
+

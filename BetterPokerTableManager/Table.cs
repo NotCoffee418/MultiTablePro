@@ -10,8 +10,9 @@ namespace BetterPokerTableManager
     {
         public Table(IntPtr wHnd)
         {
+            Logger.Log($"Creating new table {wHnd}");
             WindowHandle = wHnd;
-            ActiveTables.Add(this);
+            KnownTables.Add(this);            
         }
 
         IntPtr _windowHandle;
@@ -24,48 +25,75 @@ namespace BetterPokerTableManager
         public bool IsAside { get; set; }
         public bool IsActive { get; set; }
 
-        public static List<Table> ActiveTables = new List<Table>();
+        public static List<Table> KnownTables = new List<Table>();
+        public static Queue<Table> ActionQueue = new Queue<Table>();
 
         public static Table Find(IntPtr wHnd)
         {
-            return ActiveTables.FirstOrDefault(t => t.WindowHandle == wHnd);
+            return KnownTables.FirstOrDefault(t => t.WindowHandle == wHnd);
         }
 
         /// <summary>
-        /// Places the table in an available active position.
+        /// Places the table in an available active position or adds it to the action queue.
         /// </summary>
-        public void MakeActive()
+        /// <param name="fromQueue"></param>
+        /// <returns></returns>
+        public bool MakeActive(bool fromQueue = false)
         {
-            if (IsAside && !IsActive)
-                return;
+            if (IsAside || IsActive)
+            {
+                Logger.Log($"Attempting to make {WindowHandle} active. Is already active or aside.");
+                return false;
+            }
+            if (!fromQueue)
+                ActionQueue.Enqueue(this);
+
+
+            return true;
         }
 
         /// <summary>
         /// Places the table in an available inactive position.
         /// </summary>
-        public void MakeInactive()
+        public bool MakeInactive()
         {
-            if (IsAside && IsActive)
-                return;
+            if (IsAside || !IsActive)
+            {
+                Logger.Log($"Attempting to make {WindowHandle} inactive. Is already inactive or aside.");
+                return false;
+            }
 
+            return true;
         }
 
         /// <summary>
         /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
-        /// Aside tables need to be manually made inactive before they return to their normal rotation. 
+        /// Aside tables need to be manually made UnAside before they return to their normal rotation. 
         /// </summary>
-        public void MakeAside()
+        public bool MakeAside()
         {
 
+            return true;
         }
 
         /// <summary>
         /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
-        /// Aside tables need to be manually made inactive before they return to their normal rotation.
+        /// Aside tables need to be manually made UnAside before they return to their normal rotation.
         /// </summary>
-        public void MakeUnAside()
+        public bool MakeUnAside()
         {
 
+            return true;
+        }
+
+        /// <summary>
+        /// This should trigger when to act time is running low.
+        /// Table will be made active, failing that, table will be put aside
+        /// </summary>
+        public bool MakePriority()
+        {
+
+            return true;
         }
 
         /// <summary>
@@ -73,7 +101,7 @@ namespace BetterPokerTableManager
         /// </summary>
         public void Close()
         {
-            ActiveTables.RemoveAll(t => t.WindowHandle == WindowHandle);
+            KnownTables.RemoveAll(t => t.WindowHandle == WindowHandle);
         }
     }
 }
