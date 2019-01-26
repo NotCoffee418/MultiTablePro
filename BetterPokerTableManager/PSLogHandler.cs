@@ -70,7 +70,7 @@ namespace BetterPokerTableManager
             // Loading vars
             DateTime startAnalysisTime = DateTime.Now;
             DateTime loadFoundTimeStamp = DateTime.MinValue;
-            bool loading = false;
+            bool loading = true;
             string currRead = "";
 
             // Multiline vars
@@ -82,7 +82,7 @@ namespace BetterPokerTableManager
             {
                 using (var sr = new StreamReader(fs, Encoding.Default))
                 {
-                    while (true)
+                    while ((bool)App.Current.Properties["IsRunning"])
                     {
                         currRead = sr.ReadLine();
                         // no line found
@@ -161,7 +161,7 @@ namespace BetterPokerTableManager
                     Table t = Table.Find(wHnd);
                     if (t != null)
                         t.MakeInactive();
-                    else Logger.Log("Attempting to make a table inactive that could not be found (user folded)", Logger.Status.Warning);
+                    else Logger.Log($"Attempting to make a table ({wHnd}) inactive that could not be found (user folded)", Logger.Status.Warning);
 
                     // Line was irrelevant to fold, requeue for analysis
                     reAnalysisQueue.Enqueue(lines[1]);
@@ -172,10 +172,11 @@ namespace BetterPokerTableManager
             // Example: MyPrivateCard 0: c21 [300B96]
             else if (rNewHandDealt.IsMatch(lines[0]))
             {
-                Table t = Table.Find(StrToIntPtr(rNewHandDealt.Match(lines[0]).Groups[1].Value));
+                IntPtr wHnd = StrToIntPtr(rNewHandDealt.Match(lines[0]).Groups[1].Value);
+                Table t = Table.Find(wHnd);
                 if (t != null)
                     t.MakeInactive();
-                else Logger.Log("Attempting to make a table inactive that could not be found (hand ended)", Logger.Status.Warning);
+                else Logger.Log($"Attempting to make a table ({wHnd}) inactive that could not be found (hand ended)", Logger.Status.Warning);
             }
 
             // Report that table has been closed
@@ -186,7 +187,7 @@ namespace BetterPokerTableManager
                 Table t = Table.Find(wHnd);
                 if (t != null)
                     t.Close();
-                else Logger.Log("Attempting to close a table that could not be found", Logger.Status.Warning);
+                else Logger.Log($"Attempting to close a table ({wHnd}) that could not be found", Logger.Status.Warning);
             }
 
             // Report that a new table has been found
@@ -194,7 +195,11 @@ namespace BetterPokerTableManager
             else if (rNewTableFound.IsMatch(lines[0]))
             {
                 IntPtr wHnd = StrToIntPtr(rNewTableFound.Match(lines[0]).Groups[1].Value);
-                new Table(wHnd); // constructor does the rest
+                if (Table.Find(wHnd) == null)
+                {
+                    new Table(wHnd); // constructor does the rest
+                    Logger.Log($"Opening new table ({wHnd}) found in logs.");
+                }
             }
 
             // todo: action required, priority table 
@@ -204,7 +209,16 @@ namespace BetterPokerTableManager
 
         private static IntPtr StrToIntPtr(string input)
         {
-            return new IntPtr(Convert.ToInt32(input.Replace("0x",""), 16));
+            try
+            {
+                return new IntPtr(Convert.ToInt32(input.Replace("0x", ""), 16));
+            }
+            catch
+            {
+                // This should never happen. Kill program if it does.
+                Logger.Log($"Failed run StrToIntPtr on {input}", Logger.Status.Fatal);
+                return new IntPtr(0);
+            }            
         }
     }
 }
