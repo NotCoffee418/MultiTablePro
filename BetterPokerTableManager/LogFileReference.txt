@@ -204,68 +204,41 @@ USR ACT button 'Check' 00041A64
 USR ACT button 'CallX' 00041A64
 ^limp
 
+--
 
----- Action required (zoom)
-configAdvActions 000C1A60
-box[ 1 ] 0
- act 'F' -1
-box[ 4 ] 0
- act 'C' 3
-box[ 5 ] 0
- act 'C' -1
- 'F' 0
- 'C' 3
- '*' 'E' 8, 200, 2, 1
-configAdvActions 000C1A60
+Action required: -> MSG_0x0007-T unknownnumbers wHnd
+Time 30 seconds:
+-> MSG_0x0021-T 4271897567 000E1D4C
 time=30
-^ user action required preflop
---
-configAdvActions 000C1A60
-box[ 1 ] 0
- act 'F' -1
-box[ 4 ] 0
- act 'C' 2
-box[ 5 ] 0
- act 'C' -1
- configAdvActions 000C1A60
-box[ 1 ] 0
- act 'F' -1
-box[ 4 ] 0
- act 'C' 2
-box[ 5 ] 0
- act 'C' -1
-configAdvActions 000C1A60
-box[ 1 ] 0
- act 'F' -1
-box[ 4 ] 0
- act 'C' 2
-box[ 5 ] 0
- act 'C' -1
- ^^ similar but no action required
-Only clear difference seems the three extra lines ending with: '*' 'E' 8, 200, 2, 1
 
-box[ 0 ] 0
- act 'c' -1
- act 'F' -1
-box[ 2 ] 0
- act 'c' -1
-box[ 3 ] 0
- act 'c' -1
- act 'C' -1
-^multiple act lines possible...
+Time expired, sitting out (tested on zoom):
+{ 300CD409 } TableSubscrConnection{bltable.1047912.4271829805}::disconnect
+MSG_0x000A-T 4279145429 000E1D4C error 0 ''
+-> MSG_0x0009-T 4279145429 000E1D4C
 
-box[ 0 ] 0
- act 'c' -1
- act 'F' -1
-box[ 2 ] 0
- act 'c' -1
-box[ 3 ] 0
- act 'c' -1
- act 'C' -1
- 'F' 0
- 'c' 0
- '*' 'E' 4, 200, 2, 1
- ^ 
---
-^^ disregard all that, relevant -> MSG_s were being filtered out
-Action required example: -> MSG_0x0007-T unknownnumbers wHnd
+
+also on action required:
+-> MSG_0x1014-T 4327321103 001B1D78
+
+
+on action done (to reduce priority
+USR ACT button 'Check' 00041A64
+<- MSG_0x0008-T 4327369944 00041A64
+
+USR ACT button 'Fold' 00041A64
+USR ACT Check/Fold - Check confirmed 00041A64
+<- MSG_0x0008-T 4327369944 00041A64
+
+USR ACT HotKey: 'Bet/Raise' for 00041A64 (4327369944), hand 196224625873
+USR ACT button 'RaiseX' 00041A64
+<- MSG_0x0008-T 4327369944 00041A64
+
+^ 0008 occurs on all actions including fold and whatever this is (showdown? occurs shortly before HANDID each time:
+-> MSG_0x0007-T 4327369944 00041A64
+ 'M' 0
+ 's' 65536
+<- MSG_0x0024-T 4327369944 00041A64
+<- MSG_0x0008-T 4327369944 00041A64
+5767 'M' 0 - 0
+
+ ^ It's not sitout, cards are being dealt to me right after - Most likely indicates showdown
