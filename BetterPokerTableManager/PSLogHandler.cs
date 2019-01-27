@@ -65,8 +65,8 @@ namespace BetterPokerTableManager
         private static void WatchLog(string path)
         {
             // Register log file
-            activeLogFiles.Add(path);
-            Logger.Log("Watching log file: {path}");
+            lock (activeLogFiles) { activeLogFiles.Add(path); }
+            Logger.Log($"Watching log file: {path}");
 
             // Loading vars
             DateTime startAnalysisTime = DateTime.Now;
@@ -155,19 +155,26 @@ namespace BetterPokerTableManager
             {
                 var rMatch = rTableMsg.Match(lines[0]);
                 IntPtr wHnd = StrToIntPtr(rMatch.Groups[3].Value);
-                Table t;
-                switch (int.Parse(rMatch.Groups[2].Value))
+
+                // MSG id is supposed to be hex. Sticking to int parsing since I only see decimals in log.
+                switch (int.Parse(rMatch.Groups[2].Value)) 
                 { 
                     case 7: // Action required
-                        t = Table.Find(wHnd, registerMissing: true); // Find or register
-                        Logger.Log($"Action required on table ({wHnd})", Logger.Status.Warning);
-                        t.MakeActive();
+                        Logger.Log($"PSLogHandler: Action required on table ({wHnd})");
+                        Table.SetPriority(wHnd, Table.Status.ActionRequired, registerMissing: true);
                         break;
                     case 8: // Action completed (WARNING: Also includes fold, MSG occurs AFTER USR ACT button 'Fold'!)
-                        // todo: Reduce priority, give higher priority table an Active spot
+                        Table t = Table.Find(wHnd);                        
+                        if (t.Priority == Table.Status.HandEndedOrNotInHand)
+                            Logger.Log($"PSLogHandler: Detected action done, action was fold, ignoring on table ({wHnd})");
+                        else {
+                            Logger.Log($"PSLogHandler: Detected action done, still in hand on table ({wHnd})");
+                            t.Priority = Table.Status.InHandNoActionRequired;
+                        }
                         break;
                     case 21: // High priority, time warning has sounded
-                        // todo: Increase priority, time is running low (next line indicates seconds remaining)
+                        Logger.Log($"PSLogHandler: time running low on table ({wHnd})");
+                        Table.SetPriority(wHnd, Table.Status.TimeRunningLow, registerMissing: true);
                         break;
                 }
                 
@@ -184,10 +191,8 @@ namespace BetterPokerTableManager
                 else if (!rFoldWasCheck.IsMatch(lines[1])) // Fold was not a check
                 {
                     IntPtr wHnd = StrToIntPtr(rUserFolded.Match(lines[0]).Groups[1].Value);
-                    Table t = Table.Find(wHnd);
-                    if (t != null)
-                        t.MakeInactive();
-                    else Logger.Log($"Attempting to make a table ({wHnd}) inactive that could not be found (user folded)", Logger.Status.Warning);
+                    Logger.Log($"PSLogHandler: User folded at ({wHnd})");
+                    Table.SetPriority(wHnd, Table.Status.HandEndedOrNotInHand);
 
                     // Line was irrelevant to fold, requeue for analysis
                     reAnalysisQueue.Enqueue(lines[1]);
@@ -199,10 +204,8 @@ namespace BetterPokerTableManager
             else if (rNewHandDealt.IsMatch(lines[0]))
             {
                 IntPtr wHnd = StrToIntPtr(rNewHandDealt.Match(lines[0]).Groups[1].Value);
-                Table t = Table.Find(wHnd);
-                if (t != null)
-                    t.MakeInactive();
-                else Logger.Log($"Attempting to make a table ({wHnd}) inactive that could not be found (hand ended)", Logger.Status.Warning);
+                Logger.Log($"PSLogHandler: Hand ended at ({wHnd})");
+                Table.SetPriority(wHnd, Table.Status.HandEndedOrNotInHand);
             }
 
             // Report that table has been closed
@@ -211,9 +214,11 @@ namespace BetterPokerTableManager
             {
                 IntPtr wHnd = StrToIntPtr(rTableClose.Match(lines[0]).Groups[1].Value);
                 Table t = Table.Find(wHnd);
-                if (t != null)
+                if (t != null) {
+                    Logger.Log($"PSLogHandler: Table ({wHnd}) was closed.");
                     t.Close();
-                else Logger.Log($"Attempting to close a table ({wHnd}) that could not be found", Logger.Status.Warning);
+                }
+                else Logger.Log($"PSLogHandler: Attempting to close a table ({wHnd}) that was not registered", Logger.Status.Warning);
             }
 
             // Report that a new table has been found
@@ -224,23 +229,20 @@ namespace BetterPokerTableManager
                 if (Table.Find(wHnd) == null)
                 {
                     new Table(wHnd); // constructor does the rest
-                    Logger.Log($"Opening new table ({wHnd}) found in logs.");
+                    Logger.Log($"PSLogHandler: New table ({wHnd}) detected.");
                 }
+                else Logger.Log($"PSLogHandler: Attempting to open table ({wHnd}) that was already open.", Logger.Status.Warning);
             }
-
-            // todo: action required, priority table 
 
             return null;
         }
 
         private static IntPtr StrToIntPtr(string input)
         {
-            try
-            {
+            try {
                 return new IntPtr(Convert.ToInt32(input.Replace("0x", ""), 16));
             }
-            catch
-            {
+            catch {
                 // This should never happen. Kill program if it does.
                 Logger.Log($"Failed run StrToIntPtr on {input}", Logger.Status.Fatal);
                 return new IntPtr(0);

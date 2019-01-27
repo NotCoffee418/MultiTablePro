@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
@@ -10,23 +12,66 @@ namespace BetterPokerTableManager
     {
         public Table(IntPtr wHnd)
         {
-            Logger.Log($"Creating new table {wHnd}");
             WindowHandle = wHnd;
-            KnownTables.Add(this);            
+            RegisterNewTable();
         }
 
+        // Priority status of the table determines what WindowManager should do with it.
+        public enum Status
+        {
+            Closed = 0,
+            OpenButNotJoined = 1,
+            HandEndedOrNotInHand = 2,
+            InHandNoActionRequired = 3,
+            ActionRequired = 4,
+            TimeRunningLow = 5,
+        }
+        static string[] statusNames = Enum.GetNames(typeof(Status));
+
+        bool _isAside;
         IntPtr _windowHandle;
+        Status _priority = Status.HandEndedOrNotInHand;
+        DateTime _priorityChangedTime;
 
         public IntPtr WindowHandle
         {
             get { return _windowHandle; }
             private set { _windowHandle = value; }
         }
-        public bool IsAside { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsAside
+        {
+            get { return _isAside; }
+            set {
+                _isAside = value;
+                ActionQueue.Enqueue(this);
+            }
+        }
+        public Status Priority
+        {
+            get { return _priority; }
+            set {
+                if (_priority != value)
+                {
+                    Logger.Log($"Changing priority of table {WindowHandle} from '{statusNames[(int)_priority]}' to '{statusNames[(int)value]}'");                    
+                    _priority = value;
+                    _priorityChangedTime = DateTime.Now;
+                    ActionQueue.Enqueue(this);
+                }                
+            }
+        }
+        public DateTime PriorityChangedTime
+        {
+            get
+            {
+                if (_priorityChangedTime == DateTime.MinValue)
+                    return DateTime.Now;
+                else return _priorityChangedTime;
+            }
+        }
 
+        #region Static
         public static List<Table> KnownTables = new List<Table>();
-        public static Queue<Table> ActionQueue = new Queue<Table>();
+        public static ConcurrentQueue<Table> ActionQueue = new ConcurrentQueue<Table>();
 
         /// <summary>
         /// Finds a known table.
@@ -45,67 +90,24 @@ namespace BetterPokerTableManager
             }
             return table;
         }
+        public static void SetPriority(IntPtr wHnd, Status priority, bool registerMissing = false)
+        {
+            Table t = Find(wHnd, registerMissing);
+            if (t == null && !registerMissing)
+                Logger.Log($"SetPriority() failed to set priority to {statusNames[(int)priority]} on nonexistent table ({wHnd}). registerMissing = false.", Logger.Status.Warning);
+            else t.Priority = priority;
+        }
+        #endregion
 
         /// <summary>
-        /// Places the table in an available active position or adds it to the action queue.
+        /// Registers this table
         /// </summary>
-        /// <param name="fromQueue"></param>
-        /// <returns></returns>
-        public bool MakeActive(bool fromQueue = false)
+        public void RegisterNewTable()
         {
-            if (IsAside || IsActive)
-            {
-                Logger.Log($"Attempting to make {WindowHandle} active. Is already active or aside.");
-                return false;
+            Logger.Log($"Registering new table ({WindowHandle}).");
+            lock (KnownTables) {
+                KnownTables.Add(this);
             }
-            if (!fromQueue)
-                ActionQueue.Enqueue(this);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Places the table in an available inactive position.
-        /// </summary>
-        public bool MakeInactive()
-        {
-            if (IsAside || !IsActive)
-            {
-                Logger.Log($"Attempting to make {WindowHandle} inactive. Is already inactive or aside.");
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
-        /// Aside tables need to be manually made UnAside before they return to their normal rotation. 
-        /// </summary>
-        public bool MakeAside()
-        {
-
-            return true;
-        }
-
-        /// <summary>
-        /// Triggered by hotkey, puts a table in a seperate aside slot. Useful to take notes or view the action. 
-        /// Aside tables need to be manually made UnAside before they return to their normal rotation.
-        /// </summary>
-        public bool MakeUnAside()
-        {
-
-            return true;
-        }
-
-        /// <summary>
-        /// This should trigger when to act time is running low.
-        /// Table will be made active, failing that, table will be put aside
-        /// </summary>
-        public bool MakePriority()
-        {
-
-            return true;
         }
 
         /// <summary>
@@ -113,8 +115,11 @@ namespace BetterPokerTableManager
         /// </summary>
         public void Close()
         {
-            Logger.Log($"Closing table {WindowHandle}.");
-            KnownTables.RemoveAll(t => t.WindowHandle == WindowHandle);
+            Priority = Status.Closed;
+            Logger.Log($"Closing table ({WindowHandle}).");
+            lock (KnownTables) {
+                KnownTables.RemoveAll(t => t.WindowHandle == WindowHandle);
+            }
         }
     }
 }
