@@ -242,3 +242,10 @@ USR ACT button 'RaiseX' 00041A64
 5767 'M' 0 - 0
 
  ^ It's not sitout, cards are being dealt to me right after - Most likely indicates showdown
+
+
+ Table size (roughly):
+ Min size: 475x360
+ Max size: 1320x940
+ 32px title
+-- w/(h-32)= ~1.45

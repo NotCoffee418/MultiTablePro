@@ -11,6 +11,8 @@ namespace BetterPokerTableManager
     {
         public Slot(ActivityUses activityUse, int x, int y, int width, int height)
         {
+            _lastUsedId++;
+            Id = _lastUsedId;
             ActivityUse = activityUse;
             X = x;
             Y = y;
@@ -24,8 +26,6 @@ namespace BetterPokerTableManager
             Active = 1,
             Aside = 2,
         }
-        static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
-
         public enum Statuses
         {
             Undefined = 0,
@@ -34,8 +34,11 @@ namespace BetterPokerTableManager
             UsedByActive = 2,
             UsedByPriority = 3,
         }
+        static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
         static string[] statusNames = Enum.GetNames(typeof(Statuses));
+        private int _lastUsedId;
 
+        public int Id { get; set; } // lower Id is used first
         public ActivityUses ActivityUse { get; set; }
         public Statuses Status { get; set; }
         public int X { get; set; }
