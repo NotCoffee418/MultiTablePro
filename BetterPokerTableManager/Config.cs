@@ -19,6 +19,7 @@ namespace BetterPokerTableManager
 
         }
 
+        #region Static
         public static Config LoadConfig(string path = "")
         {
             if (path == "") // Load default config file if it's not found.
@@ -45,5 +46,8 @@ namespace BetterPokerTableManager
         {
             throw new NotImplementedException();
         }
+        #endregion
+
+
     }
 }
