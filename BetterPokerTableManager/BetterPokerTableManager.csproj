@@ -55,9 +55,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Config.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="PSLogHandler.cs" />
     <Compile Include="Table.cs" />
+    <Compile Include="WindowManager.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -98,7 +100,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="LogFileReference.txt" />
+    <None Include="LogFileReference.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\default-config.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

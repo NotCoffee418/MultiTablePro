@@ -14,6 +14,18 @@ namespace BetterPokerTableManager
     {
         static Logger()
         {
+            // Set log level
+            LogLevel = (Status)Properties.Settings.Default.LogLevel;
+
+            // Determine log file location
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BetterPokerTableManager");
+            if (Debugger.IsAttached) // Seperate directory for debugger
+                path = Path.Combine(path, "Debug");
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            LogFilePath = Path.Combine(path, "output.log");
+
+            // Start log writer
             new Thread(() => StartLogWriter()).Start();
         }
 
@@ -25,11 +37,14 @@ namespace BetterPokerTableManager
             Fatal = 3
         }
         static string[] statusNames = Enum.GetNames(typeof(Status));
+
         static Queue<string> writeQueue = new Queue<string>();
+        static string LogFilePath { get; set; }
+        static Status LogLevel { get; set; }
 
         public static void Log(string message, Status status = Status.Info)
         {
-            if (Debugger.IsAttached || (int)status >= Properties.Settings.Default.LogLevel)
+            if (Debugger.IsAttached || status >= LogLevel)
             {
                 string entry = $"[{DateTime.Now.ToString("yyyy-MM-dd H:mm:ss")}][{statusNames[(int)status]}] {message}";
                 writeQueue.Enqueue(entry);
@@ -57,7 +72,7 @@ namespace BetterPokerTableManager
                     List<string> newLines = new List<string>();
                     while (writeQueue.Count > 0)
                         newLines.Add(writeQueue.Dequeue());
-                    File.AppendAllLines("output.log", newLines);
+                    File.AppendAllLines(LogFilePath, newLines);
                 }
             }
         }
