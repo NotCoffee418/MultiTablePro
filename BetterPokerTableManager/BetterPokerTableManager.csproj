@@ -59,6 +59,7 @@
     <Compile Include="Logger.cs" />
     <Compile Include="PSLogHandler.cs" />
     <Compile Include="Slot.cs" />
+    <Compile Include="SlotConfigHandler.cs" />
     <Compile Include="SlotConfigWindow.xaml.cs">
       <DependentUpon>SlotConfigWindow.xaml</DependentUpon>
     </Compile>

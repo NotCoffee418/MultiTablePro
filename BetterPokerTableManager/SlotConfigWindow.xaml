@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterPokerTableManager"
         mc:Ignorable="d"
-        Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528">
+        Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528" SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">

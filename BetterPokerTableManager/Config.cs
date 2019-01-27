@@ -26,7 +26,8 @@ namespace BetterPokerTableManager
             {
                 path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BetterPokerTableManager");
                 if (Debugger.IsAttached) // Seperate directory for debugger
-                    path = Path.Combine(path, "Debug");
+                    path = Path.Combine(path, "Debug", "Config");
+                else path = Path.Combine(path, "Config");
                 if (!Directory.Exists(path)) // Create missing data directory
                     Directory.CreateDirectory(path);
                 path = Path.Combine(path, "config.json");

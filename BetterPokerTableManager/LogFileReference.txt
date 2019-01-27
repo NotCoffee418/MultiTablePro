@@ -249,3 +249,7 @@ USR ACT button 'RaiseX' 00041A64
  Max size: 1320x940
  32px title
 -- w/(h-32)= ~1.45
+min: 1.44817073
+max: 1.4537444
+
+1.31944
