@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528"
         WindowStartupLocation="Manual" 
-        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Loaded="Window_Loaded">
+        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Loaded="Window_Loaded" Closing="Window_Closing">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">
@@ -69,7 +69,7 @@
             </GroupBox>
             <GroupBox Header="Priority (optional)" Width="160" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <StackPanel Orientation="Vertical">
-                    <ComboBox Name="idCb">
+                    <ComboBox Name="idCb" SelectionChanged="IdCb_SelectionChanged">
                         <ComboBoxItem Content="Auto"/>
                     </ComboBox>
                     <TextBlock>

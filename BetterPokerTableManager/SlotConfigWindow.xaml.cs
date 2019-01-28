@@ -27,12 +27,31 @@ namespace BetterPokerTableManager
             InitializeComponent();
             CurrentSlot = currentSlot;
             ActiveSlotConfigHandler = sch;
+            sch.ConfigSetupCompleted += Sch_ConfigSetupCompleted;
+            CurrentSlot.SlotIdChangedEventHandler += CurrentSlot_SlotIdChangedEventHandler;
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    $"created with slot hash {currentSlot.GetHashCode()}.");
+        }
+
+        private void CurrentSlot_SlotIdChangedEventHandler(object sender, EventArgs e)
+        {
+            var args = (SlotIdChangedEventArgs)e;
+            var win = (Slot)sender;
+            idCb.SelectedIndex = args.NewId;
+        }
+
+        private void Sch_ConfigSetupCompleted(object sender, EventArgs e)
+        {
+            IsDone = true; // allows closing
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Is done. Closing.");
+            Close();
         }
 
         public Slot CurrentSlot { get; set; }
         private bool AllowRecordChanges { get; set; }
+        private bool IsDone { get; set; }
         private SlotConfigHandler ActiveSlotConfigHandler { get; set; }
-        public event EventHandler ActivityUseChangedEventHandler;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -57,10 +76,9 @@ namespace BetterPokerTableManager
             if (e.RemovedItems.Count == 0)
                 return; // skip on load
 
-            var args = new ActivityUseChangedEventArgs(CurrentSlot,
-                (Slot.ActivityUses)e.RemovedItems[0], (Slot.ActivityUses)e.AddedItems[0]);
-            if (ActivityUseChangedEventHandler != null)
-                ActivityUseChangedEventHandler(this, args);
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    $"ActivityUsesBox SelectionChanged to {(int)(Slot.ActivityUses)e.AddedItems[0]}");
+            CurrentSlot.ActivityUse = (Slot.ActivityUses)e.AddedItems[0];
         }
         
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -83,23 +101,69 @@ namespace BetterPokerTableManager
 
         private void AddSlotBtn_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Requested add table.");
             ActiveSlotConfigHandler.AddTable();
         }
 
         private void RemoveSlotBtn_Click(object sender, RoutedEventArgs e)
         {
-            ActiveSlotConfigHandler.RemoveSlot(this);
-            Close();
+            if (ActiveSlotConfigHandler.RemoveSlot(this))
+            {
+                Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Requested remove table. Permission granted.");
+                IsDone = true; // give permission to close (else kill table runs twice
+                Close();
+            }
+            else Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Requested remove table. Permission denied.");            
         }
 
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Requested save.");
             ActiveSlotConfigHandler.Save();
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    "Requested cancel");
             ActiveSlotConfigHandler.Cancel();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Close acts as remove table - cancel if not allowed
+            if (!IsDone)
+            {
+                if (!ActiveSlotConfigHandler.RemoveSlot(this))
+                {
+
+                    Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                        "User attempted to close window. No permission to remove slot, canceling.");
+                    e.Cancel = true;
+                }
+            }
+            else
+                Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                        "User attempted to close window. Permission granted, closing.");
+        }
+
+        private void IdCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count == 0)
+                return; // skip on load
+
+            // Save
+            string sel = (string)((ComboBoxItem)e.AddedItems[0]).Content;
+            if (sel == "Auto")
+                sel = "0";
+
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    $"IdCb SelectionChanged to {sel}");
+            CurrentSlot.Id = int.Parse(sel);
         }
     }
 

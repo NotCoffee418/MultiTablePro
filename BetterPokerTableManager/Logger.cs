@@ -37,12 +37,19 @@ namespace BetterPokerTableManager
             Fatal = 3
         }
         static string[] statusNames = Enum.GetNames(typeof(Status));
+        static MessageBoxImage[] statusIcons = new MessageBoxImage[]
+        {
+            MessageBoxImage.Information,
+            MessageBoxImage.Warning,
+            MessageBoxImage.Error,
+            MessageBoxImage.Stop,
+        };
 
         static Queue<string> writeQueue = new Queue<string>();
         static string LogFilePath { get; set; }
         static Status LogLevel { get; set; }
 
-        public static void Log(string message, Status status = Status.Info)
+        public static void Log(string message, Status status = Status.Info, bool showMessageBox = false)
         {
             if (Debugger.IsAttached || status >= LogLevel)
             {
@@ -56,9 +63,11 @@ namespace BetterPokerTableManager
             {
                 Thread.Sleep(50); // give logwriter time to write
                 App.Current.Properties["IsRunning"] = false; // Stop all loops
-                MessageBox.Show(message, "Fatal error - closing application", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(message, "Fatal error - closing application", MessageBoxButton.OK, MessageBoxImage.Stop);
                 Application.Current.Shutdown();
             }
+            else if (showMessageBox)
+                MessageBox.Show(message, statusNames[(int)status], MessageBoxButton.OK, statusIcons[(int)status]);
         }
 
         private static void StartLogWriter()

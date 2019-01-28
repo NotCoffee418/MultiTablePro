@@ -11,8 +11,6 @@ namespace BetterPokerTableManager
     {
         public Slot(ActivityUses activityUse, int x, int y, int width, int height)
         {
-            _lastUsedId++;
-            Id = _lastUsedId;
             ActivityUse = activityUse;
             X = x;
             Y = y;
@@ -36,14 +34,59 @@ namespace BetterPokerTableManager
         }
         static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
         static string[] statusNames = Enum.GetNames(typeof(Statuses));
-        private int _lastUsedId;
 
-        public int Id { get; set; } // lower Id is used first
-        public ActivityUses ActivityUse { get; set; }
+        private int _id;
+        private ActivityUses _activityUses;
+
+        public int Id {
+            get { return _id; }
+            set {
+                var args = new SlotIdChangedEventArgs(_id, value);
+                _id = value;
+                if (SlotIdChangedEventHandler != null)
+                    SlotIdChangedEventHandler(this, args);
+            }
+            
+        } // lower Id is used first
+        public ActivityUses ActivityUse
+        {
+            get { return _activityUses; }
+            set {
+                var args = new ActivityUseChangedEventArgs(_activityUses, value);
+                _activityUses = value;
+                if (ActivityUseChangedEventHandler != null)
+                    ActivityUseChangedEventHandler(this, args);                
+            }
+        }
         public Statuses Status { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+
+        public event EventHandler SlotIdChangedEventHandler;
+        public event EventHandler ActivityUseChangedEventHandler;
+    }
+
+    internal class SlotIdChangedEventArgs : EventArgs
+    {
+        public int OldId { get; internal set; }
+        public int NewId { get; internal set; }
+        public SlotIdChangedEventArgs(int oldId, int newId)
+        {
+            OldId = oldId;
+            NewId = newId;
+        }
+    }
+
+    internal class ActivityUseChangedEventArgs : EventArgs
+    {
+        public Slot.ActivityUses OldActivityUse { get; internal set; }
+        public Slot.ActivityUses NewActivityUse { get; internal set; }
+        public ActivityUseChangedEventArgs(Slot.ActivityUses oldActivityUse, Slot.ActivityUses newActivityUse)
+        {
+            OldActivityUse = oldActivityUse;
+            NewActivityUse = newActivityUse;
+        }
     }
 }

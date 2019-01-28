@@ -19,6 +19,7 @@ namespace BetterPokerTableManager
         {
             ActiveConfig = config;
         }
+
         public event EventHandler ConfigSetupCompleted;
 
         public Config ActiveConfig { get; set; }
@@ -51,6 +52,9 @@ namespace BetterPokerTableManager
                 slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 640, 473);
                 ActiveConfig.Slots.Add(slot);
             }
+
+            Logger.Log("SlotConfigHandler: " +
+                    $"AddTable() with slot {slot.GetHashCode()}");
 
             // Display new slotconfigwindow
             var scw = new SlotConfigWindow(this, slot);
@@ -85,51 +89,81 @@ namespace BetterPokerTableManager
             scw.ActivityUsesBox.SelectedIndex = (int)slot.ActivityUse;
 
             // Validate change requests on ActivityUsesBox
-            scw.ActivityUseChangedEventHandler += Scw_ActivityUseChangedEventHandler;
+            scw.CurrentSlot.ActivityUseChangedEventHandler += Scw_ActivityUseChangedEventHandler;
         }
 
         private void Scw_ActivityUseChangedEventHandler(object sender, EventArgs e)
         {
             var args = (ActivityUseChangedEventArgs)e;
-            var win = (SlotConfigWindow)sender;
+            var win = slotConfigWindows.First(x => x.CurrentSlot.GetHashCode() == ((Slot)sender).GetHashCode()); // 
 
             // Stop listening to event on this window until validated (prevent stackoverflow)
-            win.ActivityUseChangedEventHandler -= Scw_ActivityUseChangedEventHandler;
+            win.CurrentSlot.ActivityUseChangedEventHandler -= Scw_ActivityUseChangedEventHandler;
 
-            // Counts before the change goes through
+            // Counts after the change goes through
             int activeCount = ActiveConfig.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
             int inactiveCount = ActiveConfig.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
 
-            // Check for manual user fault
+
+            // Validate that minimum amount of activity slots is available. after remove
+            if ((args.OldActivityUse == Slot.ActivityUses.Active && activeCount == 0) ||
+                (args.OldActivityUse == Slot.ActivityUses.Inactive && inactiveCount == 0))
+            {
+                // Revert & recount
+                win.ActivityUsesBox.SelectedIndex = (int)args.OldActivityUse;
+                activeCount = ActiveConfig.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
+                inactiveCount = ActiveConfig.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
+
+                Logger.Log("You must have at least one active and one inactive slot",
+                    Logger.Status.Warning, showMessageBox: true);
+            }
+
+            // Check for manual user fault after validation
             if (activeCount + inactiveCount < 2)
             {
-                Logger.Log("SlotConfigHandler: Corrupted config file? You must have at least 1 active and 1 inactive slot.", 
+                Logger.Log("SlotConfigHandler: Corrupted config file? You must have at least 1 active and 1 inactive slot.",
                     Logger.Status.Fatal);
                 return;
             }
 
-            // Validate that minimum amount of activity slots is available. after remove
-            if ((args.OldActivityUse == Slot.ActivityUses.Active && activeCount <= 1) ||
-                (args.OldActivityUse == Slot.ActivityUses.Inactive && inactiveCount <= 1))
-                // Revert
-                win.ActivityUsesBox.SelectedIndex = (int)args.OldActivityUse;
-
-            win.ActivityUseChangedEventHandler += Scw_ActivityUseChangedEventHandler;
+            win.CurrentSlot.ActivityUseChangedEventHandler += Scw_ActivityUseChangedEventHandler;
         }
 
-        internal void RemoveSlot(SlotConfigWindow scw)
+        internal bool RemoveSlot(SlotConfigWindow scw)
         {
+            // Ensure at least 1 active & 1 inactive table stays alive
+            if ((scw.CurrentSlot.ActivityUse == Slot.ActivityUses.Active || 
+                scw.CurrentSlot.ActivityUse == Slot.ActivityUses.Inactive) &&
+                ActiveConfig.Slots.Count(x => x.ActivityUse == scw.CurrentSlot.ActivityUse) == 1)
+            {
+                Logger.Log("You must have at least one active and one inactive slot. " +
+                    "Press Cancel or Save to close the table setup instead",
+                    Logger.Status.Warning, showMessageBox: true);
+                return false; // don't allow close
+            }
+
+            Logger.Log("SlotConfigHandler: " +
+                    $"RemoveSlot() scw {scw.GetHashCode()}");
+
+            if (ActiveConfig.Slots.Count(s => s.GetHashCode() == scw.CurrentSlot.GetHashCode()) == 0)
+                Logger.Log("SlotConfigHandler: " +
+                    $"RemoveSlot() closing a table {scw.GetHashCode()} that's already removed. Called twice?", Logger.Status.Error);
+
             ActiveConfig.Slots.RemoveAll(s => s.GetHashCode() == scw.CurrentSlot.GetHashCode()); // remove slot
             slotConfigWindows.RemoveAll(x => x.GetHashCode() == scw.GetHashCode()); // remove window
             // Lower possible max id in other tables
             // todo: Fix the ugly code
-            ReduceMaxIdAllWindows(int.Parse((string)((ComboBoxItem)scw.idCb.SelectedItem).Content)); 
+            string dirtyIdString = (string)((ComboBoxItem)scw.idCb.SelectedItem).Content;
+            ReduceMaxIdAllWindows(dirtyIdString == "Auto" ? 0 :  int.Parse(dirtyIdString));
             // close happens in window class
+            return true;
         }
 
         // Increases the max id on all ID comboboxes in windows
         private void IncreaseMaxIdAllWindows()
         {
+            Logger.Log("SlotConfigHandler: " +
+                    $"IncreaseMaxIdAllWindows()");
             foreach (var win in slotConfigWindows)
             {
                 // todo: Yeah uhmm.. make this.. not horrible. Use bindings or something.
@@ -145,6 +179,9 @@ namespace BetterPokerTableManager
         // Only call this on tables no longer listed in slotConfigWindows
         private void ReduceMaxIdAllWindows(int removedId)
         {
+            Logger.Log("SlotConfigHandler: " +
+                    $"ReduceMaxIdAllWindows()");
+
             // Reduce any ID's with a selection higher than removed table
             var windowsNeedReducing = slotConfigWindows.FindAll(w => w.idCb.SelectedIndex > removedId);
             foreach (var winRed in windowsNeedReducing)
@@ -175,19 +212,6 @@ namespace BetterPokerTableManager
         {
             IsSaved = isSaved;
             Config = config;
-        }
-    }
-
-    internal class ActivityUseChangedEventArgs : EventArgs
-    {
-        public Slot RelevantSlot { get; internal set; }
-        public Slot.ActivityUses OldActivityUse { get; internal set; }
-        public Slot.ActivityUses NewActivityUse { get; internal set; }
-        public ActivityUseChangedEventArgs(Slot relevantSlot, Slot.ActivityUses oldActivityUse, Slot.ActivityUses newActivityUse)
-        {
-            RelevantSlot = relevantSlot;
-            OldActivityUse = oldActivityUse;
-            NewActivityUse = newActivityUse;
         }
     }
 }
