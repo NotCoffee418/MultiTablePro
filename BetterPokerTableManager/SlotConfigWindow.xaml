@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterPokerTableManager"
         mc:Ignorable="d"
-        Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528" SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized">
+        Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528"
+        WindowStartupLocation="Manual" 
+        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Loaded="Window_Loaded">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">
@@ -28,10 +30,10 @@
             </GroupBox>
             <GroupBox Header="Manage Tables" Width="240" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <WrapPanel Orientation="Horizontal">
-                    <Button Width="100" Height="30" Margin="5" Content="Add Table"/>
-                    <Button Width="100" Height="30" Margin="5" Content="Remove Table"/>
-                    <Button Width="100" Height="30" Margin="5" Content="Save" FontWeight="Bold"/>
-                    <Button Width="100" Height="30" Margin="5" Content="Cancel" FontWeight="Bold"/>
+                    <Button x:Name="addSlotBtn" Width="100" Height="30" Margin="5" Content="Add Table" Click="AddSlotBtn_Click"/>
+                    <Button x:Name="removeSlotBtn" Width="100" Height="30" Margin="5" Content="Remove Table" Click="RemoveSlotBtn_Click"/>
+                    <Button x:Name="saveBtn" Width="100" Height="30" Margin="5" Content="Save" FontWeight="Bold" Click="SaveBtn_Click"/>
+                    <Button x:Name="cancelBtn" Width="100" Height="30" Margin="5" Content="Cancel" FontWeight="Bold" Click="CancelBtn_Click"/>
                 </WrapPanel>
             </GroupBox>
             <GroupBox Header="Instructions" VerticalAlignment="Top" Width="250">
@@ -67,7 +69,9 @@
             </GroupBox>
             <GroupBox Header="Priority (optional)" Width="160" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <StackPanel Orientation="Vertical">
-                    <ComboBox Name="idCb"/>
+                    <ComboBox Name="idCb">
+                        <ComboBoxItem Content="Auto"/>
+                    </ComboBox>
                     <TextBlock>
                         Lower numbered slots will<LineBreak/>
                         get a table first.<LineBreak/>

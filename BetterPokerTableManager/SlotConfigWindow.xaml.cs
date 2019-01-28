@@ -22,25 +22,84 @@ namespace BetterPokerTableManager
     /// </summary>
     public partial class SlotConfigWindow : Window
     {
-        public SlotConfigWindow()
+        internal SlotConfigWindow(SlotConfigHandler sch, Slot currentSlot)
         {
             InitializeComponent();
+            CurrentSlot = currentSlot;
+            ActiveSlotConfigHandler = sch;
         }
 
+        public Slot CurrentSlot { get; set; }
+        private bool AllowRecordChanges { get; set; }
+        private SlotConfigHandler ActiveSlotConfigHandler { get; set; }
+        public event EventHandler ActivityUseChangedEventHandler;
 
-        private void ActivityUsesBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Set requested slot info
+            Left = CurrentSlot.X;
+            Top = CurrentSlot.Y;
+            Width = CurrentSlot.Width;
+            Height = CurrentSlot.Height;            
 
-        }
-        
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-
+            // Allow any size/position changes to be recorded from this point on
+            AllowRecordChanges = true;
         }
 
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
+            // Handle forced aspect ratio
             WindowAspectRatio.Register((Window)sender);
+        }
+
+        private void ActivityUsesBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count == 0)
+                return; // skip on load
+
+            var args = new ActivityUseChangedEventArgs(CurrentSlot,
+                (Slot.ActivityUses)e.RemovedItems[0], (Slot.ActivityUses)e.AddedItems[0]);
+            if (ActivityUseChangedEventHandler != null)
+                ActivityUseChangedEventHandler(this, args);
+        }
+        
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (AllowRecordChanges)
+            {
+                CurrentSlot.Width = Convert.ToInt32(e.NewSize.Width);
+                CurrentSlot.Height = Convert.ToInt32(e.NewSize.Width);
+            }
+        }
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            if (AllowRecordChanges)
+            {
+                CurrentSlot.X = Convert.ToInt32(Left);
+                CurrentSlot.Y = Convert.ToInt32(Top);
+            }
+        }
+
+        private void AddSlotBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ActiveSlotConfigHandler.AddTable();
+        }
+
+        private void RemoveSlotBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ActiveSlotConfigHandler.RemoveSlot(this);
+            Close();
+        }
+
+        private void SaveBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ActiveSlotConfigHandler.Save();
+        }
+
+        private void CancelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ActiveSlotConfigHandler.Cancel();
         }
     }
 

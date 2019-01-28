@@ -12,12 +12,19 @@ namespace BetterPokerTableManager
     /// Contains user-saved or default info about preferred table positions & related variables
     /// Loads from JSON file.
     /// </summary>
-    class Config
+    internal class Config
     {
-        public Config(string json)
+        internal Config(string json)
         {
 
         }
+
+        internal Config(List<Slot> slots)
+        {
+            Slots = slots;
+        }
+
+        public List<Slot> Slots = new List<Slot>();
 
         #region Static
         public static Config LoadConfig(string path = "")

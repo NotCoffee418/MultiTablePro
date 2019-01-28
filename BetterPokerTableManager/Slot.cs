@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace BetterPokerTableManager
 {
-    class Slot
+    public class Slot
     {
         public Slot(ActivityUses activityUse, int x, int y, int width, int height)
         {

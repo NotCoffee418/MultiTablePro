@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    class PSLogHandler
+    internal class PSLogHandler
     {
         public static void Start()
         {
