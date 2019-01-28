@@ -49,7 +49,7 @@ namespace BetterPokerTableManager
             // Define slot if null
             if (slot == null)
             {
-                slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 640, 473);
+                slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 480, 366);
                 ActiveConfig.Slots.Add(slot);
             }
 

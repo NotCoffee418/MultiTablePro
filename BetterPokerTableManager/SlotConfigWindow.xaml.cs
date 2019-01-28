@@ -52,23 +52,23 @@ namespace BetterPokerTableManager
         private bool AllowRecordChanges { get; set; }
         private bool IsDone { get; set; }
         private SlotConfigHandler ActiveSlotConfigHandler { get; set; }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Set requested slot info
-            Left = CurrentSlot.X;
-            Top = CurrentSlot.Y;
-            Width = CurrentSlot.Width;
-            Height = CurrentSlot.Height;            
-
-            // Allow any size/position changes to be recorded from this point on
-            AllowRecordChanges = true;
-        }
-
+        
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
             // Handle forced aspect ratio
             WindowAspectRatio.Register((Window)sender);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Set requested slot info
+            Width = CurrentSlot.Width;
+            Height = CurrentSlot.Height;
+            Left = CurrentSlot.X;
+            Top = CurrentSlot.Y;
+
+            // Allow any size/position changes to be recorded from this point on
+            AllowRecordChanges = true;
         }
 
         private void ActivityUsesBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -86,7 +86,7 @@ namespace BetterPokerTableManager
             if (AllowRecordChanges)
             {
                 CurrentSlot.Width = Convert.ToInt32(e.NewSize.Width);
-                CurrentSlot.Height = Convert.ToInt32(e.NewSize.Width);
+                CurrentSlot.Height = Convert.ToInt32(e.NewSize.Height);
             }
         }
 

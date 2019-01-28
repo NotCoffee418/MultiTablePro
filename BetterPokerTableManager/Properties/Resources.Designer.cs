@@ -61,11 +61,20 @@ namespace BetterPokerTableManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to {&quot;Slots&quot;:[{&quot;Id&quot;:0,&quot;ActivityUse&quot;:1,&quot;Status&quot;:0,&quot;X&quot;:-10,&quot;Y&quot;:0,&quot;Width&quot;:955,&quot;Height&quot;:691},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:1,&quot;Status&quot;:0,&quot;X&quot;:930,&quot;Y&quot;:0,&quot;Width&quot;:955,&quot;Height&quot;:691},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:0,&quot;Status&quot;:0,&quot;X&quot;:-8,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:0,&quot;Status&quot;:0,&quot;X&quot;:461,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:0,&quot;Status&quot;:0,&quot;X&quot;:930,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:0,&quot;Status&quot;:0,&quot;X&quot;:1400,&quot;Y&quot;:683,&quot;Width&quot;:485,&quot;Height&quot;:366}]}.
         /// </summary>
-        internal static string default_config {
+        internal static string configDefault1920x1080 {
             get {
-                return ResourceManager.GetString("default-config", resourceCulture);
+                return ResourceManager.GetString("configDefault1920x1080", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;Slots&quot;:[{&quot;Id&quot;:0,&quot;ActivityUse&quot;:1,&quot;Status&quot;:0,&quot;X&quot;:0,&quot;Y&quot;:0,&quot;Width&quot;:485,&quot;Height&quot;:366},{&quot;Id&quot;:0,&quot;ActivityUse&quot;:0,&quot;Status&quot;:0,&quot;X&quot;:485,&quot;Y&quot;:0,&quot;Width&quot;:485,&quot;Height&quot;:366}]}.
+        /// </summary>
+        internal static string configEmpty {
+            get {
+                return ResourceManager.GetString("configEmpty", resourceCulture);
             }
         }
     }

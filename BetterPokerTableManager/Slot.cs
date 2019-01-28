@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,9 @@ namespace BetterPokerTableManager
 {
     public class Slot
     {
+        public Slot() {
+            // Default constructor required for Json deserialization
+        }
         public Slot(ActivityUses activityUse, int x, int y, int width, int height)
         {
             ActivityUse = activityUse;
@@ -38,7 +42,8 @@ namespace BetterPokerTableManager
         private int _id;
         private ActivityUses _activityUses;
 
-        public int Id {
+        public int Id // lower Id is used first
+        { 
             get { return _id; }
             set {
                 var args = new SlotIdChangedEventArgs(_id, value);
@@ -47,7 +52,8 @@ namespace BetterPokerTableManager
                     SlotIdChangedEventHandler(this, args);
             }
             
-        } // lower Id is used first
+        } 
+        
         public ActivityUses ActivityUse
         {
             get { return _activityUses; }
@@ -58,6 +64,7 @@ namespace BetterPokerTableManager
                     ActivityUseChangedEventHandler(this, args);                
             }
         }
+
         public Statuses Status { get; set; }
         public int X { get; set; }
         public int Y { get; set; }

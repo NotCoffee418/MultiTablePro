@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterPokerTableManager"
         mc:Ignorable="d"
-        Title="SlotConfigWindow" MinWidth="475" MinHeight="360" MaxWidth="1320" MaxHeight="940" Width="720" Height="528"
-        WindowStartupLocation="Manual" 
-        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Loaded="Window_Loaded" Closing="Window_Closing">
+        Title="SlotConfigWindow" MinWidth="485" MinHeight="360" MaxWidth="1320" MaxHeight="940"
+         d:DesignWidth="485" d:DesignHeight="360"
+        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Closing="Window_Closing" Loaded="Window_Loaded" Topmost="True">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">

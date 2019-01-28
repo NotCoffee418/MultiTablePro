@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BetterPokerTableManager
 {
@@ -14,20 +15,10 @@ namespace BetterPokerTableManager
     /// </summary>
     internal class Config
     {
-        internal Config(string json)
-        {
-
-        }
-
-        internal Config(List<Slot> slots)
-        {
-            Slots = slots;
-        }
-
         public List<Slot> Slots = new List<Slot>();
 
         #region Static
-        public static Config LoadConfig(string path = "")
+        public static Config FromFile(string path = "")
         {
             if (path == "") // Load default config file if it's not found.
             {
@@ -39,23 +30,27 @@ namespace BetterPokerTableManager
                     Directory.CreateDirectory(path);
                 path = Path.Combine(path, "config.json");
                 if (!File.Exists(path)) // Write default file if it doesn't exist
-                    File.WriteAllText(path, Properties.Resources.default_config);
+                    File.WriteAllText(path, Properties.Resources.configDefault1920x1080);
             }
 
-            return new Config(File.ReadAllText(path));
+            return FromJson(File.ReadAllText(path));
         }
 
-        public static Config CreateNew(Config basedOn = null)
+        public static Config GetEmpty()
         {
-            throw new NotImplementedException();
+            return FromJson(Properties.Resources.configEmpty);
         }
 
-        public string GetJson(Config config)
+        public static Config FromJson(string json)
         {
-            throw new NotImplementedException();
+            return JsonConvert.DeserializeObject<Config>(json);
         }
         #endregion
 
+        public string GetJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
 
     }
 }

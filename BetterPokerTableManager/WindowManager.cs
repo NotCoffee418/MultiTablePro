@@ -20,7 +20,7 @@ namespace BetterPokerTableManager
             get
             {
                 if (_activeConfig == null)
-                    _activeConfig = Config.LoadConfig();
+                    _activeConfig = Config.FromFile();
                 return _activeConfig;
             }
             set { _activeConfig = value; }

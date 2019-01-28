@@ -28,14 +28,7 @@ namespace BetterPokerTableManager
             Logger.Log("--- Starting application ---");
 
             // debug
-            // Start manual table finder before logs to ensure loghandler doesn't try to run commands on unknown tables (in case BPTM is started during a session)
-            //PSLogHandler.Start();
-            //PSLogHandler.AnalyzeLine(new List<string>(){"table window 000E13DE has been destroyed"});
-            //var win = new SlotConfigWindow(null, new Slot(Slot.ActivityUses.Active,500,0,0,0));
-            //win.Show();
-            Config c = new Config("");
-            c.Slots.Add(new Slot(Slot.ActivityUses.Active, 500, 0, 0, 0));
-            c.Slots.Add(new Slot(Slot.ActivityUses.Inactive, 0, 0, 0, 0));
+            Config c = Config.FromJson(Properties.Resources.configDefault1920x1080);
             var test = new SlotConfigHandler(c);
             test.StartConfigHandler();
             test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
@@ -44,8 +37,8 @@ namespace BetterPokerTableManager
         // debug, kill me
         private void Test_ConfigSetupCompleted(object sender, EventArgs e)
         {
-            ConfigSetupCompletedEventArgs args = (ConfigSetupCompletedEventArgs)e;
-            var b = args.Config;
+            var args = (ConfigSetupCompletedEventArgs)e;
+            System.IO.File.WriteAllText("tmpconfig.txt", args.Config.GetJson());
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
