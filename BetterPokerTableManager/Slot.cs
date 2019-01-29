@@ -24,15 +24,16 @@ namespace BetterPokerTableManager
 
         public enum ActivityUses
         {
-            Inactive = 0,
-            Active = 1,
-            Aside = 2,
+            Undefined = 0,
+            Inactive = 1,
+            Active = 2,
+            Aside = 3,
         }
         static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
 
         private int _id;
         private int _priority;
-        private ActivityUses _activityUses;
+        private ActivityUses _activityUses = ActivityUses.Inactive;
 
         [JsonIgnore]
         public int Id
@@ -76,7 +77,7 @@ namespace BetterPokerTableManager
         }
 
         [JsonIgnore]
-        internal List<Table> OccupiedBy { get; set; }
+        internal List<Table> OccupiedBy = new List<Table>();
 
         public int X { get; set; }
         public int Y { get; set; }

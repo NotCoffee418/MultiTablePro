@@ -52,49 +52,15 @@ namespace BetterPokerTableManager
             set { _activeConfig = value; }
         }
 
-        private void ManageTables()
-        {
-            InitialTablePlacement(); // Place all tables in inactive slots
-
-            // while app running and wMgr running
-            Table changedTable;
-            while ((bool)App.Current.Properties["IsRunning"] && IsRunning)
-            {
-                if (Table.ActionQueue.TryDequeue(out changedTable)) {
-                    Thread.Sleep(25);
-                    continue;
-                } // implied else
-            }
-        }
-
         private void InitialTablePlacement()
         {
             lock (Table.KnownTables)
             {
                 foreach (Table table in Table.KnownTables)
-                    MoveToInactive(table);
+                    TryMoveTable(table); // Move default activityuse
             }
         }
 
-        private void MoveToActive(Table table)
-        {
-            
-        }
-
-        private void MoveToInactive(Table table)
-        {
-
-        }
-
-        private void MakeAside(Table table)
-        {
-
-        }
-
-        private void MakeUnAside(Table table)
-        {
-
-        }
 
         /// <summary>
         /// The heart of the program <3
@@ -156,9 +122,102 @@ namespace BetterPokerTableManager
             // Give up if there's no table to push or
             // Push the table we found to inactive & return the free slot
             if (resultSlot != null)
-                MoveToInactive(resultSlot.OccupiedBy.First());
+            {
+                Table tableToMove = resultSlot.OccupiedBy.First();
+                Slot anInactiveSlot = GetAvailableSlot(Slot.ActivityUses.Inactive, tableToMove.Priority);
+                MoveTable(tableToMove, anInactiveSlot);
+            }
 
             return resultSlot;
+        }
+
+
+        /// <summary>
+        /// Determines where the table should be moved to & moves it.
+        /// Returns false if it can't find a suitable slot.
+        /// </summary>
+        /// <param name="table">Table to move</param>
+        /// <param name="toSlot">Assign a custom slot & override the default logic</param>
+        /// <returns>true on success, false on fail</returns>
+        private bool TryMoveTable(Table table)
+        {
+            // Find a slot to move to
+            // Determine slot type the table should occupy
+            Slot.ActivityUses activity = Slot.ActivityUses.Undefined;
+            if (table.IsAside)
+                activity = Slot.ActivityUses.Aside;
+            else if (table.Priority >= Table.Status.ActionRequired)
+                activity = Slot.ActivityUses.Active;
+            else activity = Slot.ActivityUses.Inactive;
+
+            // Find a suitable slot & move table if possible
+            Slot toSlot = GetAvailableSlot(activity, table.Priority);
+            if (toSlot == null)
+            {
+                Logger.Log($"WindowHandler: Failed to find an available slot for table {table.WindowHandle}"); 
+                return false;
+            }
+            else // Or move table and return true
+            {
+                Logger.Log($"WindowHandler: Determined that table ({table.WindowHandle}) " +
+                    $"should be moved to slot ({toSlot.Id}). Moving.");
+                MoveTable(table, toSlot);
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Forcibly moves table to a specified slot.
+        /// Handles actual window movement as well.
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="toSlot"></param>
+        private void MoveTable(Table table, Slot toSlot)
+        {
+            Logger.Log($"WindowHandler: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
+                $"slot ({toSlot.Id}) at ({toSlot.X},{toSlot.Y},{toSlot.Width},{toSlot.Height})");
+        }
+
+        private void ManageTables()
+        {
+            // Place all tables in approperiate slots
+            InitialTablePlacement();
+
+            // Our temp vars for the loop
+            Table changedTable = null;
+            int lastQueueCount = 0;
+
+            // while app running and wMgr running
+            while (IsRunning && (bool)App.Current.Properties["IsRunning"])
+            {
+                Thread.Sleep(25); // Wait a tick
+
+                // The queue is empty
+                if (Table.ActionQueue.IsEmpty)
+                    continue;
+
+                // We already tried to move. Wait for another table to do something before retrying.
+                lock (Table.ActionQueue) // not sure if .Count() is thread-safe
+                {
+                    if (lastQueueCount == Table.ActionQueue.Count())
+                        continue;
+                }
+
+                // Queue has a table, put it in changedTable
+                if (!Table.ActionQueue.TryPeek(out changedTable))
+                    continue;
+
+                // try to move the table, reset temp vars on success
+                if (TryMoveTable(changedTable))
+                {
+                    changedTable = null;
+                    lastQueueCount = -1;
+                    Table.ActionQueue.TryDequeue(out changedTable); // Remove it from the queue
+                }
+
+                // Report that we tried to move the table but couldn't
+                else lock (Table.ActionQueue) { lastQueueCount = Table.ActionQueue.Count(); }
+            }
         }
     }
 }
