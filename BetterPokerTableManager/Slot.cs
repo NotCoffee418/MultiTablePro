@@ -24,10 +24,9 @@ namespace BetterPokerTableManager
 
         public enum ActivityUses
         {
-            Undefined = 0,
-            Inactive = 1,
-            Active = 2,
-            Aside = 3,
+            Inactive = 0,
+            Active = 1,
+            Aside = 2,
         }
         static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
 

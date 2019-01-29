@@ -15,11 +15,13 @@ namespace BetterPokerTableManager
         public static void Start()
         {
             // Look for new files every 10 seconds since stars client can switch from log.0 to log.1 in the middle of a session.
+            StartTime = DateTime.Now;
             Timer timer = new Timer(WatchNewLogFiles, null, 0, 10000);
         }
 
         // Lists files that are currently being watched
         private static List<string> activeLogFiles = new List<string>();
+        private static DateTime StartTime { get; set; }
 
 
         /// <summary>
@@ -29,6 +31,7 @@ namespace BetterPokerTableManager
         {
             /// For future reference: FullTilt's log files are AppData\Local\FullTilt.xx\FullTilt.log.x - it's window titles work the same way
             /// The PS.com (and likely FT.com) client's log folder DOES NOT have the .COM extension in it's directory name. (tested & confirmed)
+            List<string> newLogFiles = new List<string>();
 
             // Find PS folder for user's client
             string appDataLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -45,9 +48,9 @@ namespace BetterPokerTableManager
                 {
                     string logFileBase = dir + "\\PokerStars.log.";
                     if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
-                        new Thread(() => WatchLog(logFileBase + 0)).Start();
+                        newLogFiles.Add(logFileBase + 0);
                     if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
-                        new Thread(() => WatchLog(logFileBase + 1)).Start();
+                        newLogFiles.Add(logFileBase + 1);
                 }
 
                 // Fulltilt logs
@@ -55,9 +58,32 @@ namespace BetterPokerTableManager
                 {
                     string logFileBase = dir + "\\FullTilt.log.";
                     if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
-                        new Thread(() => WatchLog(logFileBase + 0)).Start();
+                        newLogFiles.Add(logFileBase + 0);
                     if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
-                        new Thread(() => WatchLog(logFileBase + 1)).Start();
+                        newLogFiles.Add(logFileBase + 1);
+                }
+
+                // In case logs don't work the way I think, let user know
+                if (newLogFiles.Count() > 0)
+                {
+                    foreach (string log in newLogFiles)
+                        new Thread(() => WatchLog(log)).Start();
+                    newLogFiles.Clear();
+
+                    // This should only happen while debugging or on a new PS install
+                    if (DateTime.Now > StartTime.AddSeconds(9))
+                    {
+                        // Give user some time to catch up on their tables if any
+                        lock (Table.KnownTables)
+                        {
+                            if (Table.KnownTables.Count > 0)
+                                Thread.Sleep(5);
+                        }
+
+                        Logger.Log("Detected new PS log while running. This should only happen once after (re)installing PokerStars." +
+                            "Please contact the developer if this occurs more than once.",
+                            Logger.Status.Warning, showMessageBox: true);
+                    }                        
                 }
             }
         }

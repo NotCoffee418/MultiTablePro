@@ -63,7 +63,8 @@ namespace BetterPokerTableManager
 
 
         /// <summary>
-        /// The heart of the program <3
+        /// The heart of the program
+        /// Returns the best available slot based on the input requirements
         /// </summary>
         /// <param name="activity">The slot type</param>
         /// <param name="status">Used to push aside low priority tables if needed</param>
@@ -141,17 +142,54 @@ namespace BetterPokerTableManager
         /// <returns>true on success, false on fail</returns>
         private bool TryMoveTable(Table table)
         {
-            // Find a slot to move to
+            
+            // Count available active slots
+            int freeActiveSlotsCount = ActiveConfig.Slots
+                .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
+                .Where(s => s.OccupiedBy.Count == 0) // Ignore stackable actives
+                .Count();
+
+            // Count tables in queue that require an active slot
+            int tablesRequireActiveSlotCount = Table.ActionQueue
+                .Where(t => t.Priority >= Table.Status.ActionRequired)
+                .Count();
+
+            // Table was made unaside?
+            Slot previousSlot = ActiveConfig.Slots
+                .Where(s => s.ActivityUse == Slot.ActivityUses.Aside)
+                .Where(s => s.OccupiedBy
+                    .Where(t => t.WindowHandle == table.WindowHandle).Count() > 0)
+                .FirstOrDefault();
+
+            // Questions that keep the if statements below from bleeding your eyes
+            bool canUseActiveSlot = freeActiveSlotsCount > 0 && tablesRequireActiveSlotCount == 0;
+            bool isPriorityTable = table.Priority >= Table.Status.ActionRequired;
+            bool isNewTable = previousSlot == null;
+            bool wasMadeUnaside = !isNewTable && previousSlot.ActivityUse == Slot.ActivityUses.Active;
+
             // Determine slot type the table should occupy
-            Slot.ActivityUses activity = Slot.ActivityUses.Undefined;
+            Slot.ActivityUses? activity = null;
             if (table.IsAside)
                 activity = Slot.ActivityUses.Aside;
-            else if (table.Priority >= Table.Status.ActionRequired)
+
+            // Priority table or when there free slots get an active
+            else if (isPriorityTable || canUseActiveSlot) // todo: user setting goes here
                 activity = Slot.ActivityUses.Active;
-            else activity = Slot.ActivityUses.Inactive;
+            
+            // Was made unaside or low prio
+            else if ((wasMadeUnaside || isPriorityTable) || isNewTable) // todo: User setting also goes here
+                activity = Slot.ActivityUses.Inactive;
+
+            // No need to move to inactive, claim success
+            if (activity == null) 
+            {
+                Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
+                return true;
+            }
+
 
             // Find a suitable slot & move table if possible
-            Slot toSlot = GetAvailableSlot(activity, table.Priority);
+            Slot toSlot = GetAvailableSlot((Slot.ActivityUses)activity, table.Priority);
             if (toSlot == null)
             {
                 Logger.Log($"TableManager: Failed to find an available slot for table {table.WindowHandle}"); 
@@ -176,7 +214,7 @@ namespace BetterPokerTableManager
         {
             Logger.Log($"TableManager: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
                 $"slot ({toSlot.Id}) at ({toSlot.X},{toSlot.Y},{toSlot.Width},{toSlot.Height})");
-
+            
             // If the table or stars client was closed since it was enqueued, don't move it.
             if (table.Priority == Table.Status.Closed)
             {

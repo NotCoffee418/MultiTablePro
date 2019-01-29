@@ -28,10 +28,29 @@ namespace BetterPokerTableManager
             Logger.Log("--- Starting application ---");
 
             // debug
-            Config c = Config.FromJson(Properties.Resources.configDefault1920x1080);
-            var test = new SlotConfigHandler(c);
-            test.StartConfigHandler();
-            test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
+            PSLogHandler.Start();
+            Config c = Config.FromJson(Properties.Resources.configEmpty);
+            TableManager tm = new TableManager(c);
+            tm.Start();
+
+
+            /*
+            // Spawn tables
+            var t1 = Table.Find(new IntPtr(1), true);
+            var t2 = Table.Find(new IntPtr(2), true);
+            var t3 = Table.Find(new IntPtr(3), true);
+
+            t1.Priority = Table.Status.ActionRequired;
+            t1.Priority = Table.Status.HandEndedOrNotInHand;
+            t2.Priority = Table.Status.ActionRequired;
+            t3.Priority = Table.Status.ActionRequired;
+            t1.Priority = Table.Status.ActionRequired;
+            */
+
+            //var test = new SlotConfigHandler(c);
+            //test.StartConfigHandler();
+            //test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
+
         }
 
         // debug, kill me
