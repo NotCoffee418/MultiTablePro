@@ -28,16 +28,7 @@ namespace BetterPokerTableManager
             Active = 1,
             Aside = 2,
         }
-        public enum Statuses
-        {
-            Undefined = 0,
-            Free = 0,
-            UsedByInactive = 1,
-            UsedByActive = 2,
-            UsedByPriority = 3,
-        }
         static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
-        static string[] statusNames = Enum.GetNames(typeof(Statuses));
 
         private int _id;
         private int _priority;
@@ -64,7 +55,7 @@ namespace BetterPokerTableManager
                     SlotIdChangedEventHandler(this, args);
             }
             
-        } 
+        }
         
         public ActivityUses ActivityUse
         {
@@ -72,21 +63,38 @@ namespace BetterPokerTableManager
             set {
                 var args = new ActivityUseChangedEventArgs(_activityUses, value);
                 _activityUses = value;
+
+                // Force CanStack on Inactive slots
+                if (value == ActivityUses.Inactive)
+                    CanStack = true;
+                else CanStack = false; // todo: REMOVE THIS!! Add checkbox in SlotConfigWindow
+
+                // trigger event
                 if (ActivityUseChangedEventHandler != null)
                     ActivityUseChangedEventHandler(this, args);                
             }
         }
 
         [JsonIgnore]
-        public Statuses Status { get; set; }
+        internal List<Table> OccupiedBy { get; set; }
 
         public int X { get; set; }
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public bool CanStack { get; set; }
 
         public event EventHandler SlotIdChangedEventHandler;
         public event EventHandler ActivityUseChangedEventHandler;
+
+
+        public override bool Equals(Object obj)
+        {
+            if (obj == null || !(obj is Slot))
+                return false;
+            else
+                return Id == ((Slot)obj).Id;
+        }
     }
 
     internal class SlotPriorityChangedEventArgs : EventArgs

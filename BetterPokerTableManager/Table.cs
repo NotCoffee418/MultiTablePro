@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    class Table
+    internal class Table
     {
         public Table(IntPtr wHnd)
         {
