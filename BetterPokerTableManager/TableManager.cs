@@ -154,12 +154,12 @@ namespace BetterPokerTableManager
             Slot toSlot = GetAvailableSlot(activity, table.Priority);
             if (toSlot == null)
             {
-                Logger.Log($"WindowHandler: Failed to find an available slot for table {table.WindowHandle}"); 
+                Logger.Log($"TableManager: Failed to find an available slot for table {table.WindowHandle}"); 
                 return false;
             }
             else // Or move table and return true
             {
-                Logger.Log($"WindowHandler: Determined that table ({table.WindowHandle}) " +
+                Logger.Log($"TableManager: Determined that table ({table.WindowHandle}) " +
                     $"should be moved to slot ({toSlot.Id}). Moving.");
                 MoveTable(table, toSlot);
                 return true;
@@ -174,8 +174,52 @@ namespace BetterPokerTableManager
         /// <param name="toSlot"></param>
         private void MoveTable(Table table, Slot toSlot)
         {
-            Logger.Log($"WindowHandler: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
+            Logger.Log($"TableManager: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
                 $"slot ({toSlot.Id}) at ({toSlot.X},{toSlot.Y},{toSlot.Width},{toSlot.Height})");
+
+            // If the table or stars client was closed since it was enqueued, don't move it.
+            if (table.Priority == Table.Status.Closed)
+            {
+                Logger.Log($"TableManager: Attempting to move a closed table ({table.WindowHandle}). Is cancelled.");
+                return;
+            }
+
+            try
+            {
+                // normalize
+                WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Restore);
+                WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Normal);
+
+                // Move the window
+                WindowHandler.MoveWindow(table.WindowHandle, 
+                    toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height, true);
+
+                // Bring to foreground if table requires action
+                if (table.Priority >= Table.Status.ActionRequired)
+                    WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Show);
+
+                // Remove the table from any previous Slot it was in
+                lock (ActiveConfig.Slots)
+                {
+                    // Find the table's old slot
+                    var foundSlot = ActiveConfig.Slots.FirstOrDefault(
+                        s => s.OccupiedBy.FirstOrDefault(
+                            t => t.WindowHandle == table.WindowHandle) != null
+                        );
+
+                    // Unlist the table from the slot, if any
+                    if (foundSlot != null)
+                        foundSlot.OccupiedBy.RemoveAll(t => t.WindowHandle == table.WindowHandle);
+                }
+
+                // List the table to be in the new Slot
+                lock (toSlot.OccupiedBy)
+                    toSlot.OccupiedBy.Add(table);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("WindowHandler: Error while moving table: " + ex.Message, Logger.Status.Error);
+            }
         }
 
         private void ManageTables()

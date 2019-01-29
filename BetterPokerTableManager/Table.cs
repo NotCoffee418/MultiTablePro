@@ -16,7 +16,7 @@ namespace BetterPokerTableManager
             RegisterNewTable();
         }
 
-        // Priority status of the table determines what WindowManager should do with it.
+        // Priority status of the table determines what TableManager should do with it.
         public enum Status
         {
             Closed = 0,
@@ -108,6 +108,7 @@ namespace BetterPokerTableManager
             lock (KnownTables) {
                 KnownTables.Add(this);
             }
+            ActionQueue.Enqueue(this);
         }
 
         /// <summary>
