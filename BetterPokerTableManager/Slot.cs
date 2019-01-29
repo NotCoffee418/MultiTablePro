@@ -40,14 +40,26 @@ namespace BetterPokerTableManager
         static string[] statusNames = Enum.GetNames(typeof(Statuses));
 
         private int _id;
+        private int _priority;
         private ActivityUses _activityUses;
 
-        public int Id // lower Id is used first
+        [JsonIgnore]
+        public int Id
+        {
+            get
+            {
+                if (_id == 0)
+                    _id = GetHashCode();
+                return _id;
+            }
+        }
+
+        public int Priority // lower priority is used first
         { 
-            get { return _id; }
+            get { return _priority; }
             set {
-                var args = new SlotIdChangedEventArgs(_id, value);
-                _id = value;
+                var args = new SlotPriorityChangedEventArgs(_priority, value);
+                _priority = value;
                 if (SlotIdChangedEventHandler != null)
                     SlotIdChangedEventHandler(this, args);
             }
@@ -65,7 +77,9 @@ namespace BetterPokerTableManager
             }
         }
 
+        [JsonIgnore]
         public Statuses Status { get; set; }
+
         public int X { get; set; }
         public int Y { get; set; }
         public int Width { get; set; }
@@ -75,14 +89,14 @@ namespace BetterPokerTableManager
         public event EventHandler ActivityUseChangedEventHandler;
     }
 
-    internal class SlotIdChangedEventArgs : EventArgs
+    internal class SlotPriorityChangedEventArgs : EventArgs
     {
-        public int OldId { get; internal set; }
-        public int NewId { get; internal set; }
-        public SlotIdChangedEventArgs(int oldId, int newId)
+        public int OldPriority { get; internal set; }
+        public int NewPriority { get; internal set; }
+        public SlotPriorityChangedEventArgs(int oldPrio, int newPrio)
         {
-            OldId = oldId;
-            NewId = newId;
+            OldPriority = oldPrio;
+            NewPriority = newPrio;
         }
     }
 

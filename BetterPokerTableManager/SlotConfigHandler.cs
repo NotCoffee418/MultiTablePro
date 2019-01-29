@@ -28,7 +28,7 @@ namespace BetterPokerTableManager
 
         public void StartConfigHandler()
         {
-            foreach (Slot slot in ActiveConfig.Slots.OrderBy(s => s.Id))
+            foreach (Slot slot in ActiveConfig.Slots.OrderBy(s => s.Priority))
                 AddTable(slot);
         }
 
@@ -54,13 +54,13 @@ namespace BetterPokerTableManager
             }
 
             Logger.Log("SlotConfigHandler: " +
-                    $"AddTable() with slot {slot.GetHashCode()}");
+                    $"AddTable() with slot {slot.Id}");
 
             // Display new slotconfigwindow
             var scw = new SlotConfigWindow(this, slot);
             scw.Show();
 
-            // Correct amount of windows for idCb, then add to list
+            // Correct amount of windows for prioCb, then add to list
             IncreaseMaxIdAllWindows();
             slotConfigWindows.Add(scw);
 
@@ -69,19 +69,19 @@ namespace BetterPokerTableManager
             {
                 var cbi = new ComboBoxItem();
                 cbi.Content = (i + 1).ToString();
-                scw.idCb.Items.Add(cbi);
+                scw.prioCb.Items.Add(cbi);
             }
             
             // Set correct idCb index
             try
             {                
-                scw.idCb.SelectedIndex = scw.CurrentSlot.Id;
+                scw.prioCb.SelectedIndex = scw.CurrentSlot.Priority;
             }
             catch (IndexOutOfRangeException ioorEx)
             {
                 Logger.Log($"SlotConfigHandler: {ioorEx.HResult} Failed to set ID combobox. " +
                     "Out of range - corrupt config file? Setting to auto", Logger.Status.Error);
-                scw.idCb.SelectedIndex = 0;
+                scw.prioCb.SelectedIndex = 0;
             }
 
             // Setup ActivityUsesBox
@@ -95,7 +95,7 @@ namespace BetterPokerTableManager
         private void Scw_ActivityUseChangedEventHandler(object sender, EventArgs e)
         {
             var args = (ActivityUseChangedEventArgs)e;
-            var win = slotConfigWindows.First(x => x.CurrentSlot.GetHashCode() == ((Slot)sender).GetHashCode()); // 
+            var win = slotConfigWindows.First(x => x.CurrentSlot.Id == ((Slot)sender).Id); // 
 
             // Stop listening to event on this window until validated (prevent stackoverflow)
             win.CurrentSlot.ActivityUseChangedEventHandler -= Scw_ActivityUseChangedEventHandler;
@@ -145,15 +145,15 @@ namespace BetterPokerTableManager
             Logger.Log("SlotConfigHandler: " +
                     $"RemoveSlot() scw {scw.GetHashCode()}");
 
-            if (ActiveConfig.Slots.Count(s => s.GetHashCode() == scw.CurrentSlot.GetHashCode()) == 0)
+            if (ActiveConfig.Slots.Count(s => s.Id == scw.CurrentSlot.Id) == 0)
                 Logger.Log("SlotConfigHandler: " +
                     $"RemoveSlot() closing a table {scw.GetHashCode()} that's already removed. Called twice?", Logger.Status.Error);
 
-            ActiveConfig.Slots.RemoveAll(s => s.GetHashCode() == scw.CurrentSlot.GetHashCode()); // remove slot
+            ActiveConfig.Slots.RemoveAll(s => s.Id == scw.CurrentSlot.Id); // remove slot
             slotConfigWindows.RemoveAll(x => x.GetHashCode() == scw.GetHashCode()); // remove window
             // Lower possible max id in other tables
             // todo: Fix the ugly code
-            string dirtyIdString = (string)((ComboBoxItem)scw.idCb.SelectedItem).Content;
+            string dirtyIdString = (string)((ComboBoxItem)scw.prioCb.SelectedItem).Content;
             ReduceMaxIdAllWindows(dirtyIdString == "Auto" ? 0 :  int.Parse(dirtyIdString));
             // close happens in window class
             return true;
@@ -167,11 +167,11 @@ namespace BetterPokerTableManager
             foreach (var win in slotConfigWindows)
             {
                 // todo: Yeah uhmm.. make this.. not horrible. Use bindings or something.
-                var lastCbi = (ComboBoxItem)win.idCb.Items[win.idCb.Items.Count - 1];
+                var lastCbi = (ComboBoxItem)win.prioCb.Items[win.prioCb.Items.Count - 1];
                 int newNum = (string)lastCbi.Content == "Auto" ? 1 : int.Parse((string)lastCbi.Content) + 1;
                 var newCbi = new ComboBoxItem();
                 newCbi.Content = newNum.ToString();
-                win.idCb.Items.Add(newCbi);
+                win.prioCb.Items.Add(newCbi);
             }
         }
 
@@ -183,14 +183,14 @@ namespace BetterPokerTableManager
                     $"ReduceMaxIdAllWindows()");
 
             // Reduce any ID's with a selection higher than removed table
-            var windowsNeedReducing = slotConfigWindows.FindAll(w => w.idCb.SelectedIndex > removedId);
+            var windowsNeedReducing = slotConfigWindows.FindAll(w => w.prioCb.SelectedIndex > removedId);
             foreach (var winRed in windowsNeedReducing)
-                winRed.idCb.SelectedIndex--;
+                winRed.prioCb.SelectedIndex--;
 
             // Remove last entry from all windows
             foreach (var win in slotConfigWindows)
             {
-                var lastCbi = (ComboBoxItem)win.idCb.Items[win.idCb.Items.Count - 1];
+                var lastCbi = (ComboBoxItem)win.prioCb.Items[win.prioCb.Items.Count - 1];
                 int last = (string)lastCbi.Content == "Auto" ? 0 : int.Parse((string)lastCbi.Content);
                 if (last == 0)
                 {
@@ -199,7 +199,7 @@ namespace BetterPokerTableManager
                     return;
                 }
 
-                win.idCb.Items.RemoveAt(win.idCb.Items.Count - 1);
+                win.prioCb.Items.RemoveAt(win.prioCb.Items.Count - 1);
             }
         }
     }

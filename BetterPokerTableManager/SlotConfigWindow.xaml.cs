@@ -30,14 +30,14 @@ namespace BetterPokerTableManager
             sch.ConfigSetupCompleted += Sch_ConfigSetupCompleted;
             CurrentSlot.SlotIdChangedEventHandler += CurrentSlot_SlotIdChangedEventHandler;
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
-                    $"created with slot hash {currentSlot.GetHashCode()}.");
+                    $"created with slot {currentSlot.Id}.");
         }
 
         private void CurrentSlot_SlotIdChangedEventHandler(object sender, EventArgs e)
         {
-            var args = (SlotIdChangedEventArgs)e;
+            var args = (SlotPriorityChangedEventArgs)e;
             var win = (Slot)sender;
-            idCb.SelectedIndex = args.NewId;
+            prioCb.SelectedIndex = args.NewPriority;
         }
 
         private void Sch_ConfigSetupCompleted(object sender, EventArgs e)
@@ -163,7 +163,7 @@ namespace BetterPokerTableManager
 
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
                     $"IdCb SelectionChanged to {sel}");
-            CurrentSlot.Id = int.Parse(sel);
+            CurrentSlot.Priority = int.Parse(sel);
         }
     }
 
