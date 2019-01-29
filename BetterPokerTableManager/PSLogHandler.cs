@@ -71,7 +71,7 @@ namespace BetterPokerTableManager
             // Loading vars
             DateTime startAnalysisTime = DateTime.Now;
             DateTime loadFoundTimeStamp = DateTime.MinValue;
-            bool loading = false; // Should be true - false will analyse the whole log
+            bool loading = true; // Should be true - false will analyse the whole log
             string currRead = "";
 
             // Multiline vars

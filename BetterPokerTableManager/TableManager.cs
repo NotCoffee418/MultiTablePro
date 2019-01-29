@@ -8,9 +8,9 @@ using System.Collections.Concurrent;
 
 namespace BetterPokerTableManager
 {
-    internal class WindowManager
+    internal class TableManager
     {
-        public WindowManager(Config activeConfig)
+        public TableManager(Config activeConfig)
         {
 
         }

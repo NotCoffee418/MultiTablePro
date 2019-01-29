@@ -67,7 +67,8 @@
       <DependentUpon>SlotConfigWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Table.cs" />
-    <Compile Include="WindowManager.cs" />
+    <Compile Include="WindowHandler.cs" />
+    <Compile Include="TableManager.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
