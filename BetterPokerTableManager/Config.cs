@@ -32,6 +32,11 @@ namespace BetterPokerTableManager
                 if (!File.Exists(path)) // Write default file if it doesn't exist
                     File.WriteAllText(path, Properties.Resources.configDefault1920x1080);
             }
+            else if (!File.Exists(path))
+            {
+                Logger.Log("Requested config file does not exist", Logger.Status.Error, true);
+                return null;
+            }
 
             return FromJson(File.ReadAllText(path));
         }
@@ -43,7 +48,15 @@ namespace BetterPokerTableManager
 
         public static Config FromJson(string json)
         {
-            return JsonConvert.DeserializeObject<Config>(json);
+            try
+            {
+                return JsonConvert.DeserializeObject<Config>(json);
+            }
+            catch
+            {
+                Logger.Log("Failed to deserialize config.", Logger.Status.Error, true);
+                return null;
+            }
         }
         #endregion
 
