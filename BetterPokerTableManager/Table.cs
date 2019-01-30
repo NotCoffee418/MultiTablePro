@@ -79,7 +79,7 @@ namespace BetterPokerTableManager
         /// <param name="wHnd">Search by window handle</param>
         /// <param name="makeMissing">Register the table if it's unknown?</param>
         /// <returns>null or Table matching the wHnd</returns>
-        public static Table Find(IntPtr wHnd, bool registerMissing = false)
+        public static Table Find(IntPtr wHnd, bool registerMissing = true)
         {
             Table table = KnownTables.FirstOrDefault(t => t.WindowHandle == wHnd);
             if (table == null && registerMissing)

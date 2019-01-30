@@ -252,7 +252,7 @@ namespace BetterPokerTableManager
             else if (rNewTableFound.IsMatch(lines[0]))
             {
                 IntPtr wHnd = StrToIntPtr(rNewTableFound.Match(lines[0]).Groups[1].Value);
-                if (Table.Find(wHnd) == null)
+                if (Table.Find(wHnd, false) == null)
                 {
                     new Table(wHnd); // constructor does the rest
                     Logger.Log($"PSLogHandler: New table ({wHnd}) detected.");

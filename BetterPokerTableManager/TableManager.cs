@@ -149,8 +149,9 @@ namespace BetterPokerTableManager
                 .Where(s => s.OccupiedBy.Count == 0) // Ignore stackable actives
                 .Count();
 
-            // Count tables in queue that require an active slot
+            // Count tables in queue that require an active slot (excluding target)
             int tablesRequireActiveSlotCount = Table.ActionQueue
+                .Where(t => t.WindowHandle != table.WindowHandle)
                 .Where(t => t.Priority >= Table.Status.ActionRequired)
                 .Count();
 
@@ -180,8 +181,8 @@ namespace BetterPokerTableManager
             else if ((wasMadeUnaside || isPriorityTable) || isNewTable) // todo: User setting also goes here
                 activity = Slot.ActivityUses.Inactive;
 
-            // No need to move to inactive, claim success
-            if (activity == null) 
+            // No need to move to inactive or to slots of the same type, claim success
+            if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) 
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
                 return true;
