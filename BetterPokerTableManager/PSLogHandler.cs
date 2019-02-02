@@ -189,14 +189,9 @@ namespace BetterPokerTableManager
                         Logger.Log($"PSLogHandler: Action required on table ({wHnd})");
                         Table.SetPriority(wHnd, Table.Status.ActionRequired, registerMissing: true);
                         break;
-                    case 8: // Action completed (WARNING: Also includes fold, MSG occurs AFTER USR ACT button 'Fold'!)
-                        Table t = Table.Find(wHnd);                        
-                        if (t.Priority == Table.Status.HandEndedOrNotInHand)
-                            Logger.Log($"PSLogHandler: Detected action done, action was fold, ignoring on table ({wHnd})");
-                        else {
-                            Logger.Log($"PSLogHandler: Detected action done, still in hand on table ({wHnd})");
-                            t.Priority = Table.Status.InHandNoActionRequired;
-                        }
+                    case 8: // Action completed
+                        Logger.Log($"PSLogHandler: User completed an action on table ({wHnd})");
+                        Table.SetPriority(wHnd, Table.Status.NoActionRequired, registerMissing: true);
                         break;
                     case 21: // High priority, time warning has sounded
                         Logger.Log($"PSLogHandler: time running low on table ({wHnd})");
@@ -206,32 +201,13 @@ namespace BetterPokerTableManager
                 
             }
 
-            // User has folded, make inactive
-            // Example: USR ACT button 'Fold' 00300B96
-            else if (rUserFolded.IsMatch(lines[0]))
-            {
-                if (lines.Count() == 1)
-                {
-                    return lines; // Request another line to confirm fold wasn't check
-                }
-                else if (!rFoldWasCheck.IsMatch(lines[1])) // Fold was not a check
-                {
-                    IntPtr wHnd = StrToIntPtr(rUserFolded.Match(lines[0]).Groups[1].Value);
-                    Logger.Log($"PSLogHandler: User folded at ({wHnd})");
-                    Table.SetPriority(wHnd, Table.Status.HandEndedOrNotInHand);
-
-                    // Line was irrelevant to fold, requeue for analysis
-                    reAnalysisQueue.Enqueue(lines[1]);
-                }                
-            }
-
             // Hand is over (new hand dealt), make inactive (if not already)
             // Example: MyPrivateCard 0: c21 [300B96]
             else if (rNewHandDealt.IsMatch(lines[0]))
             {
                 IntPtr wHnd = StrToIntPtr(rNewHandDealt.Match(lines[0]).Groups[1].Value);
                 Logger.Log($"PSLogHandler: Hand ended at ({wHnd})");
-                Table.SetPriority(wHnd, Table.Status.HandEndedOrNotInHand);
+                Table.SetPriority(wHnd, Table.Status.NoActionRequired);
             }
 
             // Report that table has been closed

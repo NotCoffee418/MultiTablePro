@@ -115,7 +115,7 @@ namespace BetterPokerTableManager
             // Try to find an active slot with a low priority table and push it to Inactive.
             resultSlot = possibleSlots
                 // Only tables with priority that's allowed to be pushed aside
-                .Where(s => s.OccupiedBy.First().Priority <= Table.Status.InHandNoActionRequired)
+                .Where(s => s.OccupiedBy.First().Priority <= Table.Status.NoActionRequired)
                 // Find lowest priority table to push aside
                 .OrderBy(s => s.OccupiedBy.OrderBy(x => x.Priority).First())
                 .FirstOrDefault();

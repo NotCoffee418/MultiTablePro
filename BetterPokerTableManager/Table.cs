@@ -21,16 +21,15 @@ namespace BetterPokerTableManager
         {
             Closed = 0,
             OpenButNotJoined = 1,
-            HandEndedOrNotInHand = 2,
-            InHandNoActionRequired = 3,
-            ActionRequired = 4,
-            TimeRunningLow = 5,
+            NoActionRequired = 2,
+            ActionRequired = 3,
+            TimeRunningLow = 4,
         }
         static string[] statusNames = Enum.GetNames(typeof(Status));
 
         bool _isAside;
         IntPtr _windowHandle;
-        Status _priority = Status.HandEndedOrNotInHand;
+        Status _priority = Status.NoActionRequired;
         DateTime _priorityChangedTime;
 
         public IntPtr WindowHandle
