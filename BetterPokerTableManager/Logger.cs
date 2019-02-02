@@ -53,7 +53,7 @@ namespace BetterPokerTableManager
         {
             if (Debugger.IsAttached || status >= LogLevel)
             {
-                string entry = $"[{DateTime.Now.ToString("yyyy-MM-dd H:mm:ss")}][{statusNames[(int)status]}] {message}";
+                string entry = $"[{DateTime.Now.ToString("yyyy-MM-dd H:mm:ss.fff")}][{statusNames[(int)status]}] {message}";
                 writeQueue.Enqueue(entry);
                 Debug.WriteLine(entry);
             }

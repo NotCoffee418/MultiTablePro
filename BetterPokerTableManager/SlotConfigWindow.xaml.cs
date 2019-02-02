@@ -48,7 +48,7 @@ namespace BetterPokerTableManager
             Close();
         }
 
-        public Slot CurrentSlot { get; set; }
+        internal Slot CurrentSlot { get; set; }
         private bool AllowRecordChanges { get; set; }
         private bool IsDone { get; set; }
         private SlotConfigHandler ActiveSlotConfigHandler { get; set; }

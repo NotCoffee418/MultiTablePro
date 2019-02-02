@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace BetterPokerTableManager
 {
-    public class Slot
+    internal class Slot : IEquatable<Slot>
     {
         public Slot() {
             // Default constructor required for Json deserialization
@@ -88,12 +88,65 @@ namespace BetterPokerTableManager
         public event EventHandler ActivityUseChangedEventHandler;
 
 
+        public void BindTable(Table table)
+        {
+            table.PreferredSlot = this;
+            lock (OccupiedBy)
+            {
+                OccupiedBy.Add(table);
+            }
+        }
+
+        public void UnbindTable(Table table)
+        {
+            table.PreferredSlot = null;
+            lock (OccupiedBy)
+            {
+                OccupiedBy.RemoveAll(t => t.WindowHandle == table.WindowHandle);
+            }
+        }
+
         public override bool Equals(Object obj)
         {
             if (obj == null || !(obj is Slot))
                 return false;
             else
                 return Id == ((Slot)obj).Id;
+        }
+
+        public bool Equals(Slot other)
+        {
+            return other != null &&
+                   Priority == other.Priority &&
+                   ActivityUse == other.ActivityUse &&
+                   X == other.X &&
+                   Y == other.Y &&
+                   Width == other.Width &&
+                   Height == other.Height &&
+                   CanStack == other.CanStack;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1477292275;
+            hashCode = hashCode * -1521134295 + Priority.GetHashCode();
+            hashCode = hashCode * -1521134295 + ActivityUse.GetHashCode();
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            hashCode = hashCode * -1521134295 + Width.GetHashCode();
+            hashCode = hashCode * -1521134295 + Height.GetHashCode();
+            hashCode = hashCode * -1521134295 + CanStack.GetHashCode();
+            return hashCode;
+        }
+
+        public static bool operator ==(Slot slot1, Slot slot2)
+        {
+            return EqualityComparer<Slot>.Default.Equals(slot1, slot2);
+        }
+
+        public static bool operator !=(Slot slot1, Slot slot2)
+        {
+            return !(slot1 == slot2);
         }
     }
 

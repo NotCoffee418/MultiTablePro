@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    internal class Table
+    internal class Table : IEquatable<Table>
     {
         public Table(IntPtr wHnd)
         {
@@ -67,6 +67,8 @@ namespace BetterPokerTableManager
                 else return _priorityChangedTime;
             }
         }
+        public Slot PreferredSlot { get; internal set; }
+
 
         #region Static
         public static List<Table> KnownTables = new List<Table>();
@@ -120,6 +122,32 @@ namespace BetterPokerTableManager
             lock (KnownTables) {
                 KnownTables.RemoveAll(t => t.WindowHandle == WindowHandle);
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Table);
+        }
+
+        public bool Equals(Table other)
+        {
+            return other != null &&
+                   EqualityComparer<IntPtr>.Default.Equals(WindowHandle, other.WindowHandle);
+        }
+
+        public override int GetHashCode()
+        {
+            return 1407091763 + EqualityComparer<IntPtr>.Default.GetHashCode(WindowHandle);
+        }
+
+        public static bool operator ==(Table table1, Table table2)
+        {
+            return EqualityComparer<Table>.Default.Equals(table1, table2);
+        }
+
+        public static bool operator !=(Table table1, Table table2)
+        {
+            return !(table1 == table2);
         }
     }
 }

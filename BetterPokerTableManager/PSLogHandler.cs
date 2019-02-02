@@ -207,7 +207,9 @@ namespace BetterPokerTableManager
             {
                 IntPtr wHnd = StrToIntPtr(rNewHandDealt.Match(lines[0]).Groups[1].Value);
                 Logger.Log($"PSLogHandler: Hand ended at ({wHnd})");
-                Table.SetPriority(wHnd, Table.Status.NoActionRequired);
+                Table table = Table.Find(wHnd);
+                table.Priority = Table.Status.NoActionRequired;
+                table.PreferredSlot = null; // Clear the preferred slot since a new hand has started                
             }
 
             // Report that table has been closed

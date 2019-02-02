@@ -10,9 +10,10 @@ namespace BetterPokerTableManager
 {
     internal class TableManager
     {
+        public TableManager() { }
         public TableManager(Config activeConfig)
         {
-
+            ActiveConfig = activeConfig;
         }
 
         /// <summary>
@@ -69,14 +70,14 @@ namespace BetterPokerTableManager
         /// <param name="activity">The slot type</param>
         /// <param name="status">Used to push aside low priority tables if needed</param>
         /// <returns></returns>
-        private Slot GetAvailableSlot(Slot.ActivityUses slotType, Table.Status status)
+        private Slot GetAvailableSlot(Slot.ActivityUses slotType, Table table)
         {
             Slot resultSlot = null;
 
             // Find all possible slots & order them
             var possibleSlots = ActiveConfig.Slots
                 .Where(s => s.ActivityUse == slotType)  // Match the slot type (active/inactive)
-                .OrderBy(s => s.OccupiedBy.Count)       // Pick the best slot                
+                .OrderBy(s => s.OccupiedBy.Count)       // Pick the best slot
                 .ThenBy(s => s.Priority)                // Pick user preferred slot
                 .ThenBy(s => s.X)                       // Pick left-to-right instead
                 .ThenBy(s => s.Y);
@@ -91,9 +92,10 @@ namespace BetterPokerTableManager
                 return resultSlot;
             }
 
-            // Try to find an empty slot or stackable slot
+            // Try to find an empty or the current slot or stackable slot - filter by preferred slot
             resultSlot = possibleSlots
-                .Where(s => s.OccupiedBy.Count == 0 || s.CanStack)
+                .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table) || s.CanStack)
+                .OrderByDescending(s => table.PreferredSlot != null && s == table.PreferredSlot)
                 .FirstOrDefault();
             if (resultSlot != null)
                 return resultSlot;
@@ -125,7 +127,7 @@ namespace BetterPokerTableManager
             if (resultSlot != null)
             {
                 Table tableToMove = resultSlot.OccupiedBy.First();
-                Slot anInactiveSlot = GetAvailableSlot(Slot.ActivityUses.Inactive, tableToMove.Priority);
+                Slot anInactiveSlot = GetAvailableSlot(Slot.ActivityUses.Inactive, table);
                 MoveTable(tableToMove, anInactiveSlot);
             }
 
@@ -146,7 +148,7 @@ namespace BetterPokerTableManager
             // Count available active slots
             int freeActiveSlotsCount = ActiveConfig.Slots
                 .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
-                .Where(s => s.OccupiedBy.Count == 0) // Ignore stackable actives
+                .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table)) // Ignore stackable actives & the table's current slot
                 .Count();
 
             // Count tables in queue that require an active slot (excluding target)
@@ -155,11 +157,10 @@ namespace BetterPokerTableManager
                 .Where(t => t.Priority >= Table.Status.ActionRequired)
                 .Count();
 
-            // Table was made unaside?
+            // Find the slot the table is in currently
             Slot previousSlot = ActiveConfig.Slots
-                .Where(s => s.ActivityUse == Slot.ActivityUses.Aside)
                 .Where(s => s.OccupiedBy
-                    .Where(t => t.WindowHandle == table.WindowHandle).Count() > 0)
+                    .Where(t => t == table).Count() > 0)
                 .FirstOrDefault();
 
             // Questions that keep the if statements below from bleeding your eyes
@@ -190,11 +191,16 @@ namespace BetterPokerTableManager
 
 
             // Find a suitable slot & move table if possible
-            Slot toSlot = GetAvailableSlot((Slot.ActivityUses)activity, table.Priority);
+            Slot toSlot = GetAvailableSlot((Slot.ActivityUses)activity, table);
             if (toSlot == null)
             {
                 Logger.Log($"TableManager: Failed to find an available slot for table {table.WindowHandle}"); 
                 return false;
+            }
+            else if (!isNewTable && toSlot.ActivityUse == previousSlot.ActivityUse)
+            {
+                Logger.Log($"TableManager: Table {table.WindowHandle} is already in the best slot. Doing nothing.");
+                return true;
             }
             else // Or move table and return true
             {
@@ -223,6 +229,11 @@ namespace BetterPokerTableManager
                 return;
             }
 
+            // Update preferred active slot
+            if (toSlot.ActivityUse == Slot.ActivityUses.Active)
+                table.PreferredSlot = toSlot;
+
+            // Move the table
             try
             {
                 // normalize
@@ -248,12 +259,11 @@ namespace BetterPokerTableManager
 
                     // Unlist the table from the slot, if any
                     if (foundSlot != null)
-                        foundSlot.OccupiedBy.RemoveAll(t => t.WindowHandle == table.WindowHandle);
+                        foundSlot.UnbindTable(table);
                 }
 
                 // List the table to be in the new Slot
-                lock (toSlot.OccupiedBy)
-                    toSlot.OccupiedBy.Add(table);
+                toSlot.BindTable(table);
             }
             catch (Exception ex)
             {
