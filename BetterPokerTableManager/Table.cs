@@ -10,9 +10,10 @@ namespace BetterPokerTableManager
 {
     internal class Table : IEquatable<Table>
     {
-        public Table(IntPtr wHnd)
+        public Table(IntPtr wHnd, bool isVirtual = false)
         {
             WindowHandle = wHnd;
+            _isVirtual = isVirtual;
             RegisterNewTable();
         }
 
@@ -31,6 +32,7 @@ namespace BetterPokerTableManager
         IntPtr _windowHandle;
         Status _priority = Status.NoActionRequired;
         DateTime _priorityChangedTime;
+        bool _isVirtual;
 
         public IntPtr WindowHandle
         {
@@ -68,6 +70,10 @@ namespace BetterPokerTableManager
             }
         }
         public Slot PreferredSlot { get; internal set; }
+        public bool IsVirtual
+        {
+            get { return _isVirtual; }
+        }
 
 
         #region Static

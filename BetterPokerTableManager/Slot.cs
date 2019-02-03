@@ -1,14 +1,18 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace BetterPokerTableManager
 {
-    internal class Slot : IEquatable<Slot>
+    internal class Slot : IEquatable<Slot>, INotifyPropertyChanged
     {
         public Slot() {
             // Default constructor required for Json deserialization
@@ -30,9 +34,16 @@ namespace BetterPokerTableManager
         }
         static string[] activityUseNames = Enum.GetNames(typeof(ActivityUses));
 
-        private int _id;
-        private int _priority;
-        private ActivityUses _activityUses = ActivityUses.Inactive;
+        int _id;
+        int _priority;
+        int _x;
+        int _y;
+        int _width;
+        int _height;
+        bool _canStack;
+        ActivityUses _activityUses = ActivityUses.Inactive;
+        private static Size dpiFactor = new Size(1.0, 1.0);
+        private static bool isInitialized;
 
         [JsonIgnore]
         public int Id
@@ -78,15 +89,79 @@ namespace BetterPokerTableManager
         [JsonIgnore]
         internal List<Table> OccupiedBy = new List<Table>();
 
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
-        public bool CanStack { get; set; }
+        
+        public int X
+        {
+            get { return _x; }
+
+            set
+            {
+                if (IsNewLocationValid("X", value))
+                {
+                    _x = value;
+                    RaisePropertyChanged("X");
+                }
+            }
+        }
+        public int Y
+        {
+            get { return _y; }
+            set
+            {
+                if (IsNewLocationValid("Y", value))
+                {
+                    _y = value;
+                    RaisePropertyChanged("Y");
+                }
+            }
+        }
+        public int Width
+        {
+            get { return _width; }
+            set
+            {
+                _width = value;
+                RaisePropertyChanged("Width");
+            }
+        }
+        public int Height
+        {
+            get { return _height; }
+            set
+            {
+                _height = value;
+                RaisePropertyChanged("Height");
+            }
+        }
+        public bool CanStack
+        {
+            get { return _canStack; }
+            set
+            {
+                _canStack = value;
+                RaisePropertyChanged("CanStack");
+            }
+        }
+
+        [JsonIgnore]
+        public static IEnumerable<Rect> WorkingAreas
+        {
+            get
+            {
+                return
+                    Screen.AllScreens.Select(
+                        screen =>
+                        new Rect(
+                            screen.WorkingArea.Left * dpiFactor.Width,
+                            screen.WorkingArea.Top * dpiFactor.Height,
+                            screen.WorkingArea.Width * dpiFactor.Width,
+                            screen.WorkingArea.Height * dpiFactor.Height));
+            }
+        }
 
         public event EventHandler SlotIdChangedEventHandler;
         public event EventHandler ActivityUseChangedEventHandler;
-
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public void BindTable(Table table)
         {
@@ -104,6 +179,66 @@ namespace BetterPokerTableManager
             {
                 OccupiedBy.RemoveAll(t => t.WindowHandle == table.WindowHandle);
             }
+        }
+
+        public static void TryInitialize(Visual visual)
+        {
+            if (isInitialized)
+            {
+                return;
+            }
+
+            var ps = PresentationSource.FromVisual(visual);
+            if (ps == null)
+            {
+                return;
+            }
+
+            var ct = ps.CompositionTarget;
+            if (ct == null)
+            {
+                return;
+            }
+
+            var m = ct.TransformToDevice;
+            dpiFactor = new Size(m.M11, m.M22);
+            isInitialized = true;
+        }
+
+        /// <summary>
+        /// Determines wether the proposed new slot location is valid on scree
+        /// </summary>
+        /// <param name="propertyName">Property that changed</param>
+        /// <param name="value">Value of that property</param>
+        /// <returns></returns>
+        private bool IsNewLocationValid(string propertyName, int value)
+        {
+            if (OccupiedBy.Count == 0 || !OccupiedBy[0].IsVirtual)
+                return true;
+
+            // Initialize the virtual table window
+            TryInitialize((Window)HwndSource.FromHwnd(OccupiedBy[0].WindowHandle).RootVisual);
+
+            // See if new location is valid
+            Rect windowRectangle = new Rect(
+                propertyName == "X" ? value : X,
+                propertyName == "Y" ? value : Y,
+                propertyName == "Width" ? value : Width,
+                propertyName == "Height" ? value : Height
+                );
+
+            foreach (var workingArea in Slot.WorkingAreas)
+            {
+                var intersection = Rect.Intersect(windowRectangle, workingArea);
+                var minVisible = new Size(30.0, 30.0);
+                if (intersection.Width >= minVisible.Width &&
+                    intersection.Height >= minVisible.Height)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override bool Equals(Object obj)
@@ -147,6 +282,12 @@ namespace BetterPokerTableManager
         public static bool operator !=(Slot slot1, Slot slot2)
         {
             return !(slot1 == slot2);
+        }
+
+        public void RaisePropertyChanged(string property)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
         }
     }
 

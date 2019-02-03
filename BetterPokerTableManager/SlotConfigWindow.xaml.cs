@@ -26,6 +26,7 @@ namespace BetterPokerTableManager
         {
             InitializeComponent();
             CurrentSlot = currentSlot;
+            DataContext = CurrentSlot;
             ActiveSlotConfigHandler = sch;
             sch.ConfigSetupCompleted += Sch_ConfigSetupCompleted;
             CurrentSlot.SlotIdChangedEventHandler += CurrentSlot_SlotIdChangedEventHandler;
@@ -66,9 +67,36 @@ namespace BetterPokerTableManager
             Height = CurrentSlot.Height;
             Left = CurrentSlot.X;
             Top = CurrentSlot.Y;
+            CurrentSlot.PropertyChanged += CurrentSlot_PropertyChanged;
+
+
+            // register this SlotConfigWindow as a virtual table
+            IntPtr wHnd = new WindowInteropHelper(this).Handle;
+            CurrentSlot.OccupiedBy.Add(new Table(wHnd, isVirtual: true));
+
 
             // Allow any size/position changes to be recorded from this point on
             AllowRecordChanges = true;
+        }
+
+        // Update position after usually manually input it
+        private void CurrentSlot_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case "X":
+                    Left = CurrentSlot.X;
+                    break;
+                case "Y":
+                    Top = CurrentSlot.Y;
+                    break;
+                case "Width":
+                    Width = CurrentSlot.Width;
+                    break;
+                case "Height":
+                    Height = CurrentSlot.Height;
+                    break;
+            }
         }
 
         private void ActivityUsesBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

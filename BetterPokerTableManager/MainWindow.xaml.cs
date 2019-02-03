@@ -30,8 +30,8 @@ namespace BetterPokerTableManager
             // debug
             PSLogHandler.Start();
             Config c = Config.FromJson(Properties.Resources.configEmpty);
-            TableManager tm = new TableManager(c);
-            tm.Start();
+            //TableManager tm = new TableManager(c);
+            //tm.Start();
 
 
             /*
@@ -47,9 +47,9 @@ namespace BetterPokerTableManager
             t1.Priority = Table.Status.ActionRequired;
             */
 
-            //var test = new SlotConfigHandler(c);
-            //test.StartConfigHandler();
-            //test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
+            var test = new SlotConfigHandler(c);
+            test.StartConfigHandler();
+            test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
 
         }
 

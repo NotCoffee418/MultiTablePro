@@ -7,7 +7,9 @@
         mc:Ignorable="d"
         Title="SlotConfigWindow" MinWidth="485" MinHeight="360" MaxWidth="1320" MaxHeight="940"
          d:DesignWidth="485" d:DesignHeight="360"
-        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" Closing="Window_Closing" Loaded="Window_Loaded" Topmost="True">
+        SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" 
+        Closing="Window_Closing" Loaded="Window_Loaded" Topmost="True"
+        Left="{Binding X}" Top="{Binding Y}" Width="{Binding Width}" Height="{Binding Height}">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">
@@ -51,19 +53,19 @@
                 <StackPanel Orientation="Vertical">
                     <DockPanel Width="150">
                         <Label Content="X" Width="50" />
-                        <Label Content="Xval" Width="100" />
+                        <TextBox Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
                     </DockPanel>
                     <DockPanel>
                         <Label Content="Y" Width="50" />
-                        <Label Content="Yval" Width="100" />
+                        <TextBox Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" Width="100" />
                     </DockPanel>
                     <DockPanel>
                         <Label Content="Width" Width="50" />
-                        <Label Content="widthval" Width="100" />
+                        <TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Width="100" IsReadOnly="True" />
                     </DockPanel>
                     <DockPanel>
                         <Label Content="Height" Width="50" />
-                        <Label Content="Heightval" Width="100" />
+                        <TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Width="100" IsReadOnly="True" />
                     </DockPanel>
                 </StackPanel>
             </GroupBox>
