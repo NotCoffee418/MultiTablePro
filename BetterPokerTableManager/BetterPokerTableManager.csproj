@@ -78,6 +78,7 @@
     <Compile Include="Table.cs" />
     <Compile Include="WindowHandler.cs" />
     <Compile Include="TableManager.cs" />
+    <Compile Include="WpfScreen.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

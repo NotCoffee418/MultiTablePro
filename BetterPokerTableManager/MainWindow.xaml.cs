@@ -39,12 +39,13 @@ namespace BetterPokerTableManager
             //tm.Start();
 
 
-            PSLogHandler.Start();
+            //PSLogHandler.Start();
 
             var test = new SlotConfigHandler(c);
-            test.StartConfigHandler();
+            //test.StartConfigHandler();
             test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
 
+            profilePreviewControl.DisplayProfile = c.ActiveProfile;
         }
 
         // debug, kill me

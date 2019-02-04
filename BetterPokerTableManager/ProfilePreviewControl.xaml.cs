@@ -20,14 +20,110 @@ namespace BetterPokerTableManager
     /// </summary>
     public partial class ProfilePreviewControl : UserControl
     {
-        internal ProfilePreviewControl(Profile profile)
+        public ProfilePreviewControl()
         {
             InitializeComponent();
-            _displayProfile = profile;
         }
 
         Profile _displayProfile;
 
-        internal Profile DisplayProfile { get { return _displayProfile; } }
+        internal Profile DisplayProfile {
+            get { return _displayProfile; }
+            set
+            {
+                _displayProfile = value;
+                Refresh();
+            }
+        }
+
+
+        private void Refresh()
+        {
+            // Determine ratio to draw to scale
+            Rect workingArea = WpfScreen.GetWorkingAreaInfo();
+            double widthRatio = 300 / workingArea.Width;
+            double heightRatio = 150 / workingArea.Height;
+            double useRatio = widthRatio > heightRatio ? heightRatio : widthRatio;
+
+            // Determine offsets (for multiscreens that start in the negative)
+            // Happens when a monitor is to the left/top of the primary screen
+            double xOffset = workingArea.X * -1;
+            double yOffset = workingArea.Y * -1;
+
+            // Clear any previous displays
+            DrawArea.Children.Clear();
+
+            // Draw slots
+            DrawSlots(xOffset, yOffset, useRatio);
+
+            // Draw screens
+            DrawScreens(xOffset, yOffset, useRatio);
+        }
+
+        /// <summary>
+        /// Draws a slot representation based on slot & ratio
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <param name="sizeRatio"></param>
+        private void DrawSlots(double xOffset, double yOffset, double sizeRatio)
+        {
+            foreach (Slot slot in DisplayProfile)
+            {
+                Border result = new Border();
+                result.BorderThickness = new Thickness(5);
+
+                // Set border's color to identify the ActivityUse
+                Color color = Color.FromRgb(255, 255, 255);
+                switch (slot.ActivityUse)
+                {
+                    case Slot.ActivityUses.Active:
+                        color = Color.FromRgb(0, 128, 0); // green
+                        break;
+                    case Slot.ActivityUses.Inactive:
+                        color = Color.FromRgb(128, 0, 0); // green
+                        break;
+                    case Slot.ActivityUses.Aside:
+                        color = Color.FromRgb(171, 145, 68); // brown/yellow
+                        break;
+                }
+                result.BorderBrush = new SolidColorBrush(color);
+                result.VerticalAlignment = VerticalAlignment.Top;
+                result.HorizontalAlignment = HorizontalAlignment.Left;
+
+                result.Margin = new Thickness(
+                    (xOffset + slot.X) * sizeRatio, 
+                    (yOffset + slot.Y) * sizeRatio, 
+                    0, 0);
+                result.Width = slot.Width * sizeRatio;
+                result.Height = slot.Height * sizeRatio;
+
+                DrawArea.Children.Add(result);
+            }
+        }
+
+
+        private void DrawScreens(double xOffset, double yOffset, double sizeRatio)
+        {
+            foreach (var screen in WpfScreen.AllScreens())
+            {
+                Border result = new Border();
+                result.BorderThickness = new Thickness(1);
+
+                // Set border's color to identify the ActivityUse
+                Color color = Color.FromRgb(255, 255, 255);
+                result.BorderBrush = new SolidColorBrush(color);
+                result.VerticalAlignment = VerticalAlignment.Top;
+                result.HorizontalAlignment = HorizontalAlignment.Left;
+
+                result.Margin = new Thickness(
+                    (xOffset + screen.DeviceBounds.Left) * sizeRatio,
+                    (yOffset + screen.DeviceBounds.Top) * sizeRatio,
+                    0, 0);
+                result.Width = screen.DeviceBounds.Width * sizeRatio;
+                result.Height = screen.DeviceBounds.Height * sizeRatio;
+
+                DrawArea.Children.Add(result);
+            }
+        }
     }
 }
