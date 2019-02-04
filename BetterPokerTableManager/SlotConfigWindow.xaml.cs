@@ -161,6 +161,21 @@ namespace BetterPokerTableManager
             ActiveSlotConfigHandler.Cancel();
         }
 
+        private void IdCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count == 0)
+                return; // skip on load
+
+            // Save
+            string sel = (string)((ComboBoxItem)e.AddedItems[0]).Content;
+            if (sel == "Auto")
+                sel = "0";
+
+            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
+                    $"IdCb SelectionChanged to {sel}");
+            CurrentSlot.Priority = int.Parse(sel);
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             // Close acts as remove table - cancel if not allowed
@@ -179,20 +194,15 @@ namespace BetterPokerTableManager
                         "User attempted to close window. Permission granted, closing.");
         }
 
-        private void IdCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void Window_StateChanged(object sender, EventArgs e)
         {
-            if (e.RemovedItems.Count == 0)
-                return; // skip on load
-
-            // Save
-            string sel = (string)((ComboBoxItem)e.AddedItems[0]).Content;
-            if (sel == "Auto")
-                sel = "0";
-
-            Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
-                    $"IdCb SelectionChanged to {sel}");
-            CurrentSlot.Priority = int.Parse(sel);
+            if (WindowState == WindowState.Maximized || WindowState == WindowState.Minimized)
+            {
+                WindowState = WindowState.Normal;
+                return;
+            }
         }
+
     }
 
     internal class WindowAspectRatio

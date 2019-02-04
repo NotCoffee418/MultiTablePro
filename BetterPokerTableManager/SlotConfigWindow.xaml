@@ -9,7 +9,7 @@
          d:DesignWidth="485" d:DesignHeight="360"
         SizeChanged="Window_SizeChanged" SourceInitialized="Window_SourceInitialized" LocationChanged="Window_LocationChanged" 
         Closing="Window_Closing" Loaded="Window_Loaded" Topmost="True"
-        Left="{Binding X}" Top="{Binding Y}" Width="{Binding Width}" Height="{Binding Height}">
+        Left="{Binding X}" Top="{Binding Y}" Width="{Binding Width}" Height="{Binding Height}" StateChanged="Window_StateChanged">
     <ScrollViewer 
                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <WrapPanel Orientation="Horizontal">
