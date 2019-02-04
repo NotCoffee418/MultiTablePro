@@ -30,6 +30,7 @@ namespace BetterPokerTableManager
 
         // Default config is defined here
         string _activeProfileFileName = "";
+        private bool _forceTablePosition = true;
 
 
 
@@ -51,6 +52,12 @@ namespace BetterPokerTableManager
                     Path.Combine(Config.DataDir, "Profiles", value)
                     );
             }
+        }
+
+        public bool ForceTablePosition
+        {
+            get { return _forceTablePosition; }
+            set { _forceTablePosition = value; }
         }
 
 

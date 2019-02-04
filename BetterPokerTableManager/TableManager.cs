@@ -27,6 +27,7 @@ namespace BetterPokerTableManager
             }
             IsRunning = true;
             new Thread(() => ManageTables()).Start();
+            forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
         }
 
         /// <summary>
@@ -35,10 +36,12 @@ namespace BetterPokerTableManager
         public void Stop()
         {
             IsRunning = false;
+            forceTablePositionTimer.Dispose();
         }
 
         // private property's vars
         private Config _activeConfig;
+        private Timer forceTablePositionTimer;
 
         // Properties
         public bool IsRunning { get; set; }
@@ -310,6 +313,37 @@ namespace BetterPokerTableManager
 
                 // Report that we tried to move the table but couldn't
                 else lock (Table.ActionQueue) { lastQueueCount = Table.ActionQueue.Count(); }
+            }
+        }
+
+        private void ForceTablePosition(object state)
+        {
+            if (IsRunning && ActiveConfig.ForceTablePosition)
+            {
+                lock (Table.KnownTables)
+                {
+                    foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual))
+                    {
+                        Slot toSlot = ActiveConfig.ActiveProfile.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
+                        if (toSlot == null)
+                            return;
+
+                        try
+                        {
+                            // normalize
+                            WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Restore);
+                            WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Normal);
+
+                            // Move the window
+                            WindowHandler.MoveWindow(table.WindowHandle,
+                                toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height, true);
+                        }
+                        catch
+                        {
+                            Logger.Log("Table {table.WindowHandle} was closed unexpectedly during ForceTablePosition.");
+                        }
+                    }
+                }                
             }
         }
     }
