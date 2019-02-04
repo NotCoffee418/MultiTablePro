@@ -28,16 +28,18 @@ namespace BetterPokerTableManager
             Logger.Log("--- Starting application ---");
 
             // debug
-            PSLogHandler.Start();
-            Profile p = Profile.FromJson(Properties.Resources.profileEmpty);
+            //Profile p = Profile.FromJson(Properties.Resources.profileEmpty);
             //Profile p = new Profile();
             //p.Add(new Slot(Slot.ActivityUses.Active, 0, 0, 400, 400));
             //p.Add(new Slot(Slot.ActivityUses.Inactive, 400, 0, 400, 400));
 
-            Config c = new Config(p);
+            Config c = Config.FromFile(); // loads default config
+            //c.ActiveProfile = p;
             //TableManager tm = new TableManager(c);
             //tm.Start();
 
+
+            PSLogHandler.Start();
 
             var test = new SlotConfigHandler(c);
             test.StartConfigHandler();

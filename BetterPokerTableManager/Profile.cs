@@ -19,18 +19,18 @@ namespace BetterPokerTableManager
         public static Profile GetProfileFromFile(string path = "")
         {
             string activeProfileDir = Path.Combine(Config.DataDir, "Profiles");
-            string activeProfilePath = Path.Combine(activeProfileDir, "ActiveProfile.json");
+            string starterProfilePath = Path.Combine(activeProfileDir, "Default_1920x1080.json");
 
             // Ensure profiles dir exists, regardless of which file is loading
             if (!Directory.Exists(activeProfileDir))
                 Directory.CreateDirectory(activeProfileDir);
 
             // If no path was given load default ActiveProfile or default profile
-            if (path == "")
+            if (path == "" || path == starterProfilePath)
             {
-                path = Path.Combine(path, "ActiveProfile.json");
-                if (!File.Exists(path)) // Write default file if it doesn't exist
-                    File.WriteAllText(path, Properties.Resources.profileDefault1920x1080);
+                if (!File.Exists(starterProfilePath)) // Write default file if it doesn't exist
+                    File.WriteAllText(starterProfilePath, Properties.Resources.profileDefault1920x1080);
+                path = starterProfilePath;
             }
 
             // A path was given but the file does not exist

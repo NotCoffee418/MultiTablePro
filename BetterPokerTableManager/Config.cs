@@ -15,21 +15,11 @@ namespace BetterPokerTableManager
     /// </summary>
     internal class Config
     {
-        public Config()
-        {
-            ActiveProfile = Profile.GetProfileFromFile(); // default or active
-        }
-
-        public Config(Profile profile)
-        {
-            ActiveProfile = profile;
-        }
-
         [JsonIgnore] // Storing ActiveProfileFileName instead
         public Profile ActiveProfile { get; set; }
 
         // Default config is defined here
-        string _activeProfileFileName = "";
+        string _activeProfileFileName = "Default_1920x1080.json";
         private bool _forceTablePosition = true;
 
 
@@ -41,6 +31,14 @@ namespace BetterPokerTableManager
         {
             get
             {
+                // Ensure default profile exists & load it if no profile is set
+                // This will occur when first running the application and (unfortunately) JsonDeserialize also calls get
+                if (ActiveProfile == null && _activeProfileFileName == "Default_1920x1080.json")
+                {
+                    ActiveProfile = Profile.GetProfileFromFile(
+                    Path.Combine(Config.DataDir, "Profiles", _activeProfileFileName)
+                    );
+                }
                 return _activeProfileFileName;
             }
             set
@@ -94,14 +92,14 @@ namespace BetterPokerTableManager
         {
             if (path == "") // Load default config file if it's not found.
             {
-                string defaultPath = Path.Combine(DataDir, "Config.json");
+                path = Path.Combine(DataDir, "Config.json");
                 if (!File.Exists(path)) // Write default file if it doesn't exist (first run)
                     new Config().Save();
             }
             else if (!File.Exists(path))
             {
                 Logger.Log("Requested config file does not exist", Logger.Status.Error, true);
-                return null;
+                return new Config();
             }
 
             return Config.FromJson(File.ReadAllText(path));
