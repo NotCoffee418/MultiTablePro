@@ -65,6 +65,10 @@
     </ApplicationDefinition>
     <Compile Include="Config.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Profile.cs" />
+    <Compile Include="ProfilePreviewControl.xaml.cs">
+      <DependentUpon>ProfilePreviewControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PSLogHandler.cs" />
     <Compile Include="Slot.cs" />
     <Compile Include="SlotConfigHandler.cs" />
@@ -86,6 +90,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="ProfilePreviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="SlotConfigWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -125,10 +133,10 @@
     <None Include="LogFileReference.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\configEmpty.txt" />
+    <None Include="Resources\profileEmpty.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\configDefault1920x1080.txt" />
+    <None Include="Resources\profileDefault1920x1080.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -29,23 +29,15 @@ namespace BetterPokerTableManager
 
             // debug
             PSLogHandler.Start();
-            Config c = Config.FromJson(Properties.Resources.configEmpty);
+            Profile p = Profile.FromJson(Properties.Resources.profileEmpty);
+            //Profile p = new Profile();
+            //p.Add(new Slot(Slot.ActivityUses.Active, 0, 0, 400, 400));
+            //p.Add(new Slot(Slot.ActivityUses.Inactive, 400, 0, 400, 400));
+
+            Config c = new Config(p);
             //TableManager tm = new TableManager(c);
             //tm.Start();
 
-
-            /*
-            // Spawn tables
-            var t1 = Table.Find(new IntPtr(1), true);
-            var t2 = Table.Find(new IntPtr(2), true);
-            var t3 = Table.Find(new IntPtr(3), true);
-
-            t1.Priority = Table.Status.ActionRequired;
-            t1.Priority = Table.Status.HandEndedOrNotInHand;
-            t2.Priority = Table.Status.ActionRequired;
-            t3.Priority = Table.Status.ActionRequired;
-            t1.Priority = Table.Status.ActionRequired;
-            */
 
             var test = new SlotConfigHandler(c);
             test.StartConfigHandler();
@@ -57,7 +49,7 @@ namespace BetterPokerTableManager
         private void Test_ConfigSetupCompleted(object sender, EventArgs e)
         {
             var args = (ConfigSetupCompletedEventArgs)e;
-            System.IO.File.WriteAllText("tmpconfig.txt", args.Config.GetJson());
+            System.IO.File.WriteAllText("tmpconfig.txt", args.Config.ActiveProfile.GetJson());
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

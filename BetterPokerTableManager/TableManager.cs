@@ -47,7 +47,7 @@ namespace BetterPokerTableManager
             get
             {
                 if (_activeConfig == null)
-                    _activeConfig = Config.FromFile();
+                    _activeConfig = Config.FromFile(); // load defaults
                 return _activeConfig;
             }
             set { _activeConfig = value; }
@@ -75,7 +75,7 @@ namespace BetterPokerTableManager
             Slot resultSlot = null;
 
             // Find all possible slots & order them
-            var possibleSlots = ActiveConfig.Slots
+            var possibleSlots = ActiveConfig.ActiveProfile
                 .Where(s => s.ActivityUse == slotType)  // Match the slot type (active/inactive)
                 .OrderBy(s => s.OccupiedBy.Count)       // Pick the best slot
                 .ThenBy(s => s.Priority)                // Pick user preferred slot
@@ -146,7 +146,7 @@ namespace BetterPokerTableManager
         {
             
             // Count available active slots
-            int freeActiveSlotsCount = ActiveConfig.Slots
+            int freeActiveSlotsCount = ActiveConfig.ActiveProfile
                 .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
                 .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table)) // Ignore stackable actives & the table's current slot
                 .Count();
@@ -158,7 +158,7 @@ namespace BetterPokerTableManager
                 .Count();
 
             // Find the slot the table is in currently
-            Slot previousSlot = ActiveConfig.Slots
+            Slot previousSlot = ActiveConfig.ActiveProfile
                 .Where(s => s.OccupiedBy
                     .Where(t => t == table).Count() > 0)
                 .FirstOrDefault();
@@ -249,10 +249,10 @@ namespace BetterPokerTableManager
                     WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Show);
 
                 // Remove the table from any previous Slot it was in
-                lock (ActiveConfig.Slots)
+                lock (ActiveConfig.ActiveProfile)
                 {
                     // Find the table's old slot
-                    var foundSlot = ActiveConfig.Slots.FirstOrDefault(
+                    var foundSlot = ActiveConfig.ActiveProfile.FirstOrDefault(
                         s => s.OccupiedBy.FirstOrDefault(
                             t => t.WindowHandle == table.WindowHandle) != null
                         );

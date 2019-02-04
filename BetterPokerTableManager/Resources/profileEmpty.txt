@@ -1,0 +1,1 @@
+[{"Priority":0,"ActivityUse":1,"X":0,"Y":0,"Width":485,"Height":366,"CanStack":false},{"Priority":0,"ActivityUse":0,"X":485,"Y":0,"Width":485,"Height":366,"CanStack":true}]
