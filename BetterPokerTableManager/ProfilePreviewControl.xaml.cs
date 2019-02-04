@@ -41,14 +41,15 @@ namespace BetterPokerTableManager
         {
             // Determine ratio to draw to scale
             Rect workingArea = WpfScreen.GetWorkingAreaInfo();
-            double widthRatio = 300 / workingArea.Width;
-            double heightRatio = 150 / workingArea.Height;
+            double padding = 10;
+            double widthRatio = (Width - padding) / workingArea.Width;
+            double heightRatio = (Height - padding) / workingArea.Height;
             double useRatio = widthRatio > heightRatio ? heightRatio : widthRatio;
 
             // Determine offsets (for multiscreens that start in the negative)
             // Happens when a monitor is to the left/top of the primary screen
-            double xOffset = workingArea.X * -1;
-            double yOffset = workingArea.Y * -1;
+            double xOffset = (workingArea.X * -1) + padding;
+            double yOffset = (workingArea.Y * -1) + padding;
 
             // Clear any previous displays
             DrawArea.Children.Clear();
