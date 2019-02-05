@@ -19,7 +19,7 @@ namespace BetterPokerTableManager
         public Profile ActiveProfile { get; set; }
 
         // Default config is defined here
-        string _activeProfileFileName = "Default_1920x1080.json";
+        string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;
         private bool _forceTablePosition = true;
         private bool _autoStart = true;
         private bool _autoMinimize = true;
@@ -37,7 +37,7 @@ namespace BetterPokerTableManager
             {
                 // Ensure default profile exists & load it if no profile is set
                 // This will occur when first running the application and (unfortunately) JsonDeserialize also calls get
-                if (ActiveProfile == null && _activeProfileFileName == "Default_1920x1080.json")
+                if (ActiveProfile == null && _activeProfileFileName == Properties.Settings.Default.DefaultProfileFileName)
                 {
                     ActiveProfile = Profile.GetProfileFromFile(
                     Path.Combine(Config.DataDir, "Profiles", _activeProfileFileName)

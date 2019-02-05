@@ -34,5 +34,14 @@ namespace BetterPokerTableManager.Properties {
                 this["LogLevel"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Default_1920x1080.json")]
+        public string DefaultProfileFileName {
+            get {
+                return ((string)(this["DefaultProfileFileName"]));
+            }
+        }
     }
 }

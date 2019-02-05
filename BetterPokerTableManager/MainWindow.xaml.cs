@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -54,11 +56,17 @@ namespace BetterPokerTableManager
         internal void RefreshProfileList(bool selectActive = false, Profile selectSpecific = null)
         {
             List<Profile> newProfileList = Profile.GetAllProfiles();
+            if (newProfileList.Count == 0)
+                Logger.Log("You have no profiles. This should be impossible. Please restart the application and contact the developer if this occurs again.", Logger.Status.Fatal);
 
             // Find old value, selectSpecific or find active profile
             Profile requestedSelection = null;
             if (selectActive)
+            {
                 requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfileFileName);
+                if (requestedSelection == null) // Can happen when deleting a profile
+                    requestedSelection = newProfileList[0];
+            }
             else if (selectSpecific != null)
                 requestedSelection = newProfileList.FirstOrDefault(p => p.Equals(selectSpecific));
             else if (profileSelectionCb.SelectedValue != null)
@@ -107,8 +115,13 @@ namespace BetterPokerTableManager
 
         private void EditProfileBtn_Click(object sender, RoutedEventArgs e)
         {
-            Profile p = (Profile)profileSelectionCb.SelectedValue;
-            RequestProfileSetup(p, SlotConfigHandler.SetupTypes.EditProfile);
+            Profile selectedProfile = (Profile)profileSelectionCb.SelectedValue;
+            if (selectedProfile.FileName == Properties.Settings.Default.DefaultProfileFileName)
+            {
+                Logger.Log("The default profile cannot be deleted. Try duplicating it instead.", Logger.Status.Info, true);
+                return;
+            }
+            RequestProfileSetup(selectedProfile, SlotConfigHandler.SetupTypes.EditProfile);
         }
 
         private void NewProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -120,7 +133,26 @@ namespace BetterPokerTableManager
 
         private void DeleteProfileBtn_Click(object sender, RoutedEventArgs e)
         {
+            Profile selectedProfile = (Profile)profileSelectionCb.SelectedValue;
+            if (selectedProfile.FileName == Properties.Settings.Default.DefaultProfileFileName)
+            {
+                Logger.Log("The default profile cannot be deleted.", Logger.Status.Info, true);
+                return;
+            }
+            else if (!AskConfirmation($"DELETE profile '{selectedProfile}'"))
+                return;
 
+            string path = System.IO.Path.Combine(Config.DataDir, "Profiles", selectedProfile.FileName);
+            try
+            {
+                System.IO.File.Delete(path);
+            }
+            catch
+            {
+                Logger.Log("An error occurred while removing the profile file. "+
+                    "Do you have permission? Is the file open elsewhere?", Logger.Status.Error, true);
+            }
+            RefreshProfileList(selectActive:true);
         }
 
         private void DuplicateProfileBtn_Click(object sender, RoutedEventArgs e)
@@ -131,12 +163,29 @@ namespace BetterPokerTableManager
 
         private void ImportProfileBtn_Click(object sender, RoutedEventArgs e)
         {
+            // Request file from user
+            var dlg = new OpenFileDialog();
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "Profile Files|*.json";
+            if (dlg.ShowDialog() == false) // nullable
+                return;
 
+            // Generate profile, save it & refresh
+            Profile p = Profile.GetProfileFromFile(dlg.FileName);
+            p.SaveToFile();
+            RefreshProfileList(selectSpecific:p);
         }
 
         private void ExportProfileBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            Profile p = (Profile)profileSelectionCb.SelectedValue;
+            var dlg = new SaveFileDialog();
+            dlg.FileName = p.FileName;
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "Profile Files|*.json";
+            if (dlg.ShowDialog() == false) // nullable
+                return;
+            File.WriteAllText(dlg.FileName, p.GetJson());
         }
 
         private void RequestProfileSetup(Profile p, SlotConfigHandler.SetupTypes setupType)

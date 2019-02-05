@@ -25,6 +25,9 @@ namespace BetterPokerTableManager
             get { return _name; }
             set
             {
+                if (value.Intersect(System.IO.Path.GetInvalidPathChars()).Any() || value.Length > 32)
+                    return; // invalid character - not updating
+
                 _name = value;
                 RaisePropertyChanged("Name");
             }
@@ -120,7 +123,7 @@ namespace BetterPokerTableManager
         public static Profile GetProfileFromFile(string path = "")
         {
             string activeProfileDir = Path.Combine(Config.DataDir, "Profiles");
-            string starterProfilePath = Path.Combine(activeProfileDir, "Default_1920x1080.json");
+            string starterProfilePath = Path.Combine(activeProfileDir, Properties.Settings.Default.DefaultProfileFileName);
 
             // Ensure profiles dir exists, regardless of which file is loading
             if (!Directory.Exists(activeProfileDir))
