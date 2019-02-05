@@ -41,22 +41,43 @@ namespace BetterPokerTableManager
 
         public void SaveToFile(bool overwrite = false)
         {
+            string requestFileName = Name.Replace(" ", "_") + ".json";
+            string oldFileName = FileName;
+
             // Determine filename on new file
             if (FileName == null || FileName == "")
-                FileName = Name.Replace(" ", "_") + ".json";
-        
-            // Handle duplicate
-            if (!overwrite && File.Exists(Path.Combine(Config.DataDir, "Profiles", FileName)))
+                FileName = requestFileName;
+            
+            // Handle renaming
+            if (overwrite)
             {
-                // Determine the duplicate's file name
-                Regex previousHasDuplicate = new Regex(@"_(\d+)\.json");
-                if (previousHasDuplicate.IsMatch(FileName))
-                {
-                    int lastDuplicate = int.Parse(previousHasDuplicate.Match(FileName).Groups[1].Value);
-                    FileName = FileName.Replace(lastDuplicate + ".json", (lastDuplicate + 1) + ".json");
-                }
-                else FileName = FileName.Replace(".json", "_2.json");
+                // Renaming: overwrite assumes we're editing.
+                // If the file name doesn't match the (new) name, delete the old one & update
+                string oldPath = Path.Combine(Config.DataDir, "Profiles", oldFileName);
+                if (File.Exists(oldPath))
+                    File.Delete(oldPath);
             }
+
+            // Regardless of overwrite, if filename changed, we don't want to overwrite profiles with the same name
+            if (File.Exists(Path.Combine(Config.DataDir, "Profiles", requestFileName)))
+            {
+                // Determine new file name
+                Regex previousHasDuplicate = new Regex(@"_(\d+)\.json");
+                if (!previousHasDuplicate.IsMatch(requestFileName))
+                    requestFileName = requestFileName.Replace(".json", "_2.json");
+
+                // Loop until we reach an available number
+                int lastDuplicate = int.Parse(previousHasDuplicate.Match(requestFileName).Groups[1].Value);
+                while (File.Exists(Path.Combine(Config.DataDir, "Profiles", requestFileName)))
+                {
+                    requestFileName = requestFileName.Replace(lastDuplicate + ".json", (lastDuplicate + 1) + ".json");
+                    lastDuplicate++;
+                }
+            }
+
+            // Update FileName & Name
+            Name = Path.GetFileNameWithoutExtension(requestFileName).Replace("_", " ");
+            FileName = requestFileName;
 
             // Determine path & save
             string path = Path.Combine(Config.DataDir, "Profiles", FileName);
@@ -68,10 +89,9 @@ namespace BetterPokerTableManager
             return Name;
         }
         
-        // Only compare Slots - name is irrelevant
         public bool Equals(Profile other)
         {
-            return Slots.SequenceEqual(other.Slots);
+            return Name == other.Name && Slots.SequenceEqual(other.Slots);
         }
 
         public void RaisePropertyChanged(string property)
