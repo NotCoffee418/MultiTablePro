@@ -68,7 +68,7 @@ namespace BetterPokerTableManager
         /// <param name="sizeRatio"></param>
         private void DrawSlots(double xOffset, double yOffset, double sizeRatio)
         {
-            foreach (Slot slot in DisplayProfile)
+            foreach (Slot slot in DisplayProfile.Slots)
             {
                 Border result = new Border();
                 result.BorderThickness = new Thickness(5);

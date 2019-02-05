@@ -8,12 +8,27 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    internal class Profile : List<Slot>
+    internal class Profile
     {
+        public List<Slot> Slots = new List<Slot>();
+
+        [JsonIgnore]
+        public string Name { get; set; }
+
+        [JsonIgnore]
+        public string OriginalFilePath { get; set; }
+
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
         public string GetJson()
         {
             return JsonConvert.SerializeObject(this);
         }
+
 
         #region Static
         public static Profile GetProfileFromFile(string path = "")
@@ -59,7 +74,29 @@ namespace BetterPokerTableManager
 
         public static Profile GetEmptyProfile()
         {
-            return Profile.FromJson(Properties.Resources.profileEmpty);
+            Profile p = Profile.FromJson(Properties.Resources.profileEmpty);
+            p.Name = "New Profile";
+            return p;
+        }
+
+        internal static List<Profile> GetAllProfiles()
+        {
+            // Create profile dir if it doesn't exist
+            string profileDir = Path.Combine(Config.DataDir, "Profiles");
+            if (!Directory.Exists(profileDir))
+                Directory.CreateDirectory(profileDir);
+
+            // Get all valid profiles
+            List<Profile> profileList = new List<Profile>();
+            foreach (string file in Directory.GetFiles(profileDir))
+            {
+                Profile p = GetProfileFromFile(file);
+                p.OriginalFilePath = file;
+                p.Name = Path.GetFileNameWithoutExtension(file.Replace("_"," "));
+                profileList.Add(p);
+            }
+
+            return profileList;
         }
         #endregion
     }

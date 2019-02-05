@@ -78,7 +78,7 @@ namespace BetterPokerTableManager
             Slot resultSlot = null;
 
             // Find all possible slots & order them
-            var possibleSlots = ActiveConfig.ActiveProfile
+            var possibleSlots = ActiveConfig.ActiveProfile.Slots
                 .Where(s => s.ActivityUse == slotType)  // Match the slot type (active/inactive)
                 .OrderBy(s => s.OccupiedBy.Count)       // Pick the best slot
                 .ThenBy(s => s.Priority)                // Pick user preferred slot
@@ -149,7 +149,7 @@ namespace BetterPokerTableManager
         {
             
             // Count available active slots
-            int freeActiveSlotsCount = ActiveConfig.ActiveProfile
+            int freeActiveSlotsCount = ActiveConfig.ActiveProfile.Slots
                 .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
                 .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table)) // Ignore stackable actives & the table's current slot
                 .Count();
@@ -161,7 +161,7 @@ namespace BetterPokerTableManager
                 .Count();
 
             // Find the slot the table is in currently
-            Slot previousSlot = ActiveConfig.ActiveProfile
+            Slot previousSlot = ActiveConfig.ActiveProfile.Slots
                 .Where(s => s.OccupiedBy
                     .Where(t => t == table).Count() > 0)
                 .FirstOrDefault();
@@ -255,7 +255,7 @@ namespace BetterPokerTableManager
                 lock (ActiveConfig.ActiveProfile)
                 {
                     // Find the table's old slot
-                    var foundSlot = ActiveConfig.ActiveProfile.FirstOrDefault(
+                    var foundSlot = ActiveConfig.ActiveProfile.Slots.FirstOrDefault(
                         s => s.OccupiedBy.FirstOrDefault(
                             t => t.WindowHandle == table.WindowHandle) != null
                         );
@@ -324,7 +324,7 @@ namespace BetterPokerTableManager
                 {
                     foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual))
                     {
-                        Slot toSlot = ActiveConfig.ActiveProfile.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
+                        Slot toSlot = ActiveConfig.ActiveProfile.Slots.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
                         if (toSlot == null)
                             return;
 
