@@ -21,6 +21,10 @@ namespace BetterPokerTableManager
         // Default config is defined here
         string _activeProfileFileName = "Default_1920x1080.json";
         private bool _forceTablePosition = true;
+        private bool _autoStart = true;
+        private bool _autoMinimize = true;
+        private int _autoLeaveVpip = 15;
+        private int _autoLeaveHands = 20;
 
 
 
@@ -56,6 +60,26 @@ namespace BetterPokerTableManager
         {
             get { return _forceTablePosition; }
             set { _forceTablePosition = value; }
+        }
+        public bool AutoStart
+        {
+            get { return _autoStart; }
+            set { _autoStart = value; }
+        }
+        public bool AutoMinimize
+        {
+            get { return _autoMinimize; }
+            set { _autoMinimize = value; }
+        }
+        public int AutoLeaveVpip
+        {
+            get { return _autoLeaveVpip; }
+            set { _autoLeaveVpip = value; }
+        }
+        public int AutoLeaveHands
+        {
+            get { return _autoLeaveHands; }
+            set { _autoLeaveHands = value; }
         }
 
 
