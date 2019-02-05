@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BetterPokerTableManager"
         mc:Ignorable="d"
-        Title="Better Poker Table Manager vx.x.x"  Width="760" MinWidth="760" Height="600" MinHeight="600" Closing="Window_Closing" Background="White">
+        Title="Better Poker Table Manager vx.x.x"  Width="760" MinWidth="760" Height="600" MinHeight="600" Closing="Window_Closing" Background="White" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />
@@ -87,9 +87,7 @@
                                 <TextBlock Text="Name of profile" />
                             </TextBlock>
                             <StackPanel Orientation="Horizontal">
-                                <ComboBox Width="190" Margin="5">
-                                    <ComboBoxItem Content="Profile Somethingname 456"/>
-                                </ComboBox>
+                                <ComboBox Width="190" Margin="5" Name="profileSelectionCb"/>
                                 <Button Content="Activate" Margin="5" Width="100"/>
                             </StackPanel>
                             <local:ProfilePreviewControl Width="300" Height="150" x:Name="profilePreviewControl" Margin="5"/>

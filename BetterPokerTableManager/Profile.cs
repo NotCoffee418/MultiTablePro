@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    internal class Profile
+    internal class Profile : IEquatable<Profile>
     {
         public List<Slot> Slots = new List<Slot>();
 
@@ -19,14 +19,21 @@ namespace BetterPokerTableManager
         public string OriginalFilePath { get; set; }
 
 
+        public string GetJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+
         public override string ToString()
         {
             return Name;
         }
+        
 
-        public string GetJson()
+        // Only compare Slots - name is irrelevant
+        public bool Equals(Profile other)
         {
-            return JsonConvert.SerializeObject(this);
+            return Slots.SequenceEqual(other.Slots);
         }
 
 
