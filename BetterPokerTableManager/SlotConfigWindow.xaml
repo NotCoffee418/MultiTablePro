@@ -38,6 +38,9 @@
                     <Button x:Name="cancelBtn" Width="100" Height="30" Margin="5" Content="Cancel" FontWeight="Bold" Click="CancelBtn_Click"/>
                 </WrapPanel>
             </GroupBox>
+            <GroupBox Header="Profile Name" Width="160" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox Name="profileNameTb" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+            </GroupBox>
             <GroupBox Header="Instructions" VerticalAlignment="Top" Width="250">
                 <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top">
                 Resize and move these windows to<LineBreak/>

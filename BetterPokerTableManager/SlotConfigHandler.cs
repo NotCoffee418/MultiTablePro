@@ -15,33 +15,33 @@ namespace BetterPokerTableManager
         /// The input config will be modified and can be requested via .ActiveConfig
         /// </summary>
         /// <param name="config"></param>
-        public SlotConfigHandler(Config config)
+        public SlotConfigHandler(Profile profile)
         {
-            ActiveConfig = config;
+            ActiveProfile = profile;
         }
 
-        public event EventHandler ConfigSetupCompleted;
+        public event EventHandler ProfileSetupCompleted;
 
-        public Config ActiveConfig { get; set; }
+        public Profile ActiveProfile { get; set; }
         List<SlotConfigWindow> slotConfigWindows = new List<SlotConfigWindow>();
 
 
         public void StartConfigHandler()
         {
-            foreach (Slot slot in ActiveConfig.ActiveProfile.Slots.OrderBy(s => s.Priority))
+            foreach (Slot slot in ActiveProfile.Slots.OrderBy(s => s.Priority))
                 AddTable(slot);
         }
 
         internal void Save()
         {
-            if (ConfigSetupCompleted != null)
-                ConfigSetupCompleted(this, new ConfigSetupCompletedEventArgs(true, ActiveConfig));
+            if (ProfileSetupCompleted != null)
+                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(true, ActiveProfile));
         }
 
         internal void Cancel()
         {
-            if (ConfigSetupCompleted != null)
-                ConfigSetupCompleted(this, new ConfigSetupCompletedEventArgs(false, null));
+            if (ProfileSetupCompleted != null)
+                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(false, null));
         }
 
         internal void AddTable(Slot slot = null)
@@ -50,7 +50,7 @@ namespace BetterPokerTableManager
             if (slot == null)
             {
                 slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 480, 366);
-                ActiveConfig.ActiveProfile.Slots.Add(slot);
+                ActiveProfile.Slots.Add(slot);
             }
 
             Logger.Log("SlotConfigHandler: " +
@@ -101,8 +101,8 @@ namespace BetterPokerTableManager
             win.CurrentSlot.ActivityUseChangedEventHandler -= Scw_ActivityUseChangedEventHandler;
 
             // Counts after the change goes through
-            int activeCount = ActiveConfig.ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
-            int inactiveCount = ActiveConfig.ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
+            int activeCount = ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
+            int inactiveCount = ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
 
 
             // Validate that minimum amount of activity slots is available. after remove
@@ -111,8 +111,8 @@ namespace BetterPokerTableManager
             {
                 // Revert & recount
                 win.ActivityUsesBox.SelectedIndex = (int)args.OldActivityUse;
-                activeCount = ActiveConfig.ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
-                inactiveCount = ActiveConfig.ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
+                activeCount = ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Active);
+                inactiveCount = ActiveProfile.Slots.Count(s => s.ActivityUse == Slot.ActivityUses.Inactive);
 
                 Logger.Log("You must have at least one active and one inactive slot",
                     Logger.Status.Warning, showMessageBox: true);
@@ -134,7 +134,7 @@ namespace BetterPokerTableManager
             // Ensure at least 1 active & 1 inactive table stays alive
             if ((scw.CurrentSlot.ActivityUse == Slot.ActivityUses.Active || 
                 scw.CurrentSlot.ActivityUse == Slot.ActivityUses.Inactive) &&
-                ActiveConfig.ActiveProfile.Slots.Count(x => x.ActivityUse == scw.CurrentSlot.ActivityUse) == 1)
+                ActiveProfile.Slots.Count(x => x.ActivityUse == scw.CurrentSlot.ActivityUse) == 1)
             {
                 Logger.Log("You must have at least one active and one inactive slot. " +
                     "Press Cancel or Save to close the table setup instead",
@@ -145,11 +145,11 @@ namespace BetterPokerTableManager
             Logger.Log("SlotConfigHandler: " +
                     $"RemoveSlot() scw {scw.GetHashCode()}");
 
-            if (ActiveConfig.ActiveProfile.Slots.Count(s => s.Id == scw.CurrentSlot.Id) == 0)
+            if (ActiveProfile.Slots.Count(s => s.Id == scw.CurrentSlot.Id) == 0)
                 Logger.Log("SlotConfigHandler: " +
                     $"RemoveSlot() closing a table {scw.GetHashCode()} that's already removed. Called twice?", Logger.Status.Error);
 
-            ActiveConfig.ActiveProfile.Slots.RemoveAll(s => s.Id == scw.CurrentSlot.Id); // remove slot
+            ActiveProfile.Slots.RemoveAll(s => s.Id == scw.CurrentSlot.Id); // remove slot
             slotConfigWindows.RemoveAll(x => x.GetHashCode() == scw.GetHashCode()); // remove window
             // Lower possible max id in other tables
             // todo: Fix the ugly code
@@ -204,14 +204,14 @@ namespace BetterPokerTableManager
         }
     }
 
-    internal class ConfigSetupCompletedEventArgs : EventArgs
+    internal class ProfileSetupCompletedEventArgs : EventArgs
     {
         public bool IsSaved { get; internal set; }
-        public Config Config { get; internal set; }
-        public ConfigSetupCompletedEventArgs(bool isSaved, Config config)
+        public Profile Profile { get; internal set; }
+        public ProfileSetupCompletedEventArgs(bool isSaved, Profile profile)
         {
             IsSaved = isSaved;
-            Config = config;
+            Profile = profile;
         }
     }
 }

@@ -27,8 +27,9 @@ namespace BetterPokerTableManager
             InitializeComponent();
             CurrentSlot = currentSlot;
             DataContext = CurrentSlot;
+            profileNameTb.DataContext = sch.ActiveProfile;
             ActiveSlotConfigHandler = sch;
-            sch.ConfigSetupCompleted += Sch_ConfigSetupCompleted;
+            sch.ProfileSetupCompleted += Sch_ProfileSetupCompleted;
             CurrentSlot.SlotIdChangedEventHandler += CurrentSlot_SlotIdChangedEventHandler;
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
                     $"created with slot {currentSlot.Id}.");
@@ -41,7 +42,7 @@ namespace BetterPokerTableManager
             prioCb.SelectedIndex = args.NewPriority;
         }
 
-        private void Sch_ConfigSetupCompleted(object sender, EventArgs e)
+        private void Sch_ProfileSetupCompleted(object sender, EventArgs e)
         {
             IsDone = true; // allows closing
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +

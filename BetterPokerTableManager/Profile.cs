@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,23 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    internal class Profile : IEquatable<Profile>
+    internal class Profile : IEquatable<Profile>, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        private string _name = "Unnamed Profile";
+
         public List<Slot> Slots = new List<Slot>();
 
         [JsonIgnore]
-        public string Name { get; set; }
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+                RaisePropertyChanged("Name");
+            }
+        }
 
         [JsonIgnore]
         public string OriginalFilePath { get; set; }
@@ -29,11 +41,16 @@ namespace BetterPokerTableManager
             return Name;
         }
         
-
         // Only compare Slots - name is irrelevant
         public bool Equals(Profile other)
         {
             return Slots.SequenceEqual(other.Slots);
+        }
+
+        public void RaisePropertyChanged(string property)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
         }
 
 

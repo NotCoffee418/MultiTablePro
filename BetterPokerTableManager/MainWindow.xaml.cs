@@ -41,9 +41,9 @@ namespace BetterPokerTableManager
 
             //PSLogHandler.Start();
 
-            var test = new SlotConfigHandler(c);
+            var test = new SlotConfigHandler(p);
             //test.StartConfigHandler();
-            test.ConfigSetupCompleted += Test_ConfigSetupCompleted;
+            test.ProfileSetupCompleted += Test_ProfileSetupCompleted;
 
             profilePreviewControl.DisplayProfile = c.ActiveProfile;
         }
@@ -68,10 +68,10 @@ namespace BetterPokerTableManager
         }
 
         // debug, kill me
-        private void Test_ConfigSetupCompleted(object sender, EventArgs e)
+        private void Test_ProfileSetupCompleted(object sender, EventArgs e)
         {
-            var args = (ConfigSetupCompletedEventArgs)e;
-            System.IO.File.WriteAllText("tmpconfig.txt", args.Config.ActiveProfile.GetJson());
+            var args = (ProfileSetupCompletedEventArgs)e;
+            System.IO.File.WriteAllText("tmpconfig.txt", args.Profile.GetJson());
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
