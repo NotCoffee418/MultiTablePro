@@ -33,7 +33,7 @@
                 <GroupBox Header="Status" Margin="5">
                     <DockPanel>
                         <StackPanel Orientation="Vertical">
-                            <Button Name="startBtn" Content="Start/Stop" Width="100" Height="50" Margin="5"/>
+                            <Button Name="startStopBtn" Content="Start/Stop" Width="100" Height="50" Margin="5"/>
                             <TextBlock Margin="5">
                                 <TextBlock Text="Status: "/>
                                 <TextBlock Text="Running??" />
@@ -87,19 +87,19 @@
                                 <TextBlock Text="Name of profile" />
                             </TextBlock>
                             <StackPanel Orientation="Horizontal">
-                                <ComboBox Width="190" Margin="5" Name="profileSelectionCb"/>
+                                <ComboBox Width="190" Margin="5" Name="profileSelectionCb" SelectionChanged="ProfileSelectionCb_SelectionChanged"/>
                                 <Button Content="Activate" Margin="5" Width="100"/>
                             </StackPanel>
                             <local:ProfilePreviewControl Width="300" Height="150" x:Name="profilePreviewControl" Margin="5"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Edit" Width="94" Margin="5"/>
-                                <Button Content="New" Width="94" Margin="5"/>
-                                <Button Content="Delete" Width="94" Margin="5"/>
+                                <Button Content="Edit" Name="editProfileBtn" Width="94" Margin="5" Click="EditProfileBtn_Click"/>
+                                <Button Content="New" Name="newProfileBtn" Width="94" Margin="5" Click="NewProfileBtn_Click"/>
+                                <Button Content="Delete" Name="deleteProfileBtn" Width="94" Margin="5" Click="DeleteProfileBtn_Click"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="Duplicate" Width="94" Margin="5"/>
-                                <Button Content="Import" Width="94" Margin="5"/>
-                                <Button Content="Export" Width="94" Margin="5"/>
+                                <Button Content="Duplicate" Name="duplicateProfileBtn" Width="94" Margin="5" Click="DuplicateProfileBtn_Click"/>
+                                <Button Content="Import" Name="importProfileBtn" Width="94" Margin="5" Click="ImportProfileBtn_Click"/>
+                                <Button Content="Export" Name="exportProfileBtn" Width="94" Margin="5" Click="ExportProfileBtn_Click"/>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>

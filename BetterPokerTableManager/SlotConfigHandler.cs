@@ -15,15 +15,23 @@ namespace BetterPokerTableManager
         /// The input config will be modified and can be requested via .ActiveConfig
         /// </summary>
         /// <param name="config"></param>
-        public SlotConfigHandler(Profile profile)
+        public SlotConfigHandler(Profile profile, SetupTypes setupType)
         {
             ActiveProfile = profile;
+            SetupType = setupType;
         }
 
         public event EventHandler ProfileSetupCompleted;
 
         public Profile ActiveProfile { get; set; }
         List<SlotConfigWindow> slotConfigWindows = new List<SlotConfigWindow>();
+        public SetupTypes SetupType { get; set; }
+
+        public enum SetupTypes
+        {
+            NewProfile,
+            EditProfile
+        }
 
 
         public void StartConfigHandler()
@@ -35,13 +43,13 @@ namespace BetterPokerTableManager
         internal void Save()
         {
             if (ProfileSetupCompleted != null)
-                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(true, ActiveProfile));
+                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(true, ActiveProfile, SetupType));
         }
 
         internal void Cancel()
         {
             if (ProfileSetupCompleted != null)
-                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(false, null));
+                ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(false, null, SetupType));
         }
 
         internal void AddTable(Slot slot = null)
@@ -206,12 +214,15 @@ namespace BetterPokerTableManager
 
     internal class ProfileSetupCompletedEventArgs : EventArgs
     {
-        public bool IsSaved { get; internal set; }
-        public Profile Profile { get; internal set; }
-        public ProfileSetupCompletedEventArgs(bool isSaved, Profile profile)
+        public ProfileSetupCompletedEventArgs(bool isSaved, Profile profile, SlotConfigHandler.SetupTypes setupType)
         {
             IsSaved = isSaved;
             Profile = profile;
+            SetupType = setupType;
         }
+
+        public bool IsSaved { get; internal set; }
+        public Profile Profile { get; internal set; }
+        public SlotConfigHandler.SetupTypes SetupType { get; internal set; }
     }
 }

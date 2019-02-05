@@ -12,6 +12,7 @@ using System.Windows.Media;
 
 namespace BetterPokerTableManager
 {
+    [Serializable]
     internal class Slot : IEquatable<Slot>, INotifyPropertyChanged
     {
         public Slot() {

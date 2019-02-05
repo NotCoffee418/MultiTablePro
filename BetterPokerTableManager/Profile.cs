@@ -4,12 +4,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
-    internal class Profile : IEquatable<Profile>, INotifyPropertyChanged
+    [Serializable]
+    internal class Profile : IEquatable<Profile>, ICloneable, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private string _name = "Unnamed Profile";
@@ -28,12 +31,36 @@ namespace BetterPokerTableManager
         }
 
         [JsonIgnore]
-        public string OriginalFilePath { get; set; }
+        public string FileName { get; set; }
 
 
         public string GetJson()
         {
             return JsonConvert.SerializeObject(this);
+        }
+
+        public void SaveToFile(bool overwrite = false)
+        {
+            // Determine filename on new file
+            if (FileName == null || FileName == "")
+                FileName = Name.Replace(" ", "_") + ".json";
+        
+            // Handle duplicate
+            if (!overwrite && File.Exists(Path.Combine(Config.DataDir, "Profiles", FileName)))
+            {
+                // Determine the duplicate's file name
+                Regex previousHasDuplicate = new Regex(@"_(\d+)\.json");
+                if (previousHasDuplicate.IsMatch(FileName))
+                {
+                    int lastDuplicate = int.Parse(previousHasDuplicate.Match(FileName).Groups[1].Value);
+                    FileName = FileName.Replace(lastDuplicate + ".json", (lastDuplicate + 1) + ".json");
+                }
+                else FileName = FileName.Replace(".json", "_2.json");
+            }
+
+            // Determine path & save
+            string path = Path.Combine(Config.DataDir, "Profiles", FileName);
+            File.WriteAllText(path, GetJson());
         }
 
         public override string ToString()
@@ -51,6 +78,21 @@ namespace BetterPokerTableManager
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        public object Clone()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                if (this.GetType().IsSerializable)
+                {
+                    BinaryFormatter formatter = new BinaryFormatter();
+                    formatter.Serialize(stream, this);
+                    stream.Position = 0;
+                    return formatter.Deserialize(stream);
+                }
+                return null;
+            }
         }
 
 
@@ -80,7 +122,10 @@ namespace BetterPokerTableManager
                 return Profile.GetEmptyProfile();
             }
 
-            return Profile.FromJson(File.ReadAllText(path));
+            Profile p = Profile.FromJson(File.ReadAllText(path));
+            p.FileName = Path.GetFileName(path);
+            p.Name = Path.GetFileNameWithoutExtension(path.Replace("_", " "));
+            return p;
         }
 
         public static Profile FromJson(string json)
@@ -112,16 +157,12 @@ namespace BetterPokerTableManager
 
             // Get all valid profiles
             List<Profile> profileList = new List<Profile>();
-            foreach (string file in Directory.GetFiles(profileDir))
-            {
-                Profile p = GetProfileFromFile(file);
-                p.OriginalFilePath = file;
-                p.Name = Path.GetFileNameWithoutExtension(file.Replace("_"," "));
-                profileList.Add(p);
-            }
+            foreach (string file in Directory.GetFiles(profileDir, "*.json"))
+                profileList.Add(GetProfileFromFile(file));
 
             return profileList;
         }
+
         #endregion
     }
 }

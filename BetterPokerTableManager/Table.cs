@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace BetterPokerTableManager
 {
+    [Serializable]
     internal class Table : IEquatable<Table>
     {
         public Table(IntPtr wHnd, bool isVirtual = false)
