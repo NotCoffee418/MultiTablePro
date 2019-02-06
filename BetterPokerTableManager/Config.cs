@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -16,11 +17,16 @@ namespace BetterPokerTableManager
     /// </summary>
     internal class Config : INotifyPropertyChanged
     {
-
+        internal Config()
+        {
+            new Timer(StartSaving, null, 1000, 0);
+            PropertyChanged += Config_PropertyChanged;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         // Default config is defined here
+        private bool savingAllowed = false;
         Profile _activeProfile = null;
         string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;
         private bool _forceTablePosition = true;
@@ -199,6 +205,20 @@ namespace BetterPokerTableManager
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        // Prevents connfig from saving while deserializing
+        // todo: find a better way
+        private void StartSaving(object state)
+        {
+            savingAllowed = true;
+        }
+
+        private void Config_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // A propery has changed, save
+            if (savingAllowed)
+                Save();
         }
 
     }

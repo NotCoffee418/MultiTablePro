@@ -104,13 +104,6 @@ namespace BetterPokerTableManager
         #region Status
         private void AutoStartCb_Checked(object sender, RoutedEventArgs e)
         {
-
-            // DEBUG KILLME
-            bool isLoaded = IsLoaded;
-            bool isCheckd = autoStartCb.IsChecked == true;
-            bool x = (ActiveTableManager == null || !ActiveTableManager.IsRunning);
-
-
             // Start table manager if AutoStart is checked after load
             if (IsLoaded && autoStartCb.IsChecked == true && 
                 (ActiveTableManager == null || !ActiveTableManager.IsRunning))
