@@ -31,42 +31,13 @@ namespace BetterPokerTableManager
 
         private Config ActiveConfig { get; set; }
         TableManager ActiveTableManager { get; set; }
+        private Timer watchOpenTablesTimer = null;
 
         public bool AskConfirmation(string request, MessageBoxResult defaultResult = MessageBoxResult.No)
         {
             MessageBoxResult dr = MessageBox.Show("Are you sure you want to " + request + "?", "Confirm", 
                 MessageBoxButton.YesNo, MessageBoxImage.None, defaultResult);
             return dr == MessageBoxResult.Yes ? true : false;
-        }
-
-        internal void RefreshProfileList(bool selectActive = false, Profile selectSpecific = null)
-        {
-            List<Profile> newProfileList = Profile.GetAllProfiles();
-            if (newProfileList.Count == 0)
-                Logger.Log("You have no profiles. This should be impossible. Please restart the application and contact the developer if this occurs again.", Logger.Status.Fatal);
-
-            // Find old value, selectSpecific or find active profile
-            Profile requestedSelection = null;
-            if (selectActive)
-            {
-                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfileFileName);
-                if (requestedSelection == null) // Can happen when deleting a profile
-                    requestedSelection = newProfileList[0];
-            }
-            else if (selectSpecific != null)
-                requestedSelection = newProfileList.FirstOrDefault(p => p.Equals(selectSpecific));
-            else if (profileSelectionCb.SelectedValue != null)
-                requestedSelection = (Profile)profileSelectionCb.SelectedValue;
-
-            // Bind new list
-            profileSelectionCb.ItemsSource = null;
-            profileSelectionCb.ItemsSource = newProfileList;
-
-            
-            if (requestedSelection != null && newProfileList.Contains(requestedSelection))
-                profileSelectionCb.SelectedIndex = newProfileList.FindIndex(p => p.Equals(requestedSelection));
-            else if (newProfileList.Count > 0)
-                profileSelectionCb.SelectedIndex = 0;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -88,7 +59,9 @@ namespace BetterPokerTableManager
             // Auto minimize
             if (ActiveConfig.AutoMinimize)
                 WindowState = WindowState.Minimized;
-                
+
+            // Start watching open tables
+            watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -137,6 +110,36 @@ namespace BetterPokerTableManager
         #endregion
 
         #region Select Profile
+        internal void RefreshProfileList(bool selectActive = false, Profile selectSpecific = null)
+        {
+            List<Profile> newProfileList = Profile.GetAllProfiles();
+            if (newProfileList.Count == 0)
+                Logger.Log("You have no profiles. This should be impossible. Please restart the application and contact the developer if this occurs again.", Logger.Status.Fatal);
+
+            // Find old value, selectSpecific or find active profile
+            Profile requestedSelection = null;
+            if (selectActive)
+            {
+                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfileFileName);
+                if (requestedSelection == null) // Can happen when deleting a profile
+                    requestedSelection = newProfileList[0];
+            }
+            else if (selectSpecific != null)
+                requestedSelection = newProfileList.FirstOrDefault(p => p.Equals(selectSpecific));
+            else if (profileSelectionCb.SelectedValue != null)
+                requestedSelection = (Profile)profileSelectionCb.SelectedValue;
+
+            // Bind new list
+            profileSelectionCb.ItemsSource = null;
+            profileSelectionCb.ItemsSource = newProfileList;
+
+
+            if (requestedSelection != null && newProfileList.Contains(requestedSelection))
+                profileSelectionCb.SelectedIndex = newProfileList.FindIndex(p => p.Equals(requestedSelection));
+            else if (newProfileList.Count > 0)
+                profileSelectionCb.SelectedIndex = 0;
+        }
+
         private void ProfileSelectionCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.AddedItems.Count > 0)
@@ -259,6 +262,27 @@ namespace BetterPokerTableManager
                 ActiveConfig.AutoLeaveVpip = Convert.ToInt32(autoLeaveVpip);
                 ActiveConfig.AutoLeaveHands = Convert.ToInt32(autoLeaveHands);
             }
+        }
+        #endregion
+
+        #region Open Tables
+        private void WatchOpenTables(object state)
+        {
+            Dispatcher.BeginInvoke((Action)delegate () {
+                // Reset list
+                Table selectedTable = (Table)openTablesLv.SelectedValue;
+                openTablesLv.ItemsSource = null;
+                lock (Table.KnownTables)
+                {
+                    openTablesLv.ItemsSource = Table.KnownTables;
+                    if (selectedTable != null)
+                    {
+                        int index = openTablesLv.SelectedIndex = Table.KnownTables.FindIndex(t => t == selectedTable);
+                        if (index != -1)
+                            openTablesLv.SelectedIndex = index;
+                    }
+                }
+            });
         }
         #endregion
 

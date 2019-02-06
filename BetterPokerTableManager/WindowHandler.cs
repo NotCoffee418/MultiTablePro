@@ -19,6 +19,9 @@ namespace BetterPokerTableManager
         [DllImport("user32.dll", SetLastError = true)]
         internal static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        internal static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
 
 
         internal enum ShowWindowCommands

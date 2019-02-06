@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,6 +35,8 @@ namespace BetterPokerTableManager
         Status _priority = Status.NoActionRequired;
         DateTime _priorityChangedTime;
         bool _isVirtual;
+        string _name = "";
+        double _bigBlind;
 
         public IntPtr WindowHandle
         {
@@ -74,6 +77,29 @@ namespace BetterPokerTableManager
         public bool IsVirtual
         {
             get { return _isVirtual; }
+        }
+        public string Name
+        {
+            get
+            {
+                if (IsVirtual)
+                    return "Virtual Table";
+                else if (_name == "")
+                    SetNameAndBigBlind();
+                return _name;
+            }
+        }
+
+        public double BigBlind
+        {
+            get
+            {
+                if (IsVirtual)
+                    return 0;
+                else if (_bigBlind == 0)
+                    SetNameAndBigBlind();
+                return _bigBlind;
+            }
         }
 
 
@@ -131,6 +157,25 @@ namespace BetterPokerTableManager
             }
         }
 
+        private void SetNameAndBigBlind()
+        {
+            const int nChars = 256;
+            StringBuilder buff = new StringBuilder(nChars);
+            if (WindowHandler.GetWindowText(WindowHandle, buff, nChars) > 0)
+            {
+                string windowTitle = buff.ToString();
+                // eg: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
+                // G1: Title, G2: SB, G3: BB
+                Regex winTitleRegex = new Regex(@"(.*) - \D?([0-9]+\.|\,?[0-9]+)\/\D?([0-9]+\.?[0-9]+)(\ .*)? - .* - .*");
+                if (winTitleRegex.IsMatch(windowTitle))
+                {
+                    var rMatch = winTitleRegex.Match(windowTitle);
+                    _name = rMatch.Groups[1].Value;
+                    _bigBlind = double.Parse(rMatch.Groups[3].Value);
+                }
+            }
+        }
+
         public override bool Equals(object obj)
         {
             return Equals(obj as Table);
@@ -155,6 +200,13 @@ namespace BetterPokerTableManager
         public static bool operator !=(Table table1, Table table2)
         {
             return !(table1 == table2);
+        }
+
+        public override string ToString()
+        {
+            // todo: gametype or currency is not properly reflected, just delete x NL from string after testing
+            return $"{Name} - {Math.Round(BigBlind * 100)} NL" + 
+                (Priority >= Status.ActionRequired ? " - Action Required" : "");
         }
     }
 }

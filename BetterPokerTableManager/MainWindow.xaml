@@ -62,7 +62,7 @@
 
                 <GroupBox Header="Open Tables" Margin="5">
                     <StackPanel Orientation="Vertical">
-                        <ListView Height="200" Margin="5"/>
+                        <ListView Name="openTablesLv" Height="200" Margin="5"/>
                         <DockPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button IsEnabled="False" Content="Sit out next BB" Width="100" Height="30" Margin="5"/>
