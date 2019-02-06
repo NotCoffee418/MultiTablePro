@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,22 +27,6 @@ namespace BetterPokerTableManager
         public MainWindow()
         {
             InitializeComponent();
-
-            // debug
-            //Profile p = Profile.FromJson(Properties.Resources.profileEmpty);
-            //Profile p = new Profile();
-            //p.Slots.Add(new Slot(Slot.ActivityUses.Active, 0, 0, 400, 400));
-            //p.Slots.Add(new Slot(Slot.ActivityUses.Inactive, 400, 0, 400, 400));
-
-            //TableManager tm = new TableManager(c);
-            //tm.Start();
-
-
-            //PSLogHandler.Start();
-
-            //var test = new SlotConfigHandler(p);
-            //test.StartConfigHandler();
-
         }
 
         private Config ActiveConfig { get; set; }
@@ -85,6 +70,9 @@ namespace BetterPokerTableManager
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Set window title to include version
+            Title = $"Better Poker Table Manager v{Assembly.GetEntryAssembly().GetName().Version}";
+
             // Notify application started
             App.Current.Properties["IsRunning"] = true;
             Logger.Log("--- Starting application ---");
@@ -95,6 +83,10 @@ namespace BetterPokerTableManager
 
             // Refresh the profile list & select Active
             RefreshProfileList(selectActive:true);
+
+            // Start table manager
+            TableManager tm = new TableManager(ActiveConfig);
+            tm.Start();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -205,6 +197,12 @@ namespace BetterPokerTableManager
             bool overwrite = args.SetupType == SlotConfigHandler.SetupTypes.EditProfile ? true : false;
             args.Profile.SaveToFile(overwrite);
             RefreshProfileList(selectSpecific:args.Profile);
+        }
+
+        private void ActivateProfileBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Profile p = (Profile)profileSelectionCb.SelectedValue;
+            ActiveConfig.ActiveProfile = p;
         }
         #endregion
     }

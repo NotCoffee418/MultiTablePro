@@ -88,7 +88,7 @@
                             </TextBlock>
                             <StackPanel Orientation="Horizontal">
                                 <ComboBox Width="190" Margin="5" Name="profileSelectionCb" SelectionChanged="ProfileSelectionCb_SelectionChanged"/>
-                                <Button Content="Activate" Margin="5" Width="100"/>
+                                <Button Content="Activate" Name="activateProfileBtn" Margin="5" Width="100" Click="ActivateProfileBtn_Click"/>
                             </StackPanel>
                             <local:ProfilePreviewControl Width="300" Height="150" x:Name="profilePreviewControl" Margin="5"/>
                             <StackPanel Orientation="Horizontal">

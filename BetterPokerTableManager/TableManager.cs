@@ -10,10 +10,13 @@ namespace BetterPokerTableManager
 {
     internal class TableManager
     {
-        public TableManager() { }
         public TableManager(Config activeConfig)
         {
             ActiveConfig = activeConfig;
+            ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
+
+            // Start watching PS logs
+            PSLogHandler.Start();
         }
 
         /// <summary>
@@ -345,6 +348,12 @@ namespace BetterPokerTableManager
                     }
                 }                
             }
+        }
+        
+        private void ActiveConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (IsRunning && e.PropertyName == "ActiveProfile" && ActiveConfig.ActiveProfile != null)
+                InitialTablePlacement(); // A new profile was selected, re-initialize
         }
     }
 }

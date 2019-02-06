@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,12 +14,14 @@ namespace BetterPokerTableManager
     /// Contains user-saved or default info about preferred table positions & related variables
     /// Loads from JSON file.
     /// </summary>
-    internal class Config
+    internal class Config : INotifyPropertyChanged
     {
-        [JsonIgnore] // Storing ActiveProfileFileName instead
-        public Profile ActiveProfile { get; set; }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         // Default config is defined here
+        Profile _activeProfile = null;
         string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;
         private bool _forceTablePosition = true;
         private bool _autoStart = true;
@@ -27,6 +30,15 @@ namespace BetterPokerTableManager
         private int _autoLeaveHands = 20;
 
 
+        [JsonIgnore] // Storing ActiveProfileFileName to file instead
+        public Profile ActiveProfile {
+            get { return _activeProfile; }
+            set
+            {
+                _activeProfile = value;
+                RaisePropertyChanged("ActiveProfile");
+            }
+        }
 
         /// <summary>
         /// Stores the active profile name. Modifying it will update ActiveProfile
@@ -53,39 +65,56 @@ namespace BetterPokerTableManager
                 ActiveProfile = Profile.GetProfileFromFile(
                     Path.Combine(Config.DataDir, "Profiles", value)
                     );
+                RaisePropertyChanged("ActiveProfileFileName");
             }
         }
 
         public bool ForceTablePosition
         {
             get { return _forceTablePosition; }
-            set { _forceTablePosition = value; }
+            set {
+                _forceTablePosition = value;
+                RaisePropertyChanged("ForceTablePosition");
+            }
         }
         public bool AutoStart
         {
             get { return _autoStart; }
-            set { _autoStart = value; }
+            set {
+                _autoStart = value;
+                RaisePropertyChanged("AutoStart");
+            }
         }
         public bool AutoMinimize
         {
             get { return _autoMinimize; }
-            set { _autoMinimize = value; }
+            set {
+                _autoMinimize = value;
+                RaisePropertyChanged("AutoMinimize");
+            }
         }
         public int AutoLeaveVpip
         {
             get { return _autoLeaveVpip; }
-            set { _autoLeaveVpip = value; }
+            set {
+                _autoLeaveVpip = value;
+                RaisePropertyChanged("AutoLeaveVpip");
+            }
         }
         public int AutoLeaveHands
         {
             get { return _autoLeaveHands; }
-            set { _autoLeaveHands = value; }
+            set {
+                _autoLeaveHands = value;
+                RaisePropertyChanged("AutoLeaveHands");
+            }
         }
 
 
 
         #region Static
         private static string _dataDir = "";
+
 
         [JsonIgnore]
         public static string DataDir
@@ -155,6 +184,12 @@ namespace BetterPokerTableManager
             if (!Directory.Exists(Config.DataDir)) // Create missing data directory
                 Directory.CreateDirectory(Config.DataDir);
             File.WriteAllText(Path.Combine(DataDir, "Config.json"), GetJson());
+        }
+
+        public void RaisePropertyChanged(string property)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
         }
 
     }
