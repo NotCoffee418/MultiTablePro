@@ -268,21 +268,31 @@ namespace BetterPokerTableManager
         #region Open Tables
         private void WatchOpenTables(object state)
         {
-            Dispatcher.BeginInvoke((Action)delegate () {
-                // Reset list
-                Table selectedTable = (Table)openTablesLv.SelectedValue;
-                openTablesLv.ItemsSource = null;
-                lock (Table.KnownTables)
-                {
-                    openTablesLv.ItemsSource = Table.KnownTables;
-                    if (selectedTable != null)
+            try
+            {
+                Dispatcher.BeginInvoke((Action)delegate () {
+                    // Reset list
+                    Table selectedTable = (Table)openTablesLv.SelectedValue;
+                    openTablesLv.ItemsSource = null;
+                    lock (Table.KnownTables)
                     {
-                        int index = openTablesLv.SelectedIndex = Table.KnownTables.FindIndex(t => t == selectedTable);
-                        if (index != -1)
-                            openTablesLv.SelectedIndex = index;
+                        openTablesLv.ItemsSource = Table.KnownTables.Where(t => !t.IsVirtual);
+                        if (selectedTable != null)
+                        {
+                            int index = openTablesLv.SelectedIndex = Table.KnownTables.FindIndex(t => t == selectedTable);
+                            if (index != -1)
+                                openTablesLv.SelectedIndex = index;
+                        }
                     }
-                }
-            });
+                });
+            }
+            catch (InvalidOperationException)
+            {
+                // An ItemsControl is inconsistent with its items source.
+                // Just rewrite this whole thing.
+                // I think it occurred when opening or closing a bunch of tables at once
+                // I doubt the try catch will pick it up regardless..
+            }
         }
         #endregion
 
