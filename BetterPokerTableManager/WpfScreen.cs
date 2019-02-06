@@ -19,6 +19,22 @@ namespace BetterPokerTableManager
             }
         }
 
+        private static Tuple<int,int> _offScreenLocation = null;
+        public static Tuple<int, int> OffScreenLocation
+        {
+            get
+            {
+                if (_offScreenLocation == null)
+                {
+                    var r = GetWorkingAreaInfo();
+                    _offScreenLocation = new Tuple<int, int>(
+                        Convert.ToInt32(r.X - 1320),
+                        Convert.ToInt32(r.Y - 940));
+                }
+                return _offScreenLocation;
+            }
+        }
+
         /// <summary>
         /// Returns starting point (X,Y) of the screen and size (Width,Height)
         /// </summary>

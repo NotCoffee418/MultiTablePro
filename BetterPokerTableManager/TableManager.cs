@@ -16,6 +16,9 @@ namespace BetterPokerTableManager
             ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
         }
 
+        // Used to move tables after other tables. (stealing an active slot)
+        Queue<Tuple<Table, Slot, Slot>> delayedMoveQueue = new Queue<Tuple<Table, Slot, Slot>>();
+
         /// <summary>
         /// Starts the Window Manager
         /// </summary>
@@ -138,7 +141,10 @@ namespace BetterPokerTableManager
             {
                 Table tableToMove = resultSlot.OccupiedBy.First();
                 Slot anInactiveSlot = GetAvailableSlot(Slot.ActivityUses.Inactive, table);
-                MoveTable(tableToMove, anInactiveSlot);
+                Slot previousSlot = ActiveConfig.ActiveProfile.Slots
+                    .Where(s => s.OccupiedBy.Contains(tableToMove))
+                    .FirstOrDefault();
+                delayedMoveQueue.Enqueue(new Tuple<Table, Slot, Slot>(tableToMove, anInactiveSlot, previousSlot));
             }
 
             return resultSlot;
@@ -216,7 +222,7 @@ namespace BetterPokerTableManager
             {
                 Logger.Log($"TableManager: Determined that table ({table.WindowHandle}) " +
                     $"should be moved to slot ({toSlot.Id}). Moving.");
-                MoveTable(table, toSlot);
+                MoveTable(table, toSlot, previousSlot);
                 return true;
             }
         }
@@ -227,7 +233,7 @@ namespace BetterPokerTableManager
         /// </summary>
         /// <param name="table"></param>
         /// <param name="toSlot"></param>
-        private void MoveTable(Table table, Slot toSlot)
+        private void MoveTable(Table table, Slot toSlot, Slot previousSlot)
         {
             Logger.Log($"TableManager: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
                 $"slot ({toSlot.Id}) at ({toSlot.X},{toSlot.Y},{toSlot.Width},{toSlot.Height})");
@@ -249,6 +255,14 @@ namespace BetterPokerTableManager
                 // normalize
                 WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Restore);
                 WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Normal);
+
+                // Move table offscreen to resize (fix for annoying flicker)
+                if (previousSlot != null)
+                {
+                    WindowHandler.MoveWindow(table.WindowHandle, Convert.ToInt32(WpfScreen.OffScreenLocation.Item1),
+                    Convert.ToInt32(WpfScreen.OffScreenLocation.Item2), previousSlot.Width, previousSlot.Height, true);
+                    Thread.Sleep(200); // If flicker persists, 200 ms did the trick before
+                }                
 
                 // Move the window
                 WindowHandler.MoveWindow(table.WindowHandle, 
@@ -274,6 +288,13 @@ namespace BetterPokerTableManager
 
                 // List the table to be in the new Slot
                 toSlot.BindTable(table);
+
+                // Run the delayed movement queue
+                while (delayedMoveQueue.Count > 0)
+                {
+                    var t = delayedMoveQueue.Dequeue();
+                    MoveTable(t.Item1, t.Item2, t.Item3);
+                }
             }
             catch (Exception ex)
             {
