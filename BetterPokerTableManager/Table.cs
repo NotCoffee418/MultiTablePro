@@ -164,14 +164,23 @@ namespace BetterPokerTableManager
             if (WindowHandler.GetWindowText(WindowHandle, buff, nChars) > 0)
             {
                 string windowTitle = buff.ToString();
-                // eg: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
-                // G1: Title, G2: SB, G3: BB
-                Regex winTitleRegex = new Regex(@"(.*) - \D?([0-9]+\.|\,?[0-9]+)\/\D?([0-9]+\.?[0-9]+)(\ .*)? - .* - .*");
-                if (winTitleRegex.IsMatch(windowTitle))
+                // eg Cash: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
+                // Tourney non-eng: Oefengeld No Limit Hold'em (Hyper, 10k) - Ciemne 50/100 Ante 10 - Turniej 645665 Stol 82 - Something jako Username
+                // Spin: PM 10000.00 NLHE Spin &Go - Blinds 10 / 20 - Tournament 45645656456 Table 54 - Logged in as Username
+                // G1: Title, G3: SB, G4: BB, G6: Tourney/cash indication
+                Regex rWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*) - .*");
+
+                // Match indicates the table is tourney, spin, sng+
+                // Tourney: Tournament 5454545345 Table 82
+                // Cash: No Limit Hold'em
+                Regex rIsTourney = new Regex(@"\S+ \d+ \S+ \d+");
+                if (rWinTitle.IsMatch(windowTitle))
                 {
-                    var rMatch = winTitleRegex.Match(windowTitle);
+                    var rMatch = rWinTitle.Match(windowTitle);
                     _name = rMatch.Groups[1].Value;
-                    _bigBlind = double.Parse(rMatch.Groups[3].Value);
+                    if (rIsTourney.IsMatch(rMatch.Groups[6].Value))
+                        _bigBlind = 0f; // 0 indicates tourney table, change if needed
+                    else _bigBlind = double.Parse(rMatch.Groups[4].Value); // cash table
                 }
             }
         }
