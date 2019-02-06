@@ -14,9 +14,6 @@ namespace BetterPokerTableManager
         {
             ActiveConfig = activeConfig;
             ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
-
-            // Start watching PS logs
-            PSLogHandler.Start();
         }
 
         /// <summary>
@@ -31,6 +28,7 @@ namespace BetterPokerTableManager
             IsRunning = true;
             new Thread(() => ManageTables()).Start();
             forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
+            PSLogHandler.Start();
         }
 
         /// <summary>
@@ -39,7 +37,9 @@ namespace BetterPokerTableManager
         public void Stop()
         {
             IsRunning = false;
+            forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
             forceTablePositionTimer.Dispose();
+            PSLogHandler.Stop();
         }
 
         // private property's vars

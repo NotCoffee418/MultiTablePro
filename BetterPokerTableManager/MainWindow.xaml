@@ -33,30 +33,30 @@
                 <GroupBox Header="Status" Margin="5">
                     <DockPanel>
                         <StackPanel Orientation="Vertical">
-                            <Button Name="startStopBtn" Content="Start/Stop" Width="100" Height="50" Margin="5"/>
+                            <Button Name="startStopBtn" Content="Start" Width="100" Height="50" Margin="5" Click="StartStopBtn_Click"/>
                             <TextBlock Margin="5">
                                 <TextBlock Text="Status: "/>
-                                <TextBlock Text="Running??" />
+                                <TextBlock Name="statusTxt" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
-                            <CheckBox Content="Auto Start" Margin="5"/>
-                            <CheckBox Content="Auto Minimize" Margin="5"/>
+                            <CheckBox Content="Auto Start" Name="autoStartCb" Margin="5" IsChecked="{Binding AutoStart}" Checked="AutoStartCb_Checked" />
+                            <CheckBox Content="Auto Minimize" Margin="5" IsChecked="{Binding AutoMinimize}" />
                         </StackPanel>
                     </DockPanel>
                 </GroupBox>
                 
                 <GroupBox Header="Table Selection (Not Implemented Yet!)" Margin="5">
                     <StackPanel Orientation="Vertical">
-                        <CheckBox Content="Enabled" Margin="5" IsEnabled="False"/>
+                        <CheckBox Content="Enabled" Margin="5" IsEnabled="False" IsChecked="{Binding AutoLeaveEnabled}"/>
                         <StackPanel Orientation="Horizontal" Margin="5,0">
                             <Label Content="Sit out next BB where average VPIP &lt;"/>
-                            <TextBox Width="50" Margin="0,2" />
+                            <TextBox Name="autoLeaveVpipTb" Width="50" Margin="0,2" Text="{Binding AutoLeaveVpip, Mode=OneWay}" IsEnabled="False" />
                             <Label Content="after"/>
-                            <TextBox Width="50" Margin="0,2"/>
+                            <TextBox Name="autoLeaveHandsTb" Width="50" Margin="0,2" Text="{Binding AutoLeaveHands, Mode=OneWay}" IsEnabled="False" />
                             <Label Content="hands."/>
                         </StackPanel>
-                        <Button Content="Apply" Width="75" HorizontalAlignment="Left" Margin="5"/>
+                        <Button Content="Apply" Name="applyAutoLeaveSettingsBtn" Width="75" HorizontalAlignment="Left" Margin="5" Click="ApplyAutoLeaveSettingsBtn_Click" IsEnabled="False"/>
                     </StackPanel>
                 </GroupBox>
 

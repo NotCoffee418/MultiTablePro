@@ -14,14 +14,35 @@ namespace BetterPokerTableManager
     {
         public static void Start()
         {
-            // Look for new files every 10 seconds since stars client can switch from log.0 to log.1 in the middle of a session.
             StartTime = DateTime.Now;
-            Timer timer = new Timer(WatchNewLogFiles, null, 0, 10000);
+            if (IsRunning == null) // First call to start
+            {
+                // Regularly looks for new log files & starts watching any found 
+                IsRunning = true;
+                Timer timer = new Timer(WatchNewLogFiles, null, 0, 10000);
+            }
+            else if (IsRunning == false) // Restart
+            {
+                // Restarts watch on all known log files
+                IsRunning = true;
+                lock (activeLogFiles)
+                {
+                    foreach (string logFile in activeLogFiles)
+                        new Thread(() => WatchLog(logFile)).Start();
+                }
+            }
+        }
+
+        public static void Stop()
+        {
+            // Loop theads will stop, effectively ending the watch
+            IsRunning = false; 
         }
 
         // Lists files that are currently being watched
         private static List<string> activeLogFiles = new List<string>();
         private static DateTime StartTime { get; set; }
+        private static bool? IsRunning { get; set; }
 
 
         /// <summary>
@@ -40,7 +61,7 @@ namespace BetterPokerTableManager
 
             // Fatal error if no log files were found
             if (PSDirs.Count() == 0 && FTDirs.Count() == 0)
-                Logger.Log("Could not find PokerStars log file. Please run PokerStars before trying to run BPTM.", Logger.Status.Fatal);
+                Logger.Log("Could not find PokerStars log file. Please run PokerStars once before trying to run BPTM.", Logger.Status.Fatal);
             else // Start watching any logfiles that weren't registered yet
             {
                 // PokerStars logs
@@ -109,7 +130,7 @@ namespace BetterPokerTableManager
             {
                 using (var sr = new StreamReader(fs, Encoding.Default))
                 {
-                    while ((bool)App.Current.Properties["IsRunning"])
+                    while ((bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
                     {
                         currRead = sr.ReadLine();
                         // no line found

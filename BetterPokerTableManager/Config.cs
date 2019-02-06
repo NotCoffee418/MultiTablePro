@@ -25,7 +25,8 @@ namespace BetterPokerTableManager
         string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;
         private bool _forceTablePosition = true;
         private bool _autoStart = true;
-        private bool _autoMinimize = true;
+        private bool _autoMinimize = false;
+        private int _autoLeaveEnabled;
         private int _autoLeaveVpip = 15;
         private int _autoLeaveHands = 20;
 
@@ -93,6 +94,15 @@ namespace BetterPokerTableManager
                 RaisePropertyChanged("AutoMinimize");
             }
         }
+        public int AutoLeaveEnabled
+        {
+            get { return _autoLeaveEnabled; }
+            set
+            {
+                _autoLeaveEnabled = value;
+                RaisePropertyChanged("AutoLeaveEnabled");
+            }
+        }
         public int AutoLeaveVpip
         {
             get { return _autoLeaveVpip; }
@@ -114,7 +124,6 @@ namespace BetterPokerTableManager
 
         #region Static
         private static string _dataDir = "";
-
 
         [JsonIgnore]
         public static string DataDir

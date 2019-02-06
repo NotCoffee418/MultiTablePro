@@ -30,6 +30,7 @@ namespace BetterPokerTableManager
         }
 
         private Config ActiveConfig { get; set; }
+        TableManager ActiveTableManager { get; set; }
 
         public bool AskConfirmation(string request, MessageBoxResult defaultResult = MessageBoxResult.No)
         {
@@ -84,9 +85,10 @@ namespace BetterPokerTableManager
             // Refresh the profile list & select Active
             RefreshProfileList(selectActive:true);
 
-            // Start table manager
-            TableManager tm = new TableManager(ActiveConfig);
-            tm.Start();
+            // Auto minimize
+            if (ActiveConfig.AutoMinimize)
+                WindowState = WindowState.Minimized;
+                
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -97,6 +99,49 @@ namespace BetterPokerTableManager
             Hide();
             Thread.Sleep(2000); // Give threaded loops a few seconds to finish up            
         }
+
+
+        #region Status
+        private void AutoStartCb_Checked(object sender, RoutedEventArgs e)
+        {
+
+            // DEBUG KILLME
+            bool isLoaded = IsLoaded;
+            bool isCheckd = autoStartCb.IsChecked == true;
+            bool x = (ActiveTableManager == null || !ActiveTableManager.IsRunning);
+
+
+            // Start table manager if AutoStart is checked after load
+            if (IsLoaded && autoStartCb.IsChecked == true && 
+                (ActiveTableManager == null || !ActiveTableManager.IsRunning))
+                StartStop();
+        }
+
+        private void StartStopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            StartStop();
+        }
+
+        private void StartStop()
+        {
+            // Start table manager
+            if (ActiveTableManager == null)
+                ActiveTableManager = new TableManager(ActiveConfig);
+
+            if (ActiveTableManager.IsRunning)
+            {
+                ActiveTableManager.Stop();
+                startStopBtn.Content = "Start";
+                statusTxt.Text = "Not running";
+            }
+            else
+            {
+                ActiveTableManager.Start();
+                startStopBtn.Content = "Stop";
+                statusTxt.Text = "Running";
+            }
+        }
+        #endregion
 
         #region Select Profile
         private void ProfileSelectionCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -205,5 +250,24 @@ namespace BetterPokerTableManager
             ActiveConfig.ActiveProfile = p;
         }
         #endregion
+
+        #region Auto Leave / Table Selection
+        private void ApplyAutoLeaveSettingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            double autoLeaveVpip, autoLeaveHands;
+            if (!double.TryParse(autoLeaveVpipTb.Text, out autoLeaveVpip) ||
+                !double.TryParse(autoLeaveHandsTb.Text, out autoLeaveHands))
+            {
+                Logger.Log("Invalid input. Input must be integer (round number).", Logger.Status.Info, showMessageBox: true);
+                return;
+            }
+            else
+            {
+                ActiveConfig.AutoLeaveVpip = Convert.ToInt32(autoLeaveVpip);
+                ActiveConfig.AutoLeaveHands = Convert.ToInt32(autoLeaveHands);
+            }
+        }
+        #endregion
+
     }
 }
