@@ -30,7 +30,8 @@ namespace BetterPokerTableManager
             }
             IsRunning = true;
             new Thread(() => ManageTables()).Start();
-            forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
+            if (ActiveConfig.ForceTablePosition)
+                forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
             PSLogHandler.Start();
         }
 
@@ -40,8 +41,11 @@ namespace BetterPokerTableManager
         public void Stop()
         {
             IsRunning = false;
-            forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-            forceTablePositionTimer.Dispose();
+            if (forceTablePositionTimer != null)
+            {
+                forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                forceTablePositionTimer.Dispose();
+            }
             PSLogHandler.Stop();
         }
 
@@ -377,8 +381,23 @@ namespace BetterPokerTableManager
         
         private void ActiveConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            // A new profile was selected, re-initialize
             if (IsRunning && e.PropertyName == "ActiveProfile" && ActiveConfig.ActiveProfile != null)
-                InitialTablePlacement(); // A new profile was selected, re-initialize
+                InitialTablePlacement();
+
+            // ForceTablePosition changed - update the timer acoordingly
+            else if (e.PropertyName == "ForceTablePosition")
+            {
+                if (ActiveConfig.ForceTablePosition && forceTablePositionTimer == null)
+                {
+                    forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
+                }
+                else if (!ActiveConfig.ForceTablePosition && forceTablePositionTimer != null)
+                {
+                    forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    forceTablePositionTimer.Dispose();
+                }
+            }
         }
     }
 }
