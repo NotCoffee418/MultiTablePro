@@ -106,9 +106,9 @@
                 </GroupBox>
                 
                 <!-- Additional Settings -->
-                <GroupBox Header="Settings">
+                <GroupBox Header="Settings" Margin="5">
                     <StackPanel Orientation="Vertical">
-                        <CheckBox IsChecked="{Binding ForceTablePosition}" Content="Force tables to stay in position" ToolTip="Tables will automatically move back into place when manually moved."/>
+                        <CheckBox Margin="5" IsChecked="{Binding ForceTablePosition}" Content="Force tables to stay in position" ToolTip="Tables will automatically move back into place when manually moved."/>
                     </StackPanel>
                 </GroupBox>
                 

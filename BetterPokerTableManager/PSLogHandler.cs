@@ -59,53 +59,48 @@ namespace BetterPokerTableManager
             var PSDirs = Directory.GetDirectories(appDataLocal, "PokerStars*");
             var FTDirs = Directory.GetDirectories(appDataLocal, "FullTilt*");
 
-            // Fatal error if no log files were found
-            if (PSDirs.Count() == 0 && FTDirs.Count() == 0)
-                Logger.Log("Could not find PokerStars log file. Please run PokerStars once before trying to run BPTM.", Logger.Status.Fatal);
-            else // Start watching any logfiles that weren't registered yet
+            
+            // PokerStars logs
+            foreach (var dir in PSDirs) // foreach in case of multiple locales
             {
-                // PokerStars logs
-                foreach (var dir in PSDirs) // foreach in case of multiple locales
-                {
-                    string logFileBase = dir + "\\PokerStars.log.";
-                    if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
-                        newLogFiles.Add(logFileBase + 0);
-                    if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
-                        newLogFiles.Add(logFileBase + 1);
-                }
+                string logFileBase = dir + "\\PokerStars.log.";
+                if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
+                    newLogFiles.Add(logFileBase + 0);
+                if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
+                    newLogFiles.Add(logFileBase + 1);
+            }
 
-                // Fulltilt logs
-                foreach (var dir in FTDirs) // foreach in case of multiple locales
-                {
-                    string logFileBase = dir + "\\FullTilt.log.";
-                    if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
-                        newLogFiles.Add(logFileBase + 0);
-                    if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
-                        newLogFiles.Add(logFileBase + 1);
-                }
+            // Fulltilt logs
+            foreach (var dir in FTDirs) // foreach in case of multiple locales
+            {
+                string logFileBase = dir + "\\FullTilt.log.";
+                if (File.Exists(logFileBase + 0) && !activeLogFiles.Contains(logFileBase + 0))
+                    newLogFiles.Add(logFileBase + 0);
+                if (File.Exists(logFileBase + 1) && !activeLogFiles.Contains(logFileBase + 1))
+                    newLogFiles.Add(logFileBase + 1);
+            }
 
-                // In case logs don't work the way I think, let user know
-                if (newLogFiles.Count() > 0)
-                {
-                    foreach (string log in newLogFiles)
-                        new Thread(() => WatchLog(log)).Start();
-                    newLogFiles.Clear();
+            // In case logs don't work the way I think, let user know
+            if (newLogFiles.Count() > 0)
+            {
+                foreach (string log in newLogFiles)
+                    new Thread(() => WatchLog(log)).Start();
+                newLogFiles.Clear();
 
-                    // This should only happen while debugging or on a new PS install
-                    if (DateTime.Now > StartTime.AddSeconds(9))
+                // This should only happen while debugging or on a new PS install
+                if (DateTime.Now > StartTime.AddSeconds(9))
+                {
+                    // Give user some time to catch up on their tables if any
+                    lock (Table.KnownTables)
                     {
-                        // Give user some time to catch up on their tables if any
-                        lock (Table.KnownTables)
-                        {
-                            if (Table.KnownTables.Count > 0)
-                                Thread.Sleep(5);
-                        }
+                        if (Table.KnownTables.Count > 0)
+                            Thread.Sleep(5);
+                    }
 
-                        Logger.Log("Detected new PS log while running. This should only happen once after (re)installing PokerStars." +
-                            "Please contact the developer if this occurs more than once.",
-                            Logger.Status.Warning, showMessageBox: true);
-                    }                        
-                }
+                    Logger.Log("Detected new PS log while running. This should only happen once after (re)installing PokerStars." +
+                        "Please contact the developer if this occurs more than once.",
+                        Logger.Status.Warning, showMessageBox: true);
+                }                        
             }
         }
         
