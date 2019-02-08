@@ -131,6 +131,15 @@ namespace BetterPokerTableManager
                         // no line found
                         if (currRead == null)
                         {
+                            if (loadFoundTimeStamp == DateTime.MinValue) 
+                            {
+                                // End of file and no timestamp found - see Issue #1
+                                // Remove this if statement when we can confirm this is not an issue
+                                Logger.Log("Timestamp locale mismatch. Please restart PokerStars - If the issue still occurs, contact the developer about this error.",
+                                    Logger.Status.Fatal, true);
+                                break;
+                            }
+
                             Thread.Sleep(50); // Sleep on no activity
                             continue;
                         }
