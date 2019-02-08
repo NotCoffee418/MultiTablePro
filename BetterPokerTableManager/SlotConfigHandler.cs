@@ -19,6 +19,7 @@ namespace BetterPokerTableManager
         {
             ActiveProfile = profile;
             SetupType = setupType;
+            ProfileSetupCompleted += SlotConfigHandler_ProfileSetupCompleted;
         }
 
         public event EventHandler ProfileSetupCompleted;
@@ -209,6 +210,12 @@ namespace BetterPokerTableManager
 
                 win.prioCb.Items.RemoveAt(win.prioCb.Items.Count - 1);
             }
+        }
+
+        private void SlotConfigHandler_ProfileSetupCompleted(object sender, EventArgs e)
+        {
+            // Unregister tables from KnownTables
+            Table.KnownTables.RemoveAll(t => t.IsVirtual);
         }
     }
 

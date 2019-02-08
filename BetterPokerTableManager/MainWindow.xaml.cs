@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -148,7 +149,7 @@ namespace BetterPokerTableManager
 
         private void EditProfileBtn_Click(object sender, RoutedEventArgs e)
         {
-            Profile selectedProfile = (Profile)profileSelectionCb.SelectedValue;
+            Profile selectedProfile = (Profile)((Profile)profileSelectionCb.SelectedValue).Clone();
             if (selectedProfile.FileName == Properties.Settings.Default.DefaultProfileFileName)
             {
                 Logger.Log("The default profile cannot be deleted. Try duplicating it instead.", Logger.Status.Info, true);
@@ -166,7 +167,7 @@ namespace BetterPokerTableManager
 
         private void DeleteProfileBtn_Click(object sender, RoutedEventArgs e)
         {
-            Profile selectedProfile = (Profile)profileSelectionCb.SelectedValue;
+            Profile selectedProfile = (Profile)((Profile)profileSelectionCb.SelectedValue).Clone();
             if (selectedProfile.FileName == Properties.Settings.Default.DefaultProfileFileName)
             {
                 Logger.Log("The default profile cannot be deleted.", Logger.Status.Info, true);
@@ -222,10 +223,22 @@ namespace BetterPokerTableManager
         }
 
         private void RequestProfileSetup(Profile p, SlotConfigHandler.SetupTypes setupType)
-        {
-            var sch = new SlotConfigHandler(p, setupType);
-            sch.ProfileSetupCompleted += Sch_ProfileSetupCompleted;
-            sch.StartConfigHandler();
+        {            
+            bool cancel = false; // don't throw messagebox with lock on Slots, using bool instead
+            lock (ActiveConfig.ActiveProfile.Slots)
+            {
+                // Prevent setup from running while setup is already running or during session
+                cancel = Table.KnownTables.Count > 0;
+            }
+
+            if (cancel)
+                Logger.Log("You cannot create or modify a profile with poker tables open or while already modifying a profile.", Logger.Status.Warning, true);
+            else
+            {
+                var sch = new SlotConfigHandler(p, setupType);
+                sch.ProfileSetupCompleted += Sch_ProfileSetupCompleted;
+                sch.StartConfigHandler();
+            }
         }
 
         private void Sch_ProfileSetupCompleted(object sender, EventArgs e)
@@ -276,7 +289,9 @@ namespace BetterPokerTableManager
                     openTablesLv.ItemsSource = null;
                     lock (Table.KnownTables)
                     {
-                        openTablesLv.ItemsSource = Table.KnownTables.Where(t => !t.IsVirtual);
+                        if (Debugger.IsAttached)
+                            openTablesLv.ItemsSource = Table.KnownTables.Where(t => t != null); // Show all tables including virtual
+                        else openTablesLv.ItemsSource = Table.KnownTables.Where(t => !t.IsVirtual); // Only show real tables
                         if (selectedTable != null)
                         {
                             int index = openTablesLv.SelectedIndex = Table.KnownTables.FindIndex(t => t == selectedTable);

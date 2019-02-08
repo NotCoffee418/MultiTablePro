@@ -84,7 +84,7 @@
                         <StackPanel Orientation="Vertical">
                             <TextBlock Margin="5">
                                 <TextBlock Text="Active Profile: " />
-                                <TextBlock Text="Name of profile" />
+                                <TextBlock Text="{Binding ActiveProfile}" />
                             </TextBlock>
                             <StackPanel Orientation="Horizontal">
                                 <ComboBox Width="190" Margin="5" Name="profileSelectionCb" SelectionChanged="ProfileSelectionCb_SelectionChanged"/>

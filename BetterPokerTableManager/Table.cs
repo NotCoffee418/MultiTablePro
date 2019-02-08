@@ -142,7 +142,8 @@ namespace BetterPokerTableManager
             lock (KnownTables) {
                 KnownTables.Add(this);
             }
-            ActionQueue.Enqueue(this);
+            if (!IsVirtual)
+                ActionQueue.Enqueue(this);
         }
 
         /// <summary>
