@@ -128,7 +128,7 @@ namespace BetterPokerTableManager
             Profile requestedSelection = null;
             if (selectActive)
             {
-                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfileFileName);
+                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfile.FileName);
                 if (requestedSelection == null) // Can happen when deleting a profile
                     requestedSelection = newProfileList[0];
             }
@@ -187,6 +187,11 @@ namespace BetterPokerTableManager
             try
             {
                 System.IO.File.Delete(path);
+
+                // Keeping this as reference - Don't do this
+                // Changing the name dings an event which pushes the deleted item back into the profileSelectionCb
+                //if (selectedProfile == ActiveConfig.ActiveProfile)
+                //    ActiveConfig.ActiveProfile.Name += " (DELETED)";
             }
             catch
             {

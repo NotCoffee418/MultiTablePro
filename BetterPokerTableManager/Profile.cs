@@ -14,6 +14,7 @@ namespace BetterPokerTableManager
     [Serializable]
     internal class Profile : IEquatable<Profile>, ICloneable, INotifyPropertyChanged
     {
+        [field:NonSerialized]
         public event PropertyChangedEventHandler PropertyChanged;
         private string _name = "Unnamed Profile";
 
@@ -95,6 +96,16 @@ namespace BetterPokerTableManager
         public bool Equals(Profile other)
         {
             return Name == other.Name && Slots.SequenceEqual(other.Slots);
+        }
+
+        public static bool operator ==(Profile profile1, Profile profile2)
+        {
+            return EqualityComparer<Profile>.Default.Equals(profile1, profile2);
+        }
+
+        public static bool operator !=(Profile profile1, Profile profile2)
+        {
+            return !(profile1 == profile2);
         }
 
         public void RaisePropertyChanged(string property)
@@ -184,6 +195,15 @@ namespace BetterPokerTableManager
                 profileList.Add(GetProfileFromFile(file));
 
             return profileList;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -947667292;
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<Slot>>.Default.GetHashCode(Slots);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(FileName);
+            return hashCode;
         }
 
         #endregion
