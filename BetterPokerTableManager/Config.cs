@@ -39,10 +39,15 @@ namespace BetterPokerTableManager
 
         [JsonIgnore] // Storing ActiveProfileFileName to file instead
         public Profile ActiveProfile {
-            get { return _activeProfile; }
+            get {
+                if (_activeProfile == null)
+                    _activeProfile = Profile.GetProfileFromFile(Path.Combine(Config.DataDir, "Profiles", _activeProfileFileName));
+                return _activeProfile;
+            }
             set
             {
                 _activeProfile = value;
+                ActiveProfileFileName = value.FileName;
                 RaisePropertyChanged("ActiveProfile");
             }
         }
@@ -67,11 +72,6 @@ namespace BetterPokerTableManager
             set
             {
                 _activeProfileFileName = value;
-
-                // Update active profile
-                ActiveProfile = Profile.GetProfileFromFile(
-                    Path.Combine(Config.DataDir, "Profiles", value)
-                    );
                 RaisePropertyChanged("ActiveProfileFileName");
             }
         }
