@@ -108,7 +108,9 @@ namespace BetterPokerTableManager
             // Try to find an empty or the current slot or stackable slot - filter by preferred slot
             resultSlot = possibleSlots
                 .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table) || s.CanStack)
-                .OrderByDescending(s => table.PreferredSlot != null && s == table.PreferredSlot)
+                .OrderBy(s => s.OccupiedBy.Count) // Prefer empty slots regardless of preferred
+                .ThenByDescending(s => table.PreferredSlot != null && s == table.PreferredSlot) // pick the table's preferred slot
+                .ThenBy(s => s.OccupiedBy.Where(t => t.PreferredSlot == null).Count()) // Find a slot with a table without a preferred slot
                 .FirstOrDefault();
             if (resultSlot != null)
                 return resultSlot;
