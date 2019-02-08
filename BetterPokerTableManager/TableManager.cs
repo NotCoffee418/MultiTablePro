@@ -260,8 +260,8 @@ namespace BetterPokerTableManager
                 WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Restore);
                 WindowHandler.ShowWindow(table.WindowHandle, WindowHandler.ShowWindowCommands.Normal);
 
-                // Move table offscreen to resize (fix for annoying flicker)
-                if (previousSlot != null)
+                // Move table offscreen to resize (fix for annoying flicker) - only when size changes
+                if (previousSlot != null && (previousSlot.Width != toSlot.Width || previousSlot.Height != toSlot.Height))
                 {
                     WindowHandler.MoveWindow(table.WindowHandle, Convert.ToInt32(WpfScreen.OffScreenLocation.Item1),
                     Convert.ToInt32(WpfScreen.OffScreenLocation.Item2), previousSlot.Width, previousSlot.Height, true);
