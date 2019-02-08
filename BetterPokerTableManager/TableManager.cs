@@ -296,8 +296,37 @@ namespace BetterPokerTableManager
                 // Run the delayed movement queue
                 while (delayedMoveQueue.Count > 0)
                 {
-                    var t = delayedMoveQueue.Dequeue();
-                    MoveTable(t.Item1, t.Item2, t.Item3);
+                    // Move table in queue
+                    var tableFromQueue = delayedMoveQueue.Dequeue();
+                    MoveTable(tableFromQueue.Item1, tableFromQueue.Item2, tableFromQueue.Item3);
+
+                    // Also move any double stacked tables when an inactive slot is available
+                    if (ActiveConfig.PreferSpreadOverStack)
+                    {
+                        // if there's a free inactive slot
+                        var freeInactiveSlots = ActiveConfig.ActiveProfile.Slots.Where(s => s.ActivityUse == Slot.ActivityUses.Inactive && s.OccupiedBy.Count == 0);
+                        if (freeInactiveSlots.Count() > 0)
+                        {
+                            // Find a slot with a table that should be moved, if any
+                            Slot slotWithUnnessecarilyStackedTable = ActiveConfig.ActiveProfile.Slots
+                                .Where(s => s.ActivityUse == Slot.ActivityUses.Inactive)
+                                .Where(s => s.OccupiedBy.Count > 1)
+                                .FirstOrDefault();
+
+                            // if we found a slot, move the most approperiate table
+                            if (slotWithUnnessecarilyStackedTable != null)
+                            {
+                                Table bestTableToMove = slotWithUnnessecarilyStackedTable.OccupiedBy.
+                                    OrderByDescending(t => t.PriorityChangedTime)
+                                    .FirstOrDefault();
+                                delayedMoveQueue.Enqueue(new Tuple<Table, Slot, Slot>(
+                                    bestTableToMove,
+                                    freeInactiveSlots.First(),
+                                    slotWithUnnessecarilyStackedTable));
+                            }
+
+                        }
+                    }
                 }
             }
             catch (Exception ex)

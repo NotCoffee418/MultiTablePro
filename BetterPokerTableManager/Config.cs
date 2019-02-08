@@ -35,6 +35,7 @@ namespace BetterPokerTableManager
         private int _autoLeaveEnabled;
         private int _autoLeaveVpip = 15;
         private int _autoLeaveHands = 20;
+        private bool _preferSpreadOverStack = true;
 
 
         [JsonIgnore] // Storing ActiveProfileFileName to file instead
@@ -123,6 +124,15 @@ namespace BetterPokerTableManager
             set {
                 _autoLeaveHands = value;
                 RaisePropertyChanged("AutoLeaveHands");
+            }
+        }
+        public bool PreferSpreadOverStack
+        {
+            get { return _preferSpreadOverStack; }
+            set
+            {
+                _preferSpreadOverStack = value;
+                RaisePropertyChanged("PreferStackOverSpread");
             }
         }
 

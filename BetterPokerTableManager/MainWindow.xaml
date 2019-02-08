@@ -109,6 +109,7 @@
                 <GroupBox Header="Settings" Margin="5">
                     <StackPanel Orientation="Vertical">
                         <CheckBox Margin="5" IsChecked="{Binding ForceTablePosition}" Content="Force tables to stay in position" ToolTip="Tables will automatically move back into place when manually moved."/>
+                        <CheckBox Margin="5" IsChecked="{Binding PreferSpreadOverStack}" Content="Prefer spreading tables" ToolTip="Tables will move to an unoccupied inactive slot whenever possible. Disabling this option will cause tables to stack unnessecarily."/>
                     </StackPanel>
                 </GroupBox>
                 
