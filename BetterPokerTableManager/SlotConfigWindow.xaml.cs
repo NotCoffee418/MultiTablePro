@@ -132,7 +132,16 @@ namespace BetterPokerTableManager
         {
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
                     "Requested add table.");
-            ActiveSlotConfigHandler.AddSlot();
+
+            // Make the new slot a slightly moved clone of the current slot
+            var newSlot = new Slot();
+            newSlot.X = CurrentSlot.X + 50;
+            newSlot.Y = CurrentSlot.Y + 50;
+            newSlot.Width = CurrentSlot.Width;
+            newSlot.Height = CurrentSlot.Height;
+            newSlot.ActivityUse = CurrentSlot.ActivityUse;
+            newSlot.CanStack = CurrentSlot.CanStack;
+            ActiveSlotConfigHandler.AddSlot(newSlot);
         }
 
         private void RemoveSlotBtn_Click(object sender, RoutedEventArgs e)
