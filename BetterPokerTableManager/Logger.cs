@@ -72,7 +72,7 @@ namespace BetterPokerTableManager
 
         private static void StartLogWriter()
         {
-            while ((bool)App.Current.Properties["IsRunning"])
+            while (App.Current.Properties["IsRunning"] != null && (bool)App.Current.Properties["IsRunning"])
             {
                 if (writeQueue.Count == 0)
                     Thread.Sleep(25);

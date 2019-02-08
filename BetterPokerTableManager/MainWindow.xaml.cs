@@ -28,6 +28,13 @@ namespace BetterPokerTableManager
         public MainWindow()
         {
             InitializeComponent();
+
+            // Cancel if we're already running
+            if (Process.GetProcessesByName("BetterPokerTableManager").Count() > 1)
+            {
+                Logger.Log("BPTM is already running. Try again in a few seconds if you just closed it.", Logger.Status.Warning, true);
+                Application.Current.Shutdown();
+            }
         }
 
         private Config ActiveConfig { get; set; }
