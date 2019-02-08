@@ -132,7 +132,7 @@ namespace BetterPokerTableManager
         {
             Logger.Log($"SlotConfigWindow {GetHashCode()}: " +
                     "Requested add table.");
-            ActiveSlotConfigHandler.AddTable();
+            ActiveSlotConfigHandler.AddSlot();
         }
 
         private void RemoveSlotBtn_Click(object sender, RoutedEventArgs e)

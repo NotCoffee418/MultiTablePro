@@ -23,7 +23,7 @@ namespace BetterPokerTableManager
             ActivityUse = activityUse;
             X = x;
             Y = y;
-            Width = Width;
+            Width = width;
             Height = height;
         }
 

@@ -38,7 +38,7 @@ namespace BetterPokerTableManager
         public void StartConfigHandler()
         {
             foreach (Slot slot in ActiveProfile.Slots.OrderBy(s => s.Priority))
-                AddTable(slot);
+                AddSlot(slot);
         }
 
         internal void Save()
@@ -53,7 +53,7 @@ namespace BetterPokerTableManager
                 ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(false, null, SetupType));
         }
 
-        internal void AddTable(Slot slot = null)
+        internal void AddSlot(Slot slot = null)
         {
             // Define slot if null
             if (slot == null)
