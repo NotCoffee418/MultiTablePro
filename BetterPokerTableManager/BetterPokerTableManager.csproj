@@ -78,7 +78,6 @@
       <DependentUpon>SlotConfigWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Table.cs" />
-    <Compile Include="WindowHandler.cs" />
     <Compile Include="TableManager.cs" />
     <Compile Include="WpfScreen.cs" />
     <Page Include="MainWindow.xaml">
