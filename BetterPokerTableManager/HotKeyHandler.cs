@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -24,9 +25,10 @@ namespace BetterPokerTableManager
             ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
         }
 
-        private int lastId = 0;
+        
         public const int WM_HOTKEY = 0x0312; // Definition for hotkey MSG
         private static List<Tuple<int, HotKey, IntPtr>> idMemory = new List<Tuple<int, HotKey, IntPtr>>();
+        private static int _lastRegisterId = -1;
         private HotKey _asideHotkey;
 
         public Config ActiveConfig { get; set; }
@@ -40,10 +42,22 @@ namespace BetterPokerTableManager
                 _asideHotkey = value;
             }
         }
+        private static int LastRegisterId
+        {
+            get
+            {
+                // Not sure if starting at 0 is the best idea for hooking into external applications.
+                // Starting at a unique value instead (our MainWindowHandle)
+                if (_lastRegisterId == -1)
+                    _lastRegisterId = Process.GetCurrentProcess().MainWindowHandle.ToInt32();
+                return _lastRegisterId;
+            }
+            set { _lastRegisterId = value; }
+        }
 
         public void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
         {
-            int newId = ++lastId;
+            int newId = ++LastRegisterId;
             RegisterHotKey(windowHandle, newId, (uint)hotKey.Modifiers, (uint)hotKey.Key);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotkeyPressed);
 
@@ -55,11 +69,13 @@ namespace BetterPokerTableManager
         {
             if (m.message == WM_HOTKEY)
             {
+                bool wasRelevant = false;
                 System.Diagnostics.Debug.WriteLine("Hotkey pressed");
 
 
                 // Hotkey press was irrelevant for us. Redirect it to foreground window
-                SendKeys.SendWait(AsideHotkey.ToString());
+                if (!wasRelevant)
+                    SendKeys.SendWait(AsideHotkey.ToString());
             }
         }
 
@@ -84,6 +100,13 @@ namespace BetterPokerTableManager
 
             // Remove the hotkey from idMemory
             idMemory.RemoveAll(h => h.Item2.Equals(hotKey) && h.Item3 == windowHandle);
+        }
+
+        public void UnregisterAllHotkeys()
+        {
+            while (idMemory.Count > 0)
+                UnregisterHotKey(idMemory[0].Item2, idMemory[0].Item3);
+            Logger.Log("All hotkeys unregistered.");
         }
 
         // Used to register and unregister hotkeys to all known tables when a hotkey is changed

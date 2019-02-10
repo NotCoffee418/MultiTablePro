@@ -39,7 +39,9 @@ namespace BetterPokerTableManager
 
         private Config ActiveConfig { get; set; }
         TableManager ActiveTableManager { get; set; }
+        private HotKeyHandler ActiveHotKeyHandler = null;
         private Timer watchOpenTablesTimer = null;
+
 
         public bool AskConfirmation(string request, MessageBoxResult defaultResult = MessageBoxResult.No)
         {
@@ -70,6 +72,12 @@ namespace BetterPokerTableManager
 
             // Start watching open tables
             watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
+
+
+            // DEBUG KILL ME
+            ActiveHotKeyHandler = new HotKeyHandler(ActiveConfig);
+            IntPtr windowHandle = Process.GetCurrentProcess().MainWindowHandle;
+            ActiveHotKeyHandler.RegisterHotKey(new HotKey(System.Windows.Forms.Keys.A, 0), windowHandle);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -78,6 +86,7 @@ namespace BetterPokerTableManager
             Thread.Sleep(100);
             App.Current.Properties["IsRunning"] = false;
             Hide();
+            ActiveHotKeyHandler.UnregisterAllHotkeys();
             Thread.Sleep(2000); // Give threaded loops a few seconds to finish up            
         }
 
