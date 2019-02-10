@@ -267,7 +267,7 @@ namespace BetterPokerTableManager
                 {
                     WindowHandler.MoveWindow(table.WindowHandle, Convert.ToInt32(WpfScreen.OffScreenLocation.Item1),
                     Convert.ToInt32(WpfScreen.OffScreenLocation.Item2), previousSlot.Width, previousSlot.Height, true);
-                    Thread.Sleep(200); // If flicker persists, 200 ms did the trick before
+                    //Thread.Sleep(200); // If flicker persists, 200 ms did the trick last time - EDIT: Flicker is gone, why?
                 }                
 
                 // Move the window

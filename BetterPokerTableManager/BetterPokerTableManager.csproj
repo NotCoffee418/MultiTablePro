@@ -64,6 +64,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Config.cs" />
+    <Compile Include="HotKey.cs" />
+    <Compile Include="HotKeyHandler.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Profile.cs" />
     <Compile Include="ProfilePreviewControl.xaml.cs">
