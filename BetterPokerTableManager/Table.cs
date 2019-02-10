@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,6 +13,9 @@ namespace BetterPokerTableManager
     [Serializable]
     internal class Table : IEquatable<Table>
     {
+        [DllImport("user32.dll")]
+        internal static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+
         public Table(IntPtr wHnd, bool isVirtual = false)
         {
             WindowHandle = wHnd;
@@ -162,7 +166,7 @@ namespace BetterPokerTableManager
         {
             const int nChars = 256;
             StringBuilder buff = new StringBuilder(nChars);
-            if (WindowHandler.GetWindowText(WindowHandle, buff, nChars) > 0)
+            if (GetWindowText(WindowHandle, buff, nChars) > 0)
             {
                 string windowTitle = buff.ToString();
                 // eg Cash: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
