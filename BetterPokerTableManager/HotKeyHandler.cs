@@ -47,7 +47,7 @@ namespace BetterPokerTableManager
             set { _lastRegisterId = value; }
         }
         private static IntPtr OurWindowHandle { get; set; }
-        
+
         internal static void HotkeyPressed(ref MSG m, ref bool handled)
         {
             if (m.message != WM_HOTKEY)

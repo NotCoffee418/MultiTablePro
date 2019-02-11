@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,10 +11,9 @@ using System.Windows.Input;
 
 namespace BetterPokerTableManager
 {    
-    internal class HotKey : IEquatable<HotKey>
+    internal class HotKey : IEquatable<HotKey>, INotifyPropertyChanged
     {
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        public static extern int ToUnicode(uint virtualKeyCode, uint scanCode, byte[] keyboardState, StringBuilder receivingBuffer, int bufferSize, uint flags);
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public HotKey() { } // Empty constructor for json
         public HotKey(Keys key, ModifierKeys modifiers = ModifierKeys.None)
@@ -28,8 +28,26 @@ namespace BetterPokerTableManager
             Modifier = (ModifierKeys)(param & 0x0000ffff);
         }
 
-        public Keys Key { get; set; }
-        public ModifierKeys Modifier { get; set; }
+        Keys _key;
+        ModifierKeys _modifier;
+
+        public Keys Key
+        {
+            get { return _key; }
+            set {
+                _key = value;
+                RaisePropertyChanged("Keys");
+            }
+        }
+        public ModifierKeys Modifier
+        {
+            get { return _modifier; }
+            set
+            {
+                _modifier = value;
+                RaisePropertyChanged("Modifier");
+            }
+        }
 
         public bool Equals(HotKey other)
         {
@@ -39,27 +57,31 @@ namespace BetterPokerTableManager
         public override string ToString()
         {
             // Set modifier for output
-            var keyboardState = new byte[256];
-            switch (Modifier) // todo: this doesn't handle multiple eg: ctrl+alt+del
+            string modifierText = "";
+            switch (Modifier)
             {
                 case ModifierKeys.Alt:
-                    keyboardState[(int)Keys.Alt] = 0xff;
+                    modifierText = "Alt + ";
                     break;
                 case ModifierKeys.Control:
-                    keyboardState[(int)Keys.ControlKey] = 0xff;
+                    modifierText = "Ctrl + ";
                     break;
                 case ModifierKeys.Shift:
-                    keyboardState[(int)Keys.ShiftKey] = 0xff;
+                    modifierText = "Shift + ";
                     break;
                 case ModifierKeys.Windows:
-                    keyboardState[(int)Keys.LWin] = 0xff;
+                    modifierText = "Win + ";
                     break;
             }
 
             // Get string from the hotkey
-            var buf = new StringBuilder(256);
-            ToUnicode((uint)Key, 0, keyboardState, buf, 256, 0);
-            return buf.ToString();
+            return modifierText + Key.ToString().ToUpper();
+        }
+
+        public void RaisePropertyChanged(string property)
+        {
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(property));
         }
     }
 

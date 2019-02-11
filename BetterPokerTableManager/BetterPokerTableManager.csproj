@@ -73,6 +73,9 @@
     </Compile>
     <Compile Include="PSLogHandler.cs" />
     <Compile Include="InputSender.cs" />
+    <Compile Include="SetHotKeyWindow.xaml.cs">
+      <DependentUpon>SetHotKeyWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Slot.cs" />
     <Compile Include="SlotConfigHandler.cs" />
     <Compile Include="SlotConfigWindow.xaml.cs">
@@ -94,6 +97,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ProfilePreviewControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SetHotKeyWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

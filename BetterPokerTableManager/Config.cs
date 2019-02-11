@@ -19,13 +19,14 @@ namespace BetterPokerTableManager
     {
         internal Config()
         {
-            new Timer(StartSaving, null, 1000, 0);
+            startSavingTimer = new Timer(StartSaving, null, 1000, 0);
             PropertyChanged += Config_PropertyChanged;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         // Default config is defined here
+        Timer startSavingTimer = null;
         private bool savingAllowed = false;
         Profile _activeProfile = null;
         string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;

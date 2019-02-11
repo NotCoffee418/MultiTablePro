@@ -330,5 +330,15 @@ namespace BetterPokerTableManager
         }
         #endregion
 
+        #region Extra Settings
+        private void ChangeAsideHotKeyBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var hkWin = new SetHotKeyWindow();
+            hkWin.PropertyName = "AsideHotKey";
+            hkWin.CurrentHotKey = Config.Active.AsideHotKey;
+            hkWin.Show();
+        }
+
+        #endregion
     }
 }

@@ -1,0 +1,26 @@
+﻿<Window x:Class="BetterPokerTableManager.SetHotKeyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BetterPokerTableManager"
+        mc:Ignorable="d"
+        Title="Change Hotkey" Height="156.626" Width="290" Loaded="Window_Loaded" Closing="Window_Closing" WindowStyle="ToolWindow" ResizeMode="NoResize">
+    <StackPanel Orientation="Horizontal">
+        <GroupBox Header="Modifier" VerticalAlignment="Top" Margin="5" Width="100">
+            <StackPanel Orientation="Vertical">
+                <RadioButton Name="noneRb" Content="None" Margin="2" Checked="modifierRb_Checked"/>
+                <RadioButton Name="ctrlRb" Content="CTRL" Margin="2" Checked="modifierRb_Checked"/>
+                <RadioButton Name="altRb" Content="ALT" Margin="2" Checked="modifierRb_Checked"/>
+                <RadioButton Name="shiftRb" Content="Shift" Margin="2" Checked="modifierRb_Checked"/>
+            </StackPanel>
+        </GroupBox>
+        <StackPanel Orientation="Vertical">
+            <GroupBox Header="Key" VerticalAlignment="Top" Width="150" Margin="5">
+                <ComboBox Name="keySelectionCb" SelectionChanged="KeySelectionCb_SelectionChanged"/>
+            </GroupBox>
+            <Button Content="Close" Margin="5" Click="Button_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>
