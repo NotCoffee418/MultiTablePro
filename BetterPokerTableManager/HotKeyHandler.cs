@@ -31,7 +31,7 @@ namespace BetterPokerTableManager
 
 
         public const int WM_HOTKEY = 0x0312; // Definition for hotkey MSG
-        private static List<Tuple<int, HotKey, IntPtr>> idMemory = new List<Tuple<int, HotKey, IntPtr>>();
+        private static Dictionary<int, HotKey> idMemory = new Dictionary<int, HotKey>();
         private static int _lastRegisterId = -1;
 
         private static int LastRegisterId
@@ -46,32 +46,13 @@ namespace BetterPokerTableManager
             }
             set { _lastRegisterId = value; }
         }
-
-        public static void StartListener()
-        {
-            ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotkeyPressed);
-        }
-
-        public static void StopListener()
-        {
-            ComponentDispatcher.ThreadFilterMessage -= HotkeyPressed;
-        }
-
-        public static void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
-        {
-            int newId = ++LastRegisterId;
-            if (!RegisterHotKey(windowHandle, newId, (uint)hotKey.Modifier, (uint)hotKey.Key))
-                Logger.Log($"HotKeyHandler: RegisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
-
-            // Remember the registered hotkey
-            idMemory.Add(new Tuple<int, HotKey, IntPtr>(newId, hotKey, windowHandle));
-        }
+        private static IntPtr OurWindowHandle { get; set; }
         
         internal static void HotkeyPressed(ref MSG m, ref bool handled)
         {
             if (m.message != WM_HOTKEY)
                 return;
-            
+
             // Find the targeted table, if any
             Table table = FindTableUnderMouse();
             bool wasRelevant = table == null ? false : true;
@@ -90,22 +71,40 @@ namespace BetterPokerTableManager
                 IntPtr foregroundHandle = GetForegroundWindow();
                 if (foregroundHandle != null)
                 {
-                    /* This just gets picked up as a hotkey again regardless... Ree.
-                    StopListener();
+                    // Eats some CPU but at least it redirects
+                    UnregisterHotKey(foundHotkey);
                     InputSender.RedirectHotkey(foundHotkey);
-                    StartListener();
-                    */
+                    RegisterHotKey(foundHotkey, OurWindowHandle);
                 }
             }
         }
 
-        public static void UnregisterHotKey(HotKey hotKey, IntPtr windowHandle)
+        public static void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
+        {
+            // Store the receiving window handle
+            if (OurWindowHandle == null)
+                OurWindowHandle = windowHandle;
+
+            // Don't register already registered hotkeys
+            if (idMemory.Where(e => e.Value.Equals(hotKey)).Count() > 0)
+                return;
+
+            // Grab a new ID
+            int newId = ++LastRegisterId;
+
+            // Attempt to register the hotkey
+            if (!RegisterHotKey(OurWindowHandle, newId, (uint)hotKey.Modifier, (uint)hotKey.Key))
+                Logger.Log($"HotKeyHandler: RegisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
+            idMemory.Add(newId, hotKey); // Remember the registered hotkey
+        }
+
+        public static void UnregisterHotKey(HotKey hotKey)
         {
             int id = 0;
             try
             {
                 // Find the ID of the hotkey
-                id = idMemory.Where(t => t.Item2.Equals(hotKey) && t.Item3 == windowHandle).First().Item1;
+                id = idMemory.Where(e => e.Value.Equals(hotKey)).First().Key;
             }
             catch
             {
@@ -114,19 +113,19 @@ namespace BetterPokerTableManager
             }
 
             // Unregister the hotkey
-            if (UnregisterHotKey(windowHandle, id))
-                Logger.Log($"Unregistered hotkey {hotKey} from table {windowHandle}");
+            if (UnregisterHotKey(OurWindowHandle, id))
+                Logger.Log($"Unregistered hotkey {hotKey} from table {OurWindowHandle}");
             else
                 Logger.Log($"HotKeyHandler: UnregisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
 
             // Remove the hotkey from idMemory
-            idMemory.RemoveAll(h => h.Item2.Equals(hotKey) && h.Item3 == windowHandle);
+            idMemory.Remove(id);
         }
 
         public static void UnregisterAllHotkeys()
         {
             while (idMemory.Count > 0)
-                UnregisterHotKey(idMemory[0].Item2, idMemory[0].Item3);
+                UnregisterHotKey(OurWindowHandle, idMemory.Keys.First());
             Logger.Log("All hotkeys unregistered.");
         }
 

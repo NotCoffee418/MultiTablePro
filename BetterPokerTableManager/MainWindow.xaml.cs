@@ -75,10 +75,7 @@ namespace BetterPokerTableManager
             // Register hotkeys
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
-
-            // Start hotkey handler
-            //ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
-            HotKeyHandler.StartListener();
+            ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
