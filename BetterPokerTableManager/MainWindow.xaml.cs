@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -37,9 +38,7 @@ namespace BetterPokerTableManager
             }
         }
 
-        private Config ActiveConfig { get; set; }
         TableManager ActiveTableManager { get; set; }
-        private HotKeyHandler ActiveHotKeyHandler = null;
         private Timer watchOpenTablesTimer = null;
 
 
@@ -60,24 +59,26 @@ namespace BetterPokerTableManager
             Logger.Log("--- Starting application ---");
 
             // Load config & install on first run
-            ActiveConfig = Config.FromFile();
-            DataContext = ActiveConfig;
+            Config.Active = Config.FromFile();
+            DataContext = Config.Active;
 
             // Refresh the profile list & select Active
             RefreshProfileList(selectActive:true);
 
             // Auto minimize
-            if (ActiveConfig.AutoMinimize)
+            if (Config.Active.AutoMinimize)
                 WindowState = WindowState.Minimized;
 
             // Start watching open tables
             watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
 
+            // Register hotkeys
+            IntPtr hWnd = new WindowInteropHelper(this).Handle;
+            HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
 
-            // DEBUG KILL ME
-            ActiveHotKeyHandler = new HotKeyHandler(ActiveConfig);
-            IntPtr windowHandle = Process.GetCurrentProcess().MainWindowHandle;
-            ActiveHotKeyHandler.RegisterHotKey(new HotKey(System.Windows.Forms.Keys.A, 0), windowHandle);
+            // Start hotkey handler
+            //ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
+            HotKeyHandler.StartListener();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -86,7 +87,7 @@ namespace BetterPokerTableManager
             Thread.Sleep(100);
             App.Current.Properties["IsRunning"] = false;
             Hide();
-            ActiveHotKeyHandler.UnregisterAllHotkeys();
+            HotKeyHandler.UnregisterAllHotkeys();
             Thread.Sleep(2000); // Give threaded loops a few seconds to finish up            
         }
 
@@ -109,7 +110,7 @@ namespace BetterPokerTableManager
         {
             // Start table manager
             if (ActiveTableManager == null)
-                ActiveTableManager = new TableManager(ActiveConfig);
+                ActiveTableManager = new TableManager();
 
             if (ActiveTableManager.IsRunning)
             {
@@ -137,7 +138,7 @@ namespace BetterPokerTableManager
             Profile requestedSelection = null;
             if (selectActive)
             {
-                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == ActiveConfig.ActiveProfile.FileName);
+                requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == Config.Active.ActiveProfile.FileName);
                 if (requestedSelection == null) // Can happen when deleting a profile
                     requestedSelection = newProfileList[0];
             }
@@ -199,8 +200,8 @@ namespace BetterPokerTableManager
 
                 // Keeping this as reference - Don't do this
                 // Changing the name dings an event which pushes the deleted item back into the profileSelectionCb
-                //if (selectedProfile == ActiveConfig.ActiveProfile)
-                //    ActiveConfig.ActiveProfile.Name += " (DELETED)";
+                //if (selectedProfile == Config.Active.ActiveProfile)
+                //    Config.Active.ActiveProfile.Name += " (DELETED)";
             }
             catch
             {
@@ -246,7 +247,7 @@ namespace BetterPokerTableManager
         private void RequestProfileSetup(Profile p, SlotConfigHandler.SetupTypes setupType)
         {            
             bool cancel = false; // don't throw messagebox with lock on Slots, using bool instead
-            lock (ActiveConfig.ActiveProfile.Slots)
+            lock (Config.Active.ActiveProfile.Slots)
             {
                 // Prevent setup from running while setup is already running or during session
                 cancel = Table.KnownTables.Count > 0;
@@ -277,7 +278,7 @@ namespace BetterPokerTableManager
         private void ActivateProfileBtn_Click(object sender, RoutedEventArgs e)
         {
             Profile p = (Profile)profileSelectionCb.SelectedValue;
-            ActiveConfig.ActiveProfile = p;
+            Config.Active.ActiveProfile = p;
         }
         #endregion
 
@@ -293,8 +294,8 @@ namespace BetterPokerTableManager
             }
             else
             {
-                ActiveConfig.AutoLeaveVpip = Convert.ToInt32(autoLeaveVpip);
-                ActiveConfig.AutoLeaveHands = Convert.ToInt32(autoLeaveHands);
+                Config.Active.AutoLeaveVpip = Convert.ToInt32(autoLeaveVpip);
+                Config.Active.AutoLeaveHands = Convert.ToInt32(autoLeaveHands);
             }
         }
         #endregion

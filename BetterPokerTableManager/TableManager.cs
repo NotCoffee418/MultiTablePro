@@ -22,10 +22,9 @@ namespace BetterPokerTableManager
         internal static extern bool SetForegroundWindow(IntPtr hWnd);
 
 
-        public TableManager(Config activeConfig)
+        public TableManager()
         {
-            ActiveConfig = activeConfig;
-            ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
+            Config.Active.PropertyChanged += ActiveConfig_PropertyChanged;
         }
 
         #region ShowWindowCommands (todo: can't we import this or something?)
@@ -116,7 +115,7 @@ namespace BetterPokerTableManager
             }
             IsRunning = true;
             new Thread(() => ManageTables()).Start();
-            if (ActiveConfig.ForceTablePosition)
+            if (Config.Active.ForceTablePosition)
                 forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
             PSLogHandler.Start();
         }
@@ -136,21 +135,10 @@ namespace BetterPokerTableManager
         }
 
         // private property's vars
-        private Config _activeConfig;
         private Timer forceTablePositionTimer;
 
         // Properties
         public bool IsRunning { get; set; }
-        public Config ActiveConfig
-        {
-            get
-            {
-                if (_activeConfig == null)
-                    _activeConfig = Config.FromFile(); // load defaults
-                return _activeConfig;
-            }
-            set { _activeConfig = value; }
-        }
 
         private void InitialTablePlacement()
         {
@@ -174,7 +162,7 @@ namespace BetterPokerTableManager
             Slot resultSlot = null;
 
             // Find all possible slots & order them
-            var possibleSlots = ActiveConfig.ActiveProfile.Slots
+            var possibleSlots = Config.Active.ActiveProfile.Slots
                 .Where(s => s.ActivityUse == slotType)  // Match the slot type (active/inactive)
                 .OrderBy(s => s.OccupiedBy.Count)       // Pick the best slot
                 .ThenBy(s => s.Priority)                // Pick user preferred slot
@@ -233,7 +221,7 @@ namespace BetterPokerTableManager
             {
                 Table tableToMove = resultSlot.OccupiedBy.First();
                 Slot anInactiveSlot = GetAvailableSlot(Slot.ActivityUses.Inactive, table);
-                Slot previousSlot = ActiveConfig.ActiveProfile.Slots
+                Slot previousSlot = Config.Active.ActiveProfile.Slots
                     .Where(s => s.OccupiedBy.Contains(tableToMove))
                     .FirstOrDefault();
                 delayedMoveQueue.Enqueue(new Tuple<Table, Slot, Slot>(tableToMove, anInactiveSlot, previousSlot));
@@ -254,7 +242,7 @@ namespace BetterPokerTableManager
         {
             
             // Count available active slots
-            int freeActiveSlotsCount = ActiveConfig.ActiveProfile.Slots
+            int freeActiveSlotsCount = Config.Active.ActiveProfile.Slots
                 .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
                 .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table)) // Ignore stackable actives & the table's current slot
                 .Count();
@@ -266,7 +254,7 @@ namespace BetterPokerTableManager
                 .Count();
 
             // Find the slot the table is in currently
-            Slot previousSlot = ActiveConfig.ActiveProfile.Slots
+            Slot previousSlot = Config.Active.ActiveProfile.Slots
                 .Where(s => s.OccupiedBy
                     .Where(t => t == table).Count() > 0)
                 .FirstOrDefault();
@@ -365,10 +353,10 @@ namespace BetterPokerTableManager
                     ShowWindow(table.WindowHandle, ShowWindowCommands.Show);
 
                 // Remove the table from any previous Slot it was in
-                lock (ActiveConfig.ActiveProfile)
+                lock (Config.Active.ActiveProfile)
                 {
                     // Find the table's old slot
-                    var foundSlot = ActiveConfig.ActiveProfile.Slots.FirstOrDefault(
+                    var foundSlot = Config.Active.ActiveProfile.Slots.FirstOrDefault(
                         s => s.OccupiedBy.FirstOrDefault(
                             t => t.WindowHandle == table.WindowHandle) != null
                         );
@@ -389,14 +377,14 @@ namespace BetterPokerTableManager
                     MoveTable(tableFromQueue.Item1, tableFromQueue.Item2, tableFromQueue.Item3);
 
                     // Also move any double stacked tables when an inactive slot is available
-                    if (ActiveConfig.PreferSpreadOverStack)
+                    if (Config.Active.PreferSpreadOverStack)
                     {
                         // if there's a free inactive slot
-                        var freeInactiveSlots = ActiveConfig.ActiveProfile.Slots.Where(s => s.ActivityUse == Slot.ActivityUses.Inactive && s.OccupiedBy.Count == 0);
+                        var freeInactiveSlots = Config.Active.ActiveProfile.Slots.Where(s => s.ActivityUse == Slot.ActivityUses.Inactive && s.OccupiedBy.Count == 0);
                         if (freeInactiveSlots.Count() > 0)
                         {
                             // Find a slot with a table that should be moved, if any
-                            Slot slotWithUnnessecarilyStackedTable = ActiveConfig.ActiveProfile.Slots
+                            Slot slotWithUnnessecarilyStackedTable = Config.Active.ActiveProfile.Slots
                                 .Where(s => s.ActivityUse == Slot.ActivityUses.Inactive)
                                 .Where(s => s.OccupiedBy.Count > 1)
                                 .FirstOrDefault();
@@ -467,13 +455,13 @@ namespace BetterPokerTableManager
 
         private void ForceTablePosition(object state)
         {
-            if (IsRunning && ActiveConfig.ForceTablePosition)
+            if (IsRunning && Config.Active.ForceTablePosition)
             {
                 lock (Table.KnownTables)
                 {
                     foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual))
                     {
-                        Slot toSlot = ActiveConfig.ActiveProfile.Slots.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
+                        Slot toSlot = Config.Active.ActiveProfile.Slots.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
                         if (toSlot == null)
                             return;
 
@@ -499,17 +487,17 @@ namespace BetterPokerTableManager
         private void ActiveConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             // A new profile was selected, re-initialize
-            if (IsRunning && e.PropertyName == "ActiveProfile" && ActiveConfig.ActiveProfile != null)
+            if (IsRunning && e.PropertyName == "ActiveProfile" && Config.Active.ActiveProfile != null)
                 InitialTablePlacement();
 
             // ForceTablePosition changed - update the timer acoordingly
             else if (e.PropertyName == "ForceTablePosition")
             {
-                if (ActiveConfig.ForceTablePosition && forceTablePositionTimer == null)
+                if (Config.Active.ForceTablePosition && forceTablePositionTimer == null)
                 {
                     forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
                 }
-                else if (!ActiveConfig.ForceTablePosition && forceTablePositionTimer != null)
+                else if (!Config.Active.ForceTablePosition && forceTablePositionTimer != null)
                 {
                     forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     forceTablePositionTimer.Dispose();

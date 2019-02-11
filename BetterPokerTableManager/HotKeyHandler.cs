@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,29 +20,20 @@ namespace BetterPokerTableManager
         [DllImport("user32", SetLastError = true)]
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-        public HotKeyHandler(Config activeConfig)
-        {
-            ActiveConfig = activeConfig;
-            ActiveConfig.PropertyChanged += ActiveConfig_PropertyChanged;
-        }
+        [DllImport("user32.dll")]
+        static extern IntPtr WindowFromPoint(Point p);
 
-        
+        [DllImport("user32.dll")]
+        static extern bool GetCursorPos(out Point lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+
         public const int WM_HOTKEY = 0x0312; // Definition for hotkey MSG
         private static List<Tuple<int, HotKey, IntPtr>> idMemory = new List<Tuple<int, HotKey, IntPtr>>();
         private static int _lastRegisterId = -1;
-        private HotKey _asideHotkey;
 
-        public Config ActiveConfig { get; set; }
-        public HotKey AsideHotkey
-        {
-            get { return new HotKey(Keys.B); }
-            set
-            {
-                // unhook old hotkey
-                // hook new one
-                _asideHotkey = value;
-            }
-        }
         private static int LastRegisterId
         {
             get
@@ -55,31 +47,59 @@ namespace BetterPokerTableManager
             set { _lastRegisterId = value; }
         }
 
-        public void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
+        public static void StartListener()
+        {
+            ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotkeyPressed);
+        }
+
+        public static void StopListener()
+        {
+            ComponentDispatcher.ThreadFilterMessage -= HotkeyPressed;
+        }
+
+        public static void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
         {
             int newId = ++LastRegisterId;
-            RegisterHotKey(windowHandle, newId, (uint)hotKey.Modifiers, (uint)hotKey.Key);
-            ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotkeyPressed);
+            if (!RegisterHotKey(windowHandle, newId, (uint)hotKey.Modifier, (uint)hotKey.Key))
+                Logger.Log($"HotKeyHandler: RegisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
 
             // Remember the registered hotkey
             idMemory.Add(new Tuple<int, HotKey, IntPtr>(newId, hotKey, windowHandle));
         }
-
-        private void HotkeyPressed(ref MSG m, ref bool handled)
+        
+        internal static void HotkeyPressed(ref MSG m, ref bool handled)
         {
-            if (m.message == WM_HOTKEY)
+            if (m.message != WM_HOTKEY)
+                return;
+            
+            // Find the targeted table, if any
+            Table table = FindTableUnderMouse();
+            bool wasRelevant = table == null ? false : true;
+
+            // Handle table related hotkeys
+            HotKey foundHotkey = new HotKey(m.lParam);
+            if (wasRelevant)
             {
-                bool wasRelevant = false;
-                System.Diagnostics.Debug.WriteLine("Hotkey pressed");
-
-
+                if (foundHotkey.Equals(Config.Active.AsideHotKey))
+                    table.IsAside = !table.IsAside;
+                // More hotkeys go here
+            }
+            else // if (!wasRelevant)
+            {
                 // Hotkey press was irrelevant for us. Redirect it to foreground window
-                if (!wasRelevant)
-                    SendKeys.SendWait(AsideHotkey.ToString());
+                IntPtr foregroundHandle = GetForegroundWindow();
+                if (foregroundHandle != null)
+                {
+                    /* This just gets picked up as a hotkey again regardless... Ree.
+                    StopListener();
+                    InputSender.RedirectHotkey(foundHotkey);
+                    StartListener();
+                    */
+                }
             }
         }
 
-        public void UnregisterHotKey(HotKey hotKey, IntPtr windowHandle)
+        public static void UnregisterHotKey(HotKey hotKey, IntPtr windowHandle)
         {
             int id = 0;
             try
@@ -89,31 +109,37 @@ namespace BetterPokerTableManager
             }
             catch
             {
-                Logger.Log("Attempting to unregister a hotkey that was never registered.", Logger.Status.Warning);
+                Logger.Log("Attempting to unregister a hotkey that was never registered.", Logger.Status.Error);
                 return;
             }
 
             // Unregister the hotkey
             if (UnregisterHotKey(windowHandle, id))
                 Logger.Log($"Unregistered hotkey {hotKey} from table {windowHandle}");
-            else Logger.Log($"Failed to unregister hotkey {hotKey} from table {windowHandle}");
+            else
+                Logger.Log($"HotKeyHandler: UnregisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
 
             // Remove the hotkey from idMemory
             idMemory.RemoveAll(h => h.Item2.Equals(hotKey) && h.Item3 == windowHandle);
         }
 
-        public void UnregisterAllHotkeys()
+        public static void UnregisterAllHotkeys()
         {
             while (idMemory.Count > 0)
                 UnregisterHotKey(idMemory[0].Item2, idMemory[0].Item3);
             Logger.Log("All hotkeys unregistered.");
         }
 
-        // Used to register and unregister hotkeys to all known tables when a hotkey is changed
-        private void ActiveConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        public static Table FindTableUnderMouse()
         {
-            // if property was AsideHotkey
-            // else if some other hotkey
+            Point p;
+            if (GetCursorPos(out p))
+            {
+                IntPtr hWnd = WindowFromPoint(p);
+                if (hWnd != null)
+                    return Table.Find(hWnd, registerMissing: false);
+            }
+            return null;
         }
     }
 }

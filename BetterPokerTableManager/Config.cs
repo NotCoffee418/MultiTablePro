@@ -36,7 +36,10 @@ namespace BetterPokerTableManager
         private int _autoLeaveVpip = 15;
         private int _autoLeaveHands = 20;
         private bool _preferSpreadOverStack = true;
+        private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
 
+        [JsonIgnore]
+        public static Config Active { get; set; }
 
         [JsonIgnore] // Storing ActiveProfileFileName to file instead
         public Profile ActiveProfile {
@@ -133,6 +136,14 @@ namespace BetterPokerTableManager
             {
                 _preferSpreadOverStack = value;
                 RaisePropertyChanged("PreferStackOverSpread");
+            }
+        }
+        public HotKey AsideHotKey
+        {
+            get { return _asideHotkey; }
+            set {
+                _asideHotkey = value;
+                RaisePropertyChanged("AsideHotKey");
             }
         }
 

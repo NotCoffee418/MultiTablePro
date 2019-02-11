@@ -1,66 +1,57 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace BetterPokerTableManager
-{
-    [Flags]
-    public enum KeyModifiers
-    {
-        None = 0,
-        Alt = 1,
-        Control = 2,
-        Shift = 4,
-        Windows = 8,
-        NoRepeat = 0x4000 // ???
-    }
-    
+{    
     internal class HotKey : IEquatable<HotKey>
     {
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern int ToUnicode(uint virtualKeyCode, uint scanCode, byte[] keyboardState, StringBuilder receivingBuffer, int bufferSize, uint flags);
 
         public HotKey() { } // Empty constructor for json
-        public HotKey(Keys key, KeyModifiers modifiers = KeyModifiers.None)
+        public HotKey(Keys key, ModifierKeys modifiers = ModifierKeys.None)
         {
             Key = key;
-            Modifiers = modifiers;
+            Modifier = modifiers;
         }
-        public HotKey(IntPtr hotKeyParam)
+        public HotKey(IntPtr lParam) // Constructor for lParam
         {
-            uint param = (uint)hotKeyParam.ToInt64();
+            uint param = (uint)lParam.ToInt64();
             Key = (Keys)((param & 0xffff0000) >> 16);
-            Modifiers = (KeyModifiers)(param & 0x0000ffff);
+            Modifier = (ModifierKeys)(param & 0x0000ffff);
         }
 
         public Keys Key { get; set; }
-        public KeyModifiers Modifiers { get; set; }
+        public ModifierKeys Modifier { get; set; }
 
         public bool Equals(HotKey other)
         {
-            return Key == other.Key && Modifiers == other.Modifiers;
+            return Key == other.Key && Modifier == other.Modifier;
         }
 
         public override string ToString()
         {
             // Set modifier for output
             var keyboardState = new byte[256];
-            switch (Modifiers) // todo: this doesn't handle multiple eg: ctrl+alt+del
+            switch (Modifier) // todo: this doesn't handle multiple eg: ctrl+alt+del
             {
-                case KeyModifiers.Alt:
+                case ModifierKeys.Alt:
                     keyboardState[(int)Keys.Alt] = 0xff;
                     break;
-                case KeyModifiers.Control:
+                case ModifierKeys.Control:
                     keyboardState[(int)Keys.ControlKey] = 0xff;
                     break;
-                case KeyModifiers.Shift:
+                case ModifierKeys.Shift:
                     keyboardState[(int)Keys.ShiftKey] = 0xff;
                     break;
-                case KeyModifiers.Windows:
+                case ModifierKeys.Windows:
                     keyboardState[(int)Keys.LWin] = 0xff;
                     break;
             }

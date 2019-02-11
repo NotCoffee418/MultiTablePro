@@ -94,7 +94,7 @@ namespace BetterPokerTableManager
                     lock (Table.KnownTables)
                     {
                         if (Table.KnownTables.Count > 0)
-                            Thread.Sleep(5);
+                            Thread.Sleep(5000);
                     }
 
                     Logger.Log("Detected new PS log while running. This should only happen once after (re)installing PokerStars." +
