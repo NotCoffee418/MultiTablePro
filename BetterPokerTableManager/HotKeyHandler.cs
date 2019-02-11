@@ -95,7 +95,11 @@ namespace BetterPokerTableManager
             // Attempt to register the hotkey
             if (!RegisterHotKey(OurWindowHandle, newId, (uint)hotKey.Modifier, (uint)hotKey.Key))
                 Logger.Log($"HotKeyHandler: RegisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
-            idMemory.Add(newId, hotKey); // Remember the registered hotkey
+            else
+            {
+                Logger.Log($"HotKeyHandler: RegisterHotKey: Registering Hotkey ({hotKey})");
+                idMemory.Add(newId, hotKey); // Remember the registered hotkey
+            }
         }
 
         public static void UnregisterHotKey(HotKey hotKey)
@@ -108,13 +112,13 @@ namespace BetterPokerTableManager
             }
             catch
             {
-                Logger.Log("Attempting to unregister a hotkey that was never registered.", Logger.Status.Error);
+                Logger.Log("Attempting to unregister a hotke<y that was never registered.", Logger.Status.Error);
                 return;
             }
 
             // Unregister the hotkey
             if (UnregisterHotKey(OurWindowHandle, id))
-                Logger.Log($"Unregistered hotkey {hotKey} from table {OurWindowHandle}");
+                Logger.Log($"Unregistered hotkey ({hotKey}) from table {OurWindowHandle}");
             else
                 Logger.Log($"HotKeyHandler: UnregisterHotKey: Error {Marshal.GetLastWin32Error()}", Logger.Status.Error);
 
