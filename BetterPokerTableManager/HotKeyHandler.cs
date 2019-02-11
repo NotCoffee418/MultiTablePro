@@ -129,7 +129,7 @@ namespace BetterPokerTableManager
         public static void UnregisterAllHotkeys()
         {
             while (idMemory.Count > 0)
-                UnregisterHotKey(OurWindowHandle, idMemory.Keys.First());
+                UnregisterHotKey(idMemory.First().Value);
             Logger.Log("All hotkeys unregistered.");
         }
 
