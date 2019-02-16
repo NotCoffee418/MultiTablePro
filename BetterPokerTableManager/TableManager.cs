@@ -247,6 +247,10 @@ namespace BetterPokerTableManager
                 .Where(s => s.OccupiedBy.Count == 0 || s.OccupiedBy.Contains(table)) // Ignore stackable actives & the table's current slot
                 .Count();
 
+            int freeAsideSlotsCount = Config.Active.ActiveProfile.Slots
+                .Where(s => s.ActivityUse == Slot.ActivityUses.Aside)
+                .Count();
+
             // Count tables in queue that require an active slot (excluding target)
             int tablesRequireActiveSlotCount = Table.ActionQueue
                 .Where(t => t.WindowHandle != table.WindowHandle)
@@ -265,6 +269,7 @@ namespace BetterPokerTableManager
             bool isNewTable = previousSlot == null;
             bool wasMadeUnaside = !isNewTable && previousSlot.ActivityUse == Slot.ActivityUses.Aside;
 
+
             // Determine slot type the table should occupy
             Slot.ActivityUses? activity = null;
             if (table.IsAside)
@@ -278,10 +283,18 @@ namespace BetterPokerTableManager
             else if (wasMadeUnaside || isNewTable) // todo: User setting also goes here
                 activity = Slot.ActivityUses.Inactive;
 
+
             // No need to move to inactive or to slots of the same type, claim success
             if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) 
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
+                return true;
+            }
+
+            // Don't attempt to move tables aside when no aside slots are available
+            else if (activity == Slot.ActivityUses.Aside && freeAsideSlotsCount == 0)
+            {
+                Logger.Log("Table manager: Cannot move table ({table.WindowHandle}) aside. No free aside slots");
                 return true;
             }
 
