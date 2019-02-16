@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -219,8 +220,16 @@ namespace BetterPokerTableManager
         public override string ToString()
         {
             // todo: gametype or currency is not properly reflected, just delete x NL from string after testing
-            return $"{Name} - {Math.Round(BigBlind * 100)} NL" + 
+            string result = $"{Name} - {Math.Round(BigBlind * 100)} NL" +
                 (Priority >= Status.ActionRequired ? " - Action Required" : "");
+
+            if (Debugger.IsAttached)
+            {
+                result += $" - {Priority}";
+                result += IsAside ? " - IsAside" : "";
+            }
+
+            return result;
         }
     }
 }

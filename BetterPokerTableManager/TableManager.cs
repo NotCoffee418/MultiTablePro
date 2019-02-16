@@ -263,7 +263,7 @@ namespace BetterPokerTableManager
             bool canUseActiveSlot = freeActiveSlotsCount > 0 && tablesRequireActiveSlotCount == 0;
             bool isPriorityTable = table.Priority >= Table.Status.ActionRequired;
             bool isNewTable = previousSlot == null;
-            bool wasMadeUnaside = !isNewTable && previousSlot.ActivityUse == Slot.ActivityUses.Active;
+            bool wasMadeUnaside = !isNewTable && previousSlot.ActivityUse == Slot.ActivityUses.Aside;
 
             // Determine slot type the table should occupy
             Slot.ActivityUses? activity = null;
@@ -275,7 +275,7 @@ namespace BetterPokerTableManager
                 activity = Slot.ActivityUses.Active;
             
             // Was made unaside or low prio
-            else if ((wasMadeUnaside || isPriorityTable) || isNewTable) // todo: User setting also goes here
+            else if (wasMadeUnaside || isNewTable) // todo: User setting also goes here
                 activity = Slot.ActivityUses.Inactive;
 
             // No need to move to inactive or to slots of the same type, claim success
@@ -290,8 +290,17 @@ namespace BetterPokerTableManager
             Slot toSlot = GetAvailableSlot((Slot.ActivityUses)activity, table);
             if (toSlot == null)
             {
-                Logger.Log($"TableManager: Failed to find an available slot for table {table.WindowHandle}"); 
-                return false;
+                if (table.IsAside)
+                {
+                    Logger.Log($"TableManager: Requested aside for table {table.WindowHandle}. None were available - cancel asie.");
+                    table.IsAside = false;
+                    return true;
+                }
+                else
+                {
+                    Logger.Log($"TableManager: Failed to find an available slot for table {table.WindowHandle}");
+                    return false;
+                }
             }
             else if (!isNewTable && toSlot.ActivityUse == previousSlot.ActivityUse)
             {
@@ -429,11 +438,40 @@ namespace BetterPokerTableManager
                 if (Table.ActionQueue.IsEmpty)
                     continue;
 
-                // We already tried to move. Wait for another table to do something before retrying.
-                lock (Table.ActionQueue) // not sure if .Count() is thread-safe
+                lock (Table.ActionQueue)
                 {
+                    // We already tried to move. Wait for another table to do something before retrying.
                     if (lastQueueCount == Table.ActionQueue.Count())
-                        continue;
+                    {
+                        var activeRequestCount = Table.ActionQueue
+                            .Where(t => !t.IsAside && t.Priority >= Table.Status.ActionRequired)
+                            .Count();
+
+                        // This should only apply to active tables - bump aside and inactive requests up the queue
+                        if (activeRequestCount != Table.ActionQueue.Count()) 
+                        {
+                            // Determine new priority
+                            List<Table> newOrder = new List<Table>();
+                            foreach (Table queuedTable in Table.ActionQueue)
+                            {
+                                if (queuedTable.IsAside || queuedTable.IsAside)
+                                    newOrder.Add(queuedTable);
+                                else newOrder.Insert(0, queuedTable);
+                            }
+
+                            // requeue everything in new order
+                            Table garbage; // No Clear() in ConcurrentQueue.
+                            while (!Table.ActionQueue.IsEmpty)
+                                Table.ActionQueue.TryDequeue(out garbage);
+                            foreach (var t in newOrder)
+                                Table.ActionQueue.Enqueue(t);
+
+                            // Set lastQueueCount to 0 to indicate we should try again
+                            lastQueueCount = 0;
+                        }
+                        else continue;
+                    }
+                        
                 }
 
                 // Queue has a table, put it in changedTable
