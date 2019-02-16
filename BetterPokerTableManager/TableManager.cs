@@ -280,12 +280,40 @@ namespace BetterPokerTableManager
                 activity = Slot.ActivityUses.Active;
             
             // Was made unaside or low prio
-            else if (wasMadeUnaside || isNewTable) // todo: User setting also goes here
+            else if (!isPriorityTable || wasMadeUnaside || isNewTable) // todo: User setting also goes here
                 activity = Slot.ActivityUses.Inactive;
 
+            // Unblind closed table from any slot it occupies
+            if (table.Priority == Table.Status.Closed)
+            {
+                var slotsWithClosed = Config.Active.ActiveProfile.Slots.
+                    Where(s => s.OccupiedBy.Contains(table));
+                var amountOfTimesDuplicateTableWasFoundInSingleSlot = slotsWithClosed // I'm not even trying anymore...
+                    .GroupBy(s => s.OccupiedBy).Select(grp => new
+                    {
+                        Value = grp.Key,
+                        Count = grp.Count()
+                    })
+                    .Where(g => g.Count > 1).Count();
+                
+                // count can be 0 if user closes before application has ever moved it
+                // It should never be > 1. If it does, there's a bug.
+                if (slotsWithClosed.Count() > 1 || amountOfTimesDuplicateTableWasFoundInSingleSlot > 0) // is table in multiple slots || table duplicate in one slot.ObbupiedBy
+                    // Schrodingers Cat indicates tables were somehow not moved as intended resulting in a table occupying multiple slots at once.
+                    // This issue is only relevant if i break something, user does something unexpected with profiles, or stacking breaks things when we enable it.
+                    // Request that the user report it since it's hard to find a cause of any strange table movement without the exception.
+                    Logger.Log("Schrodingers Cat. Please report this issue to the developer.", 
+                        Logger.Status.Warning, true);
 
-            // No need to move to inactive or to slots of the same type, claim success
-            if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) 
+                // Remove any/all instances of the table from slots
+                foreach (var slot in slotsWithClosed)
+                    slot.UnbindTable(table);
+
+                return true;
+            }
+
+            // No need to move to inactive (since inactive can be set even when we're not in the hand) or to slots of the same type, claim success
+            else if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) 
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
                 return true;
@@ -305,7 +333,7 @@ namespace BetterPokerTableManager
             {
                 if (table.IsAside)
                 {
-                    Logger.Log($"TableManager: Requested aside for table {table.WindowHandle}. None were available - cancel asie.");
+                    Logger.Log($"TableManager: Requested aside for table {table.WindowHandle}. None were available - cancel aside.");
                     table.IsAside = false;
                     return true;
                 }
