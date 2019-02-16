@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Interop;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     public class WpfScreen
     {

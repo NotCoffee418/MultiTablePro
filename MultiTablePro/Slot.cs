@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     [Serializable]
     internal class Slot : IEquatable<Slot>, INotifyPropertyChanged

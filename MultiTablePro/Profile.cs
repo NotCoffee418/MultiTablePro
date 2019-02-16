@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     [Serializable]
     internal class Profile : IEquatable<Profile>, ICloneable, INotifyPropertyChanged

@@ -15,7 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     /// <summary>
     /// Interaction logic for SlotConfigWindow.xaml

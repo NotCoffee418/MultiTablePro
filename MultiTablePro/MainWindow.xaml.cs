@@ -19,7 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -31,7 +31,7 @@ namespace BetterPokerTableManager
             InitializeComponent();
 
             // Cancel if we're already running
-            if (Process.GetProcessesByName("BetterPokerTableManager").Count() > 1)
+            if (Process.GetProcessesByName("MultiTablePro").Count() > 1)
             {
                 Logger.Log("BPTM is already running. Try again in a few seconds if you just closed it.", Logger.Status.Warning, true);
                 Application.Current.Shutdown();
@@ -52,7 +52,7 @@ namespace BetterPokerTableManager
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Set window title to include version
-            Title = $"Better Poker Table Manager v{Assembly.GetEntryAssembly().GetName().Version}";
+            Title = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
 
             // Notify application started
             App.Current.Properties["IsRunning"] = true;

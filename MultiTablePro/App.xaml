@@ -1,7 +1,7 @@
-﻿<Application x:Class="BetterPokerTableManager.App"
+﻿<Application x:Class="MultiTablePro.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:BetterPokerTableManager"
+             xmlns:local="clr-namespace:MultiTablePro"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

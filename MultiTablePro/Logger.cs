@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     class Logger
     {
@@ -18,7 +18,7 @@ namespace BetterPokerTableManager
             LogLevel = (Status)Properties.Settings.Default.LogLevel;
 
             // Determine log file location
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BetterPokerTableManager");
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MultiTablePro");
             if (Debugger.IsAttached) // Seperate directory for debugger
                 path = Path.Combine(path, "Debug");
             if (!Directory.Exists(path))

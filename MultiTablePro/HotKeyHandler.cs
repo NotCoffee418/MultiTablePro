@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Interop;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     internal class HotKeyHandler
     {

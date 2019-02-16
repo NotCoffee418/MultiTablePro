@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     /// <summary>
     /// Contains user-saved or default info about preferred table positions & related variables
@@ -160,9 +160,9 @@ namespace BetterPokerTableManager
             {
                 if (_dataDir == "")
                 {
-                    // \AppData\Local\BetterPokerTableManager
+                    // \AppData\Local\MultiTablePro
                     _dataDir = Path.Combine(Environment.GetFolderPath(
-                        Environment.SpecialFolder.LocalApplicationData), "BetterPokerTableManager");
+                        Environment.SpecialFolder.LocalApplicationData), "MultiTablePro");
                     if (Debugger.IsAttached) // Debug subdir when debugging
                         _dataDir = Path.Combine(_dataDir, "Debug");
                     if (!Directory.Exists(_dataDir)) // Create directory if it doesn't exist

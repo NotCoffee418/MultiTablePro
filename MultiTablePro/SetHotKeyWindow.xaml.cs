@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using System.Windows.Forms;
 using System.Windows.Threading;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     /// <summary>
     /// Interaction logic for SetHotKeyWindow.xaml

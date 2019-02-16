@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     internal class TableManager
     {

@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace BetterPokerTableManager
+namespace MultiTablePro
 {
     /// <summary>
     /// Interaction logic for ProfilePreviewControl.xaml
