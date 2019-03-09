@@ -52,7 +52,7 @@ namespace MultiTablePro
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Set window title to include version
-            Title = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
+            versionInfoTxt.Text = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
 
             // Notify application started
             App.Current.Properties["IsRunning"] = true;

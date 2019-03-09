@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiTablePro"
         mc:Ignorable="d"
-        Title="MultiTable Pro vx.x.x"  Width="760" MinWidth="760" Height="600" MinHeight="600" Closing="Window_Closing" Background="White" Loaded="Window_Loaded">
+        Title="MultiTable Pro"  Width="760" MinWidth="760" Height="500" MinHeight="500" Closing="Window_Closing" Background="White" Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />
@@ -16,8 +16,18 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0">
             <MenuItem Header="Config">
-                <MenuItem Header="A" />
-                <MenuItem Header="B" />
+                <MenuItem Header="Advanced Settings" />
+                <MenuItem Header="Import Config" />
+                <MenuItem Header="Export Config" />
+                <MenuItem Header="Reset Defaults" />
+            </MenuItem>
+            <MenuItem Header="Support">
+                <MenuItem Header="Submit error logs" />
+                <MenuItem Header="Contact Support" />
+            </MenuItem>
+            <MenuItem Header="Info">
+                <MenuItem Header="Check for updates" />
+                <MenuItem Header="About" />
             </MenuItem>
         </Menu>
         
@@ -46,7 +56,8 @@
                     </DockPanel>
                 </GroupBox>
                 
-                <GroupBox Header="Table Selection (Not Implemented Yet!)" Margin="5">
+                <!-- NIY Table selection -->
+                <GroupBox Header="Table Selection (Not Implemented Yet!)" Margin="5" Visibility="Collapsed">
                     <StackPanel Orientation="Vertical">
                         <CheckBox Content="Enabled" Margin="5" IsEnabled="False" IsChecked="{Binding AutoLeaveEnabled}"/>
                         <StackPanel Orientation="Horizontal" Margin="5,0">
@@ -63,7 +74,9 @@
                 <GroupBox Header="Open Tables" Margin="5">
                     <StackPanel Orientation="Vertical">
                         <ListView Name="openTablesLv" Height="200" Margin="5"/>
-                        <DockPanel>
+                        
+                        <!-- NIY sitout features -->
+                        <DockPanel Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <Button IsEnabled="False" Content="Sit out next BB" Width="100" Height="30" Margin="5"/>
                             </StackPanel>
@@ -125,7 +138,7 @@
 
         <!-- Status Bar -->
         <StatusBar Grid.Row="2">
-            <TextBlock Text="test" />
+            <TextBlock Name="versionInfoTxt" Text="MultiTablePro v1.0.0.0 (Latest?)" />
         </StatusBar>
     </Grid>
 </Window>
