@@ -88,6 +88,13 @@ namespace MultiTablePro
             Thread.Sleep(2000); // Give threaded loops a few seconds to finish up            
         }
 
+        #region Menu
+        private void AdvancedConfigMi_Click(object sender, RoutedEventArgs e)
+        {
+            AdvancedSettingsWindow win = new AdvancedSettingsWindow();
+            win.Show();
+        }
+        #endregion
 
         #region Status
         private void AutoStartCb_Checked(object sender, RoutedEventArgs e)
@@ -340,5 +347,6 @@ namespace MultiTablePro
         }
 
         #endregion
+        
     }
 }

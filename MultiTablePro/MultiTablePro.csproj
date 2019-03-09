@@ -63,6 +63,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AdvancedSettingsWindow.xaml.cs">
+      <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Config.cs" />
     <Compile Include="HotKey.cs" />
     <Compile Include="HotKeyHandler.cs" />
@@ -84,6 +87,10 @@
     <Compile Include="Table.cs" />
     <Compile Include="TableManager.cs" />
     <Compile Include="WpfScreen.cs" />
+    <Page Include="AdvancedSettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -16,7 +16,7 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0">
             <MenuItem Header="Config">
-                <MenuItem Header="Advanced Settings" />
+                <MenuItem Header="Advanced Settings" Click="AdvancedConfigMi_Click"/>
                 <MenuItem Header="Import Config" />
                 <MenuItem Header="Export Config" />
                 <MenuItem Header="Reset Defaults" />

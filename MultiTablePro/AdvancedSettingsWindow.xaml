@@ -1,0 +1,33 @@
+﻿<Window x:Class="MultiTablePro.AdvancedSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiTablePro"
+        mc:Ignorable="d"
+        Title="Advanced Settings" Height="450" Width="830">
+    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <GroupBox Margin="5" Width="400" Header="Warning!!">
+            <TextBlock>
+                Only change these settings if you know what you're doing.<LineBreak/>
+                Changes save automatically when you change a value.<LineBreak/>
+                It's recommended to back up your config before changing these values.
+            </TextBlock>
+        </GroupBox>
+        <GroupBox Margin="5" Width="400" Header="Table Movement Delay">
+            <StackPanel Orientation="Vertical">
+                <TextBox Margin="5" Height="22" Width="200" HorizontalAlignment="Left" Text="{Binding TableMovementDelay}"/>
+                <TextBlock>
+                    Amount of miliseconds a table spends off-screen.<LineBreak/>
+                    Increase this value if you experience flickering when tables move.<LineBreak/>
+                    Decrease it if you feel the program is "laggy".<LineBreak/>
+                    Default: 100 - Recommended: 0-200
+                </TextBlock>
+                <StackPanel Orientation="Horizontal">
+
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+    </WrapPanel>
+</Window>

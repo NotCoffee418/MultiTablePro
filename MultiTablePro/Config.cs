@@ -38,6 +38,7 @@ namespace MultiTablePro
         private int _autoLeaveHands = 20;
         private bool _preferSpreadOverStack = true;
         private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
+        private int _tableMovementDelay = 50;
 
         [JsonIgnore]
         public static Config Active { get; set; }
@@ -148,6 +149,16 @@ namespace MultiTablePro
             }
         }
 
+        // miliseconds the table stays off-screen on resize (prevents flicker)
+        public int TableMovementDelay
+        {
+            get { return _tableMovementDelay; }
+            set
+            {
+                _tableMovementDelay = value;
+                RaisePropertyChanged("TableMovementDelay");
+            }
+        }
 
 
         #region Static
