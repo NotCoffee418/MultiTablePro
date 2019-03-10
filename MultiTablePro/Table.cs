@@ -170,23 +170,46 @@ namespace MultiTablePro
             if (GetWindowText(WindowHandle, buff, nChars) > 0)
             {
                 string windowTitle = buff.ToString();
+
+                // *** POKERSTARS *** //
                 // eg Cash: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
                 // Tourney non-eng: Oefengeld No Limit Hold'em (Hyper, 10k) - Ciemne 50/100 Ante 10 - Turniej 645665 Stol 82 - Something jako Username
                 // Spin: PM 10000.00 NLHE Spin &Go - Blinds 10 / 20 - Tournament 45645656456 Table 54 - Logged in as Username
                 // G1: Title, G3: SB, G4: BB, G6: Tourney/cash indication
-                Regex rWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*) - .*");
-
-                // Match indicates the table is tourney, spin, sng+
-                // Tourney: Tournament 5454545345 Table 82
-                // Cash: No Limit Hold'em
-                Regex rIsTourney = new Regex(@"\S+ \d+ \S+ \d+");
-                if (rWinTitle.IsMatch(windowTitle))
-                {
-                    var rMatch = rWinTitle.Match(windowTitle);
+                Regex rStarsWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*) - .*");               
+                if (rStarsWinTitle.IsMatch(windowTitle))
+                { 
+                    // Match indicates the table is tourney, spin, sng+
+                    // Tourney: Tournament 5454545345 Table 82
+                    // Cash: No Limit Hold'em
+                    Regex rIsTourney = new Regex(@"\S+ \d+ \S+ \d+");
+                    var rMatch = rStarsWinTitle.Match(windowTitle);
                     _name = rMatch.Groups[1].Value;
                     if (rIsTourney.IsMatch(rMatch.Groups[6].Value))
                         _bigBlind = 0f; // 0 indicates tourney table, change if needed
                     else _bigBlind = double.Parse(rMatch.Groups[4].Value); // cash table
+                    return;
+                }
+
+                // *** BWIN *** //
+                // Cash: Bergen -  NL  Hold'em - $0.01/$0.02
+                Regex rBwinWinTitle = new Regex(@"(\S+) -  (NL|PL|FL)  .+ - \$(\d+?\.\d+)\/\$(\d+?\.\d+)");
+                if (rBwinWinTitle.IsMatch(windowTitle))
+                {
+                    var rMatch = rBwinWinTitle.Match(windowTitle);
+                    _name = rMatch.Groups[1].Value;
+                    _bigBlind = double.Parse(rMatch.Groups[4].Value);
+                    return;
+                }
+
+                Regex rBwinTourneyWinTitle = new Regex(@"(.+) \(\d+\) Table #\d+ -  (NL|PL)  .+ - \$(\d+?\.\d+) Buy-in");
+                // Tourney: Monster #02-Low: $5K Gtd [Deep, 8-Max] (203102130) Table #132 -  NL  Hold'em - $2.20 Buy-in
+                if (rBwinTourneyWinTitle.IsMatch(windowTitle))
+                {
+                    var rMatch = rBwinTourneyWinTitle.Match(windowTitle);
+                    _name = rMatch.Groups[1].Value;
+                    _bigBlind = double.Parse(rMatch.Groups[3].Value) / 100;
+                    return;
                 }
             }
         }

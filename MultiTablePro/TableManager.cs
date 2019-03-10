@@ -117,7 +117,10 @@ namespace MultiTablePro
             new Thread(() => ManageTables()).Start();
             if (Config.Active.ForceTablePosition)
                 forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
+
+            // Start handlers
             PSLogHandler.Start();
+            BwinHandler.Start();
         }
 
         /// <summary>

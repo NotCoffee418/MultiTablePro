@@ -66,6 +66,7 @@
     <Compile Include="AdvancedSettingsWindow.xaml.cs">
       <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="BwinHandler.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="HotKey.cs" />
     <Compile Include="HotKeyHandler.cs" />
