@@ -87,6 +87,7 @@
     </Compile>
     <Compile Include="Table.cs" />
     <Compile Include="TableManager.cs" />
+    <Compile Include="WHelper.cs" />
     <Compile Include="WpfScreen.cs" />
     <Page Include="AdvancedSettingsWindow.xaml">
       <SubType>Designer</SubType>
