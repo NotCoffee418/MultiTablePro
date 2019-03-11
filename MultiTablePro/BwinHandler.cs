@@ -11,19 +11,6 @@ namespace MultiTablePro
 {
     class BwinHandler
     {
-        [DllImport("user32.Dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
-        public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern int GetWindowTextLength(IntPtr hWnd);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static public extern IntPtr GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
 
 
         private static bool? IsRunning { get; set; }
@@ -61,22 +48,21 @@ namespace MultiTablePro
             }
 
             // Find all poker tables (bwin table class is #32770 - window title contains $ (other applications also use this class name)
-            var tableHandles = EnumAllWindows(IntPtr.Zero, "#32770").Where(hWnd => GetWindowTitle(hWnd).Contains("$"));
+            var tableHandles = WHelper.EnumAllWindows(IntPtr.Zero, "#32770").Where(hWnd => WHelper.GetWindowTitle(hWnd).Contains("$"));
             lock (Table.KnownTables)
             {
                 // Register any new tables & start watching them
-                Logger.Log(tableHandles.Count().ToString());
                 foreach (var handle in tableHandles.Where(h => Table.Find(h, false) == null))
                 {
                     // Verify that it is indeed a table window (tourney lobbeys will also be found
                     // Check for random element that only exists in tables
-                    if (EnumAllWindows(handle, "Static").Where(hWnd => GetWindowTitle(hWnd).Contains("Fold to any bet")).Count() > 0)
+                    if (WHelper.EnumAllWindows(handle, "Static").Where(hWnd => WHelper.GetWindowTitle(hWnd).Contains("Fold to any bet")).Count() > 0)
                     {
                         // Register the table
-                        string winTitle = GetWindowTitle(handle);
+                        string winTitle = WHelper.GetWindowTitle(handle);
                         Logger.Log($"Registering new bwin table: {handle} - " + winTitle);
                         Table table = new Table(handle);
-                        //new Thread(() => WatchTable(table)).Start();
+                        new Thread(() => WatchTable(table)).Start();
                     }
                 }
             }            
@@ -84,67 +70,36 @@ namespace MultiTablePro
         
         private static void WatchTable(Table table)
         {
-            throw new NotImplementedException();
-        }
+            IntPtr foldHandle = IntPtr.Zero;
+            IntPtr checkCallHandle = IntPtr.Zero;
+            IntPtr betRaiseHandle = IntPtr.Zero;
 
-        private static bool EnumWindow(IntPtr handle, IntPtr pointer)
-        {
-            GCHandle gch = GCHandle.FromIntPtr(pointer);
-            List<IntPtr> list = gch.Target as List<IntPtr>;
-            if (list == null)
-                throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
-            list.Add(handle);
-            return true;
-        }
 
-        public static List<IntPtr> GetChildWindows(IntPtr parent)
-        {
-            List<IntPtr> result = new List<IntPtr>();
-            GCHandle listHandle = GCHandle.Alloc(result);
-            try
+            do // Wait for buttons to initially appear & define their handles
             {
-                Win32Callback childProc = new Win32Callback(EnumWindow);
-                EnumChildWindows(parent, childProc, GCHandle.ToIntPtr(listHandle));
-            }
-            finally
-            {
-                if (listHandle.IsAllocated)
-                    listHandle.Free();
-            }
-            return result;
+                // List table elements
+                var afxWnd90uElements = WHelper.EnumAllWindows(table.WindowHandle, "AfxWnd90u");
+                var afxWnd90uWinTitles = WHelper.GetAllWindowTitles(afxWnd90uElements);
+
+                // Try to find button handles
+                if (afxWnd90uWinTitles.Where(x => x.Value == "Fold" || x.Value == "Check").Count() > 0) {
+                    foldHandle = afxWnd90uWinTitles.Where(x => x.Value == "Fold").FirstOrDefault().Key;
+                    checkCallHandle = afxWnd90uWinTitles.Where(x => x.Value == "Check" || x.Value.Contains("Call")).FirstOrDefault().Key;
+                    betRaiseHandle = afxWnd90uWinTitles.Where(x => x.Value.Contains("Bet") || x.Value.Contains("Raise")).FirstOrDefault().Key;
+                    Logger.Log($"Found buttons for {table.WindowHandle} - F:{foldHandle} C:{checkCallHandle} B:{betRaiseHandle}");
+                    Table.SetPriority(table.WindowHandle, Table.Status.ActionRequired); // Call action required for the first time                    
+                }
+                else
+                {
+                    // Wait & try again
+                    Thread.Sleep(100);
+                }
+                
+            } while (checkCallHandle == IntPtr.Zero);
+
+            // 
         }
 
-        public static string GetWinClass(IntPtr hwnd)
-        {
-            if (hwnd == IntPtr.Zero)
-                return null;
-            StringBuilder classname = new StringBuilder(100);
-            IntPtr result = GetClassName(hwnd, classname, classname.Capacity);
-            if (result != IntPtr.Zero)
-                return classname.ToString();
-            return null;
-        }
-
-        public static IEnumerable<IntPtr> EnumAllWindows(IntPtr hwnd, string childClassName)
-        {
-            List<IntPtr> children = GetChildWindows(hwnd);
-            if (children == null)
-                yield break;
-            foreach (IntPtr child in children)
-            {
-                if (GetWinClass(child) == childClassName)
-                    yield return child;
-                foreach (var childchild in EnumAllWindows(child, childClassName))
-                    yield return childchild;
-            }
-        }
-
-        public static string GetWindowTitle(IntPtr hWnd)
-        {
-            int textLength = GetWindowTextLength(hWnd);
-            StringBuilder outText = new StringBuilder(textLength + 1);
-            int a = GetWindowText(hWnd, outText, outText.Capacity);
-            return outText.ToString();
-        }
+      
     }
 }
