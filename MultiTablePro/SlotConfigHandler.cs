@@ -53,14 +53,16 @@ namespace MultiTablePro
                 ProfileSetupCompleted(this, new ProfileSetupCompletedEventArgs(false, null, SetupType));
         }
 
-        internal void AddSlot(Slot slot = null)
+        internal void AddSlot(Slot slot = null, bool isNew = false)
         {
             // Define slot if null
-            if (slot == null)
+            if (slot == null || isNew)
             {
                 slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 480, 366);
                 ActiveProfile.Slots.Add(slot);
             }
+            else if (isNew)
+                ActiveProfile.Slots.Add(slot);
 
             Logger.Log("SlotConfigHandler: " +
                     $"AddTable() with slot {slot.Id}");
