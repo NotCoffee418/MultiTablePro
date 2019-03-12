@@ -76,6 +76,11 @@ namespace MultiTablePro
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
+
+            // Warn user when debug logging is enabled - since it should only be enabled when collecting bug data
+            if (Config.Active.EnableDetailedLogging)
+                Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.", 
+                    Logger.Status.Warning, showMessageBox: true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

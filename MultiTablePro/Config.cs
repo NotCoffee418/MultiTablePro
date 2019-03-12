@@ -172,6 +172,21 @@ namespace MultiTablePro
             }
         }
 
+        // Stores loglevel in Properties.Settings acoordingly
+        // note: when debuger is attached, min loglevel is always 0
+        public bool EnableDetailedLogging
+        {
+            get
+            {
+                return Properties.Settings.Default.LogLevel == 0;
+            }
+            set
+            {
+                Properties.Settings.Default.LogLevel = value ? 0 : 1;
+                Properties.Settings.Default.Save();
+            }
+        }
+
 
         #region Static
         private static string _dataDir = "";
