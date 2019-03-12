@@ -120,7 +120,8 @@ namespace MultiTablePro
 
             // Start handlers
             PSLogHandler.Start();
-            BwinHandler.Start();
+            if (Config.Active.BwinSupportEnabled)
+                BwinHandler.Start();
         }
 
         /// <summary>

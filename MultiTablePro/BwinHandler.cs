@@ -44,10 +44,7 @@ namespace MultiTablePro
             // Kill if bwin is not running
             Process[] p = Process.GetProcessesByName("bwinbe"); // todo: broaden this with PP and bwin wildcard searches
             if (p.Count() == 0)
-            {
-                Logger.Log("Bwin client not running or closed");
                 return;
-            }
 
             // Find all poker tables (bwin table class is #32770 - window title contains $ (other applications also use this class name)
             var tableHandles = WHelper.EnumAllWindows(IntPtr.Zero, "#32770").Where(hWnd => WHelper.GetWindowTitle(hWnd).Contains("$"));

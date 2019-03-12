@@ -39,6 +39,7 @@ namespace MultiTablePro
         private bool _preferSpreadOverStack = true;
         private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
         private int _tableMovementDelay = 50;
+        private bool _bwinSupportEnabled = false;
 
         [JsonIgnore]
         public static Config Active { get; set; }
@@ -157,6 +158,17 @@ namespace MultiTablePro
             {
                 _tableMovementDelay = value;
                 RaisePropertyChanged("TableMovementDelay");
+            }
+        }
+
+        // BETA: Starts bwin handler on startup alongside stars
+        public bool BwinSupportEnabled
+        {
+            get { return _bwinSupportEnabled; }
+            set
+            {
+                _bwinSupportEnabled = value;
+                RaisePropertyChanged("_bwinSupportEnabled");
             }
         }
 
