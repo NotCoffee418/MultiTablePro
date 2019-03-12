@@ -56,7 +56,7 @@ namespace MultiTablePro
         internal void AddSlot(Slot slot = null, bool isNew = false)
         {
             // Define slot if null
-            if (slot == null || isNew)
+            if (slot == null)
             {
                 slot = new Slot(Slot.ActivityUses.Inactive, 0, 0, 480, 366);
                 ActiveProfile.Slots.Add(slot);
