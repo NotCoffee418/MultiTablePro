@@ -80,6 +80,11 @@ namespace MultiTablePro
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
+
+            // Warn user when debug logging is enabled - since it should only be enabled when collecting bug data
+            if (Config.Active.EnableDetailedLogging)
+                Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.", 
+                    Logger.Status.Warning, showMessageBox: true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -144,6 +149,7 @@ namespace MultiTablePro
 
             // Find old value, selectSpecific or find active profile
             Profile requestedSelection = null;
+            Profile previousProfile = (Profile)profileSelectionCb.SelectedValue;
             if (selectActive)
             {
                 requestedSelection = newProfileList.FirstOrDefault(p => p.FileName == Config.Active.ActiveProfile.FileName);
@@ -159,11 +165,17 @@ namespace MultiTablePro
             profileSelectionCb.ItemsSource = null;
             profileSelectionCb.ItemsSource = newProfileList;
 
-
+            // Select requested
             if (requestedSelection != null && newProfileList.Contains(requestedSelection))
                 profileSelectionCb.SelectedIndex = newProfileList.FindIndex(p => p.Equals(requestedSelection));
             else if (newProfileList.Count > 0)
                 profileSelectionCb.SelectedIndex = 0;
+
+            // Activate edited profile if it was active previously
+            if (requestedSelection != null && previousProfile != null && requestedSelection.Name == previousProfile.Name)
+            {
+                Config.Active.ActiveProfile = requestedSelection;
+            }
         }
 
         private void ProfileSelectionCb_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -277,10 +289,16 @@ namespace MultiTablePro
             if (!args.IsSaved)
                 return;
 
+            // Get old file name
+            string oldFileName = args.Profile.FileName; // changed by SaveToFile below
+
             // Write to file, refresh and select edited/created profile
             bool overwrite = args.SetupType == SlotConfigHandler.SetupTypes.EditProfile ? true : false;
             args.Profile.SaveToFile(overwrite);
             RefreshProfileList(selectSpecific:args.Profile);
+
+            if (args.Profile.FileName != oldFileName)
+                Config.Active.ActiveProfileFileName = args.Profile.FileName;
         }
 
         private void ActivateProfileBtn_Click(object sender, RoutedEventArgs e)

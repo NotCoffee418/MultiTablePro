@@ -40,6 +40,18 @@
                 </StackPanel>
             </StackPanel>
         </GroupBox>
+        <GroupBox Margin="5" Width="400" Header="Detailed Logging">
+            <StackPanel Orientation="Vertical">
+                <CheckBox Margin="5" Height="22" Width="200" HorizontalAlignment="Left" IsChecked="{Binding EnableDetailedLogging}" Content="Enable Detailed Logging"/>
+                <TextBlock>
+                    This should only be enabled to collect data for a bug report.<LineBreak/>
+                    Application must be restarted for changes to take effect.
+                </TextBlock>
+                <StackPanel Orientation="Horizontal">
+
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
 
     </WrapPanel>
 </Window>

@@ -185,6 +185,7 @@ namespace MultiTablePro
                 RaisePropertyChanged("_bwinSupportEnabled");
             }
         }
+<<<<<<< HEAD
          
         public string LicenseKey
         {
@@ -195,6 +196,24 @@ namespace MultiTablePro
                 RaisePropertyChanged("_licenseKey");
             }
         }
+=======
+
+        // Stores loglevel in Properties.Settings acoordingly
+        // note: when debuger is attached, min loglevel is always 0
+        public bool EnableDetailedLogging
+        {
+            get
+            {
+                return Properties.Settings.Default.LogLevel == 0;
+            }
+            set
+            {
+                Properties.Settings.Default.LogLevel = value ? 0 : 1;
+                Properties.Settings.Default.Save();
+            }
+        }
+
+>>>>>>> 0d8d63337dbea56f9dfb4471e5e82c3e064b4f46
 
         #region Static
         private static string _dataDir = "";
