@@ -90,7 +90,7 @@ namespace MultiTablePro
                 var afxWnd90uWinTitles = WHelper.GetAllWindowTitles(afxWnd90uElements);
 
                 // Try to find button handles
-                if (afxWnd90uWinTitles.Where(x => x.Value == "Fold " || x.Value == "Check").Count() > 0) {
+                if (afxWnd90uWinTitles.Where(x => x.Value == "Fold ").Count() > 0) {
                     foldHandle = afxWnd90uWinTitles.Where(x => x.Value == "Fold ").FirstOrDefault().Key;
                     //checkCallHandle = afxWnd90uWinTitles.Where(x => x.Value == "Check" || x.Value.Contains("Call")).FirstOrDefault().Key;
                     //betRaiseHandle = afxWnd90uWinTitles.Where(x => x.Value.Contains("Bet") || x.Value.Contains("Raise")).FirstOrDefault().Key;
@@ -100,7 +100,7 @@ namespace MultiTablePro
                 else
                 {
                     // Wait & try again
-                    Thread.Sleep(100);
+                    Thread.Sleep(500);
                 }
             }
 
