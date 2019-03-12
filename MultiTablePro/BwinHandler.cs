@@ -11,23 +11,25 @@ namespace MultiTablePro
 {
     class BwinHandler
     {
-
-
         private static bool? IsRunning { get; set; }
+        private static Timer timer = null;
 
 
         public static void Start()
         {
             if (IsRunning == null) // First call to start
             {
-                // Regularly looks for new log files & starts watching any found 
                 IsRunning = true;
-                Timer timer = new Timer(FindNewTables, null, 0, 1000);
+                timer = new Timer(FindNewTables, null, 0, 1000);
             }
             else if (IsRunning == false) // Restart
             {
                 // Restarts watch on all known log files
                 IsRunning = true;
+            }
+            else
+            {
+                IsRunning = false;
             }
         }
 
@@ -71,11 +73,11 @@ namespace MultiTablePro
         private static void WatchTable(Table table)
         {
             IntPtr foldHandle = IntPtr.Zero;
-            IntPtr checkCallHandle = IntPtr.Zero;
-            IntPtr betRaiseHandle = IntPtr.Zero;
+            //IntPtr checkCallHandle = IntPtr.Zero;
+            //IntPtr betRaiseHandle = IntPtr.Zero;
 
-
-            do // Wait for buttons to initially appear & define their handles
+            // Wait for buttons to initially appear & define their handles
+            while (foldHandle == IntPtr.Zero && (bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
             {
                 // List table elements
                 var afxWnd90uElements = WHelper.EnumAllWindows(table.WindowHandle, "AfxWnd90u");
@@ -84,9 +86,9 @@ namespace MultiTablePro
                 // Try to find button handles
                 if (afxWnd90uWinTitles.Where(x => x.Value == "Fold " || x.Value == "Check").Count() > 0) {
                     foldHandle = afxWnd90uWinTitles.Where(x => x.Value == "Fold ").FirstOrDefault().Key;
-                    checkCallHandle = afxWnd90uWinTitles.Where(x => x.Value == "Check" || x.Value.Contains("Call")).FirstOrDefault().Key;
-                    betRaiseHandle = afxWnd90uWinTitles.Where(x => x.Value.Contains("Bet") || x.Value.Contains("Raise")).FirstOrDefault().Key;
-                    Logger.Log($"Found buttons for {table.WindowHandle} - F:{foldHandle} C:{checkCallHandle} B:{betRaiseHandle}");
+                    //checkCallHandle = afxWnd90uWinTitles.Where(x => x.Value == "Check" || x.Value.Contains("Call")).FirstOrDefault().Key;
+                    //betRaiseHandle = afxWnd90uWinTitles.Where(x => x.Value.Contains("Bet") || x.Value.Contains("Raise")).FirstOrDefault().Key;
+                    Logger.Log($"Found buttons for {table.WindowHandle} - F:{foldHandle}");// C:{checkCallHandle} B:{betRaiseHandle}");
                     Table.SetPriority(table.WindowHandle, Table.Status.ActionRequired); // Call action required for the first time                    
                 }
                 else
@@ -94,10 +96,41 @@ namespace MultiTablePro
                     // Wait & try again
                     Thread.Sleep(100);
                 }
-                
-            } while (checkCallHandle == IntPtr.Zero);
+            }
 
-            // 
+            // Watch for action changes
+            bool lastVisibleState = false;
+            while ((bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
+            {
+                // Change priority if shown status changed
+                bool newVisibleState = WHelper.IsWindowVisible(foldHandle);
+                if (newVisibleState != lastVisibleState)
+                {
+                    // Check if action required or fold button turned into "I am back" button
+                    if (lastVisibleState && !WHelper.GetWindowTitle(foldHandle).Contains("Fold"))
+                    {
+                        table.Priority = Table.Status.OpenButNotJoined; // Sitting out
+                    }
+                    else
+                    {
+                        table.Priority = newVisibleState ?
+                        Table.Status.ActionRequired : Table.Status.NoActionRequired;
+                    }
+                    
+                    // Set last visible state to current one
+                    lastVisibleState = newVisibleState;
+                }                
+
+                // Check if window was destroyed
+                if (!lastVisibleState && !WHelper.IsWindow(foldHandle))
+                {
+                    table.Close();
+                    break;
+                }
+
+                // Sleep
+                Thread.Sleep(100);
+            }            
         }
 
       

@@ -12,7 +12,7 @@ namespace MultiTablePro
 
         [DllImport("user32.Dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
+        static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
         public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -23,6 +23,14 @@ namespace MultiTablePro
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static public extern IntPtr GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindow(IntPtr hWnd);
 
 
         private static bool EnumWindow(IntPtr handle, IntPtr pointer)
@@ -72,8 +80,6 @@ namespace MultiTablePro
             {
                 if (GetWinClass(child) == childClassName)
                     yield return child;
-                foreach (var childchild in EnumAllWindows(child, childClassName))
-                    yield return childchild;
             }
         }
 

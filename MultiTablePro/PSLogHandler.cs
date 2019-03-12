@@ -19,7 +19,7 @@ namespace MultiTablePro
             {
                 // Regularly looks for new log files & starts watching any found 
                 IsRunning = true;
-                Timer timer = new Timer(WatchNewLogFiles, null, 0, 10000);
+                timer = new Timer(WatchNewLogFiles, null, 0, 10000);
             }
             else if (IsRunning == false) // Restart
             {
@@ -43,6 +43,7 @@ namespace MultiTablePro
         private static List<string> activeLogFiles = new List<string>();
         private static DateTime StartTime { get; set; }
         private static bool? IsRunning { get; set; }
+        private static Timer timer = null;
 
 
         /// <summary>
