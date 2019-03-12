@@ -70,6 +70,10 @@
     <Compile Include="Config.cs" />
     <Compile Include="HotKey.cs" />
     <Compile Include="HotKeyHandler.cs" />
+    <Compile Include="License.cs" />
+    <Compile Include="LicenseInfoWindow.xaml.cs">
+      <DependentUpon>LicenseInfoWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Logger.cs" />
     <Compile Include="Profile.cs" />
     <Compile Include="ProfilePreviewControl.xaml.cs">
@@ -90,6 +94,10 @@
     <Compile Include="WHelper.cs" />
     <Compile Include="WpfScreen.cs" />
     <Page Include="AdvancedSettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LicenseInfoWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

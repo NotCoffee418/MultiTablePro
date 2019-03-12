@@ -29,6 +29,7 @@ namespace MultiTablePro
         Timer startSavingTimer = null;
         private bool savingAllowed = false;
         Profile _activeProfile = null;
+        License _activeLicense = null;
         string _activeProfileFileName = Properties.Settings.Default.DefaultProfileFileName;
         private bool _forceTablePosition = true;
         private bool _autoStart = true;
@@ -40,6 +41,7 @@ namespace MultiTablePro
         private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
         private int _tableMovementDelay = 50;
         private bool _bwinSupportEnabled = false;
+        private string _licenseKey = "TRIAL";
 
         [JsonIgnore]
         public static Config Active { get; set; }
@@ -56,6 +58,18 @@ namespace MultiTablePro
                 _activeProfile = value;
                 ActiveProfileFileName = value.FileName;
                 RaisePropertyChanged("ActiveProfile");
+            }
+        }
+
+        [JsonIgnore]
+        public License ActiveLicense
+        {
+            get
+            {
+                // Not set or new license key - change ActiveLicense
+                if (_activeLicense == null || LicenseKey != ActiveLicense.Key)
+                    _activeLicense = new License(LicenseKey);
+                return _activeLicense;
             }
         }
 
@@ -171,7 +185,16 @@ namespace MultiTablePro
                 RaisePropertyChanged("_bwinSupportEnabled");
             }
         }
-
+         
+        public string LicenseKey
+        {
+            get { return _licenseKey; }
+            set
+            {
+                _licenseKey = value;
+                RaisePropertyChanged("_licenseKey");
+            }
+        }
 
         #region Static
         private static string _dataDir = "";

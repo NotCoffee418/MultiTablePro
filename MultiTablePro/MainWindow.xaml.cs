@@ -69,6 +69,10 @@ namespace MultiTablePro
             if (Config.Active.AutoMinimize)
                 WindowState = WindowState.Minimized;
 
+            // check license
+            License testLicense = new License("TRIAL");
+            testLicense.Start();
+
             // Start watching open tables
             watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
 
@@ -346,7 +350,13 @@ namespace MultiTablePro
             hkWin.Show();
         }
 
+
         #endregion
-        
+
+        private void LicenseConfigMenu_Click(object sender, RoutedEventArgs e)
+        {
+            LicenseInfoWindow lWin = new LicenseInfoWindow();
+            lWin.Show();
+        }
     }
 }

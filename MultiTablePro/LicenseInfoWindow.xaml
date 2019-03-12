@@ -1,0 +1,25 @@
+﻿<Window x:Class="MultiTablePro.LicenseInfoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiTablePro"
+        mc:Ignorable="d"
+        Title="LicenseInfoWindow" Height="450" Width="800">
+    <WrapPanel>
+        <GroupBox Margin="5" Width="400" Header="License Info" Height="140">
+          <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Margin="5">
+              <TextBlock Text="Key" Width="100" />
+              <TextBox Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding Key}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="5">
+              <TextBlock Text="Expiry Date" Width="100" />
+              <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding ExpDate}"/>
+            </StackPanel>
+            
+          </StackPanel>
+        </GroupBox>
+    </WrapPanel>
+</Window>
