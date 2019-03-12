@@ -55,7 +55,7 @@ namespace MultiTablePro
 
             // Find the targeted table, if any
             Table table = FindTableUnderMouse();
-            bool wasRelevant = table == null ? false : true;
+            bool wasRelevant = table == null || table.IsVirtual ? false : true;
 
             // Handle table related hotkeys
             HotKey foundHotkey = new HotKey(m.lParam);

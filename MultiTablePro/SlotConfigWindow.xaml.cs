@@ -141,7 +141,7 @@ namespace MultiTablePro
             newSlot.Height = CurrentSlot.Height;
             newSlot.ActivityUse = CurrentSlot.ActivityUse;
             newSlot.CanStack = CurrentSlot.CanStack;
-            ActiveSlotConfigHandler.AddSlot(newSlot);
+            ActiveSlotConfigHandler.AddSlot(newSlot, true);
         }
 
         private void RemoveSlotBtn_Click(object sender, RoutedEventArgs e)

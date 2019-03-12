@@ -153,7 +153,7 @@ namespace MultiTablePro
             if (!File.Exists(path))
             {
                 Logger.Log($"Requested profile file does not exist at '{path}' - Loading default file instead", Logger.Status.Error, true);
-                return Profile.GetEmptyProfile();
+                return GetProfileFromFile(); // Call for default
             }
 
             Profile p = Profile.FromJson(File.ReadAllText(path));
