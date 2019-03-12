@@ -69,6 +69,7 @@ namespace MultiTablePro
         
         private static void WatchTable(Table table)
         {
+            bool tableIsClosed = false;
             IntPtr foldHandle = IntPtr.Zero;
             //IntPtr checkCallHandle = IntPtr.Zero;
             //IntPtr betRaiseHandle = IntPtr.Zero;
@@ -76,6 +77,14 @@ namespace MultiTablePro
             // Wait for buttons to initially appear & define their handles
             while (foldHandle == IntPtr.Zero && (bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
             {
+                // Check if window was destroyed
+                if (!WHelper.IsWindow(table.WindowHandle))
+                {
+                    table.Close();
+                    tableIsClosed = true;
+                    break;
+                }
+
                 // List table elements
                 var afxWnd90uElements = WHelper.EnumAllWindows(table.WindowHandle, "AfxWnd90u");
                 var afxWnd90uWinTitles = WHelper.GetAllWindowTitles(afxWnd90uElements);
@@ -97,38 +106,39 @@ namespace MultiTablePro
 
             // Watch for action changes
             bool lastVisibleState = false;
-            while ((bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
-            {
-                // Change priority if shown status changed
-                bool newVisibleState = WHelper.IsWindowVisible(foldHandle);
-                if (newVisibleState != lastVisibleState)
+            if (!tableIsClosed)
+                while ((bool)IsRunning && (bool)App.Current.Properties["IsRunning"])
                 {
-                    // Check if action required or fold button turned into "I am back" button
-                    if (lastVisibleState && !WHelper.GetWindowTitle(foldHandle).Contains("Fold"))
+                    // Change priority if shown status changed
+                    bool newVisibleState = WHelper.IsWindowVisible(foldHandle);
+                    if (newVisibleState != lastVisibleState)
                     {
-                        table.Priority = Table.Status.OpenButNotJoined; // Sitting out
-                    }
-                    else
-                    {
-                        table.Priority = newVisibleState ?
-                        Table.Status.ActionRequired : Table.Status.NoActionRequired;
-                    }
+                        // Check if action required or fold button turned into "I am back" button
+                        if (lastVisibleState && !WHelper.GetWindowTitle(foldHandle).Contains("Fold"))
+                        {
+                            table.Priority = Table.Status.OpenButNotJoined; // Sitting out
+                        }
+                        else
+                        {
+                            table.Priority = newVisibleState ?
+                            Table.Status.ActionRequired : Table.Status.NoActionRequired;
+                        }
                     
-                    // Set last visible state to current one
-                    lastVisibleState = newVisibleState;
-                }                
+                        // Set last visible state to current one
+                        lastVisibleState = newVisibleState;
+                    }                
 
-                // Check if window was destroyed
-                if (!lastVisibleState && !WHelper.IsWindow(foldHandle))
-                {
-                    table.Close();
-                    break;
-                }
+                    // Check if window was destroyed
+                    if (!lastVisibleState && !WHelper.IsWindow(foldHandle))
+                    {
+                        table.Close();
+                        break;
+                    }
 
-                // Sleep
-                Thread.Sleep(100);
-            }            
-        }
+                    // Sleep
+                    Thread.Sleep(100);
+                }            
+            }
 
       
     }
