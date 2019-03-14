@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiTablePro", "MultiTablePro\MultiTablePro.csproj", "{642264AA-5B32-48F5-8FDF-E6070A0753B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishNewVersion", "PublishNewVersion\PublishNewVersion.csproj", "{8CFCE299-9680-4D99-A3F6-4D18AD676488}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{642264AA-5B32-48F5-8FDF-E6070A0753B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{642264AA-5B32-48F5-8FDF-E6070A0753B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{642264AA-5B32-48F5-8FDF-E6070A0753B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CFCE299-9680-4D99-A3F6-4D18AD676488}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CFCE299-9680-4D99-A3F6-4D18AD676488}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CFCE299-9680-4D99-A3F6-4D18AD676488}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CFCE299-9680-4D99-A3F6-4D18AD676488}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
