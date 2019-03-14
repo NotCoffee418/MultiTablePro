@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" 
+           Name="MultiTable Pro" 
+           Language="1033" 
+           Version="!(bind.FileVersion.MultiTablePro.exe)"
+           Manufacturer="MultiTable Pro"
+           UpgradeCode="156073eb-aba9-4d98-9bed-250bfbb168c8">
+    
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of MultiTable Pro is already installed." />
+		<MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)\Eula.rtf" />
+
+		<Feature Id="ProductFeature" Title="MTPSetup" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="MultiTablePro.exe" />
+      <ComponentRef Id="Newtonsoft.Json.dll" />
+      <ComponentRef Id="ApplicationShortcut" />
+		</Feature>
+	</Product>
+
+	<Fragment>
+    <UI>
+      <UIRef Id="WixUI_Minimal" />
+      <Publish Dialog="ExitDialog"
+               Control="Finish"
+               Event="DoAction"
+               Value="LaunchApplication">
+        WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed
+      </Publish>
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    </UI>
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Start MultiTable Pro" />
+
+    <!-- Step 3: Include the custom action -->
+    <Property Id="WixShellExecTarget" Value="[#MultiTablePro.exe]" />
+    <CustomAction Id="LaunchApplication"
+                  BinaryKey="WixCA"
+                  DllEntry="WixShellExec"
+                  Impersonate="yes" />
+
+    <!-- Start menu shortcut-->
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="MultiTable Pro"
+                  Description="My Application Description"
+                  Target="[#MultiTablePro.exe]"
+                  WorkingDirectory="APPLICATIONROOTDIRECTORY"/>
+        <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\Microsoft\MultiTablePro" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+    
+    
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="MultiTable Pro" />
+			</Directory>
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="MultiTable Pro"/>
+      </Directory>
+		</Directory>
+    
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="MultiTablePro.exe">
+        <File Id="MultiTablePro.exe" Source="$(var.MultiTablePro.TargetDir)MultiTablePro.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="Newtonsoft.Json.dll">
+        <File Id="Newtonsoft.Json.dll" Source="$(var.MultiTablePro.TargetDir)Newtonsoft.Json.dll" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>  
+    
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<!-- <Component Id="ProductComponent"> -->
+      <ComponentRef Id="MultiTablePro.exe" />
+      <ComponentRef Id="Newtonsoft.Json.dll" />
+				<!-- TODO: Insert files, registry keys, and other resources here. -->
+			<!-- </Component> -->
+		</ComponentGroup>
+	</Fragment>
+</Wix>
