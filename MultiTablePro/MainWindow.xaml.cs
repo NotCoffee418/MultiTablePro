@@ -376,5 +376,32 @@ namespace MultiTablePro
             LicenseInfoWindow lWin = new LicenseInfoWindow();
             lWin.Show();
         }
+
+        private void ImportConfigMi_Click(object sender, RoutedEventArgs e)
+        {
+            // Request file from user
+            var dlg = new OpenFileDialog();
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "MTP Config Files|*.json";
+            if (dlg.ShowDialog() == false) // nullable
+                return;
+
+            // Generate profile, save it & refresh
+            Config c = Config.FromFile(dlg.FileName);
+            c.Save();
+            Config.Active = c;
+            Logger.Log("New config imported. You may need to restart the program for changes to take effect.", Logger.Status.Info);
+        }
+
+        private void ExportConfigMi_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SaveFileDialog();
+            dlg.FileName = "config-" + DateTime.Now.ToString("yyyy-MM-dd") + ".json";
+            dlg.DefaultExt = ".json";
+            dlg.Filter = "MTP Config Files|*.json";
+            if (dlg.ShowDialog() == false) // nullable
+                return;
+            File.WriteAllText(dlg.FileName, Config.Active.GetJson());
+        }
     }
 }
