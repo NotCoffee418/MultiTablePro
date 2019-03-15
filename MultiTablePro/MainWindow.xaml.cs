@@ -390,7 +390,7 @@ namespace MultiTablePro
             Config c = Config.FromFile(dlg.FileName);
             c.Save();
             Config.Active = c;
-            Logger.Log("New config imported. You may need to restart the program for changes to take effect.", Logger.Status.Info);
+            Logger.Log("New config file imported. You may need to restart the program for changes to take effect.", Logger.Status.Info, showMessageBox:true);
         }
 
         private void ExportConfigMi_Click(object sender, RoutedEventArgs e)
@@ -402,6 +402,20 @@ namespace MultiTablePro
             if (dlg.ShowDialog() == false) // nullable
                 return;
             File.WriteAllText(dlg.FileName, Config.Active.GetJson());
+            Logger.Log("User exported their config.");
+        }
+
+        private void ResetConfigMi_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to restore all your settings? This is irreversable and your settings will be lost unless you export them first.", 
+                "Reset Config", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel) == MessageBoxResult.Yes)
+            {
+                Logger.Log("User manually reset config to defaults.");
+                Config newConf = new Config();
+                Config.Active = newConf;
+                Config.Active.Save();
+                Logger.Log("Config has been reset. You may need to restart the application for the changes to take effect.", Logger.Status.Info, showMessageBox: true);
+            }            
         }
     }
 }

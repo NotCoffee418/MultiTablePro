@@ -17,9 +17,9 @@
         <Menu Grid.Row="0">
             <MenuItem Header="Config">
                 <MenuItem Header="Advanced Settings" Click="AdvancedConfigMi_Click"/>
-                <MenuItem Header="Import Config" Name="ImportConfigMi" Click="ImportConfigMi_Click" />
+                <MenuItem Header="Import Config" Click="ImportConfigMi_Click" />
                 <MenuItem Header="Export Config"  Click="ExportConfigMi_Click" />
-                <MenuItem Header="Reset Defaults" />
+                <MenuItem Header="Reset Defaults" Click="ResetConfigMi_Click"/>
                 <MenuItem Header="License" Click="LicenseConfigMenu_Click"/>
             </MenuItem>
             <MenuItem Header="Support">
