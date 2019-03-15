@@ -28,6 +28,7 @@ namespace MultiTablePro
             }
             set {
                 _key = value;
+                RaisePropertyChanged("Key");
             }
         }
         public string ExpDate { get; set; }
@@ -45,6 +46,7 @@ namespace MultiTablePro
             WebRequest wReq = WebRequest.Create(path);
             wReq.Method = "POST";
             string postData = $"macaddr={MacAd}&license_key={Key}&request_product_group=1";
+            Logger.Log(postData.ToString());
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
             wReq.ContentType = "application/x-www-form-urlencoded";
             wReq.ContentLength = byteArray.Length;
@@ -57,6 +59,9 @@ namespace MultiTablePro
             StreamReader reader = new StreamReader(dataStream);
             string responseFromServer = reader.ReadToEnd();
             Logger.Log(responseFromServer);
+            dynamic jsonDecode = JsonConvert.DeserializeObject(responseFromServer);
+            ExpDate = jsonDecode.result.expires_at;
+            Logger.Log(ExpDate);
             reader.Close();
             dataStream.Close();
             wResponse.Close();
