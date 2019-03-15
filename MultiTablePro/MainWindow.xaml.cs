@@ -417,5 +417,10 @@ namespace MultiTablePro
                 Logger.Log("Config has been reset. You may need to restart the application for the changes to take effect.", Logger.Status.Info, showMessageBox: true);
             }            
         }
+
+        private void OpenDiscord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://discord.gg/s4QX4zE");
+        }
     }
 }

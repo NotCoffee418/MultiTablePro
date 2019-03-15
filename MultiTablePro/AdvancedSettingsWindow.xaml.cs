@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,12 @@ namespace MultiTablePro
         {
             InitializeComponent();
             DataContext = Config.Active;
+        }
+
+        private void OpenLocksDirectory_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(System.IO.Path.Combine(Environment.GetFolderPath(
+                        Environment.SpecialFolder.LocalApplicationData), "MultiTablePro"));
         }
     }
 }

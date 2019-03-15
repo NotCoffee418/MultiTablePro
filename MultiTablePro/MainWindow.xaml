@@ -23,8 +23,7 @@
                 <MenuItem Header="License" Click="LicenseConfigMenu_Click"/>
             </MenuItem>
             <MenuItem Header="Support">
-                <MenuItem Header="Submit error logs" />
-                <MenuItem Header="Contact Support" />
+                <MenuItem Header="Discord" Click="OpenDiscord_Click" />
             </MenuItem>
             <MenuItem Header="Info">
                 <MenuItem Header="Check for updates" />
