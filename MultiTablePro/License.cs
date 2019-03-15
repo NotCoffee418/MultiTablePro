@@ -16,7 +16,7 @@ namespace MultiTablePro
         private string path = "https://multitablepro.com/api/validate_license";
         public License(string key) {
             _key = key;
-            
+            Config.Active.ActiveLicense = this;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

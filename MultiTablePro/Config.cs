@@ -67,9 +67,13 @@ namespace MultiTablePro
             get
             {
                 // Not set or new license key - change ActiveLicense
-                if (_activeLicense == null || LicenseKey != ActiveLicense.Key)
-                    _activeLicense = new License(LicenseKey);
-                return null;
+                //if (_activeLicense == null || LicenseKey != ActiveLicense.Key)
+                //    _activeLicense = new License(LicenseKey);
+                return _activeLicense;
+            }
+            set
+            {
+                _activeLicense = value;
             }
         }
 

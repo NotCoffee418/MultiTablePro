@@ -70,7 +70,7 @@ namespace MultiTablePro
                 WindowState = WindowState.Minimized;
 
             // check license
-            License testLicense = new License("TRIAL");
+            License testLicense = new License("TEST");
             testLicense.Start();
 
             // Start watching open tables
