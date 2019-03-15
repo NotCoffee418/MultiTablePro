@@ -43,25 +43,40 @@ namespace MultiTablePro
         }
         private void ApiRequest(string path)
         {
+            //Create web request with URL that is able to receive a request.
             WebRequest wReq = WebRequest.Create(path);
+            //Set request method type
             wReq.Method = "POST";
+            //Create the POST Data and convert it to byteArray
             string postData = $"macaddr={MacAd}&license_key={Key}&request_product_group=1";
-            Logger.Log(postData.ToString());
+            Logger.Log(postData.ToString());//remove
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+            //Set the content type property of the web request and it's length.
             wReq.ContentType = "application/x-www-form-urlencoded";
             wReq.ContentLength = byteArray.Length;
+            //Get the request stream
             Stream dataStream = wReq.GetRequestStream();
+            //Write data to the request
             dataStream.Write(byteArray, 0, byteArray.Length);
+            //Close the stream object
             dataStream.Close();
+            //Get the response
             WebResponse wResponse = wReq.GetResponse();
+            // Log HTTP Status code
             Logger.Log(((HttpWebResponse)wResponse).StatusDescription);
+            //Get the stream of content getting returned by server
             dataStream = wResponse.GetResponseStream();
+            //Open the stream with streamreader for easy access
             StreamReader reader = new StreamReader(dataStream);
+            //Read the content
             string responseFromServer = reader.ReadToEnd();
-            Logger.Log(responseFromServer);
+            Logger.Log(responseFromServer);//Remove
+            //Transform raw stream into JSON Object.
             dynamic jsonDecode = JsonConvert.DeserializeObject(responseFromServer);
+            //Set expire date
             ExpDate = jsonDecode.result.expires_at;
             Logger.Log(ExpDate);
+            //close remaining streams.
             reader.Close();
             dataStream.Close();
             wResponse.Close();
