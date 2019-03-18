@@ -12,8 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MultiTablePro.Data;
 
-namespace MultiTablePro
+namespace MultiTablePro.UI
 {
     /// <summary>
     /// Interaction logic for ProfilePreviewControl.xaml

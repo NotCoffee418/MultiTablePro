@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace MultiTablePro
+namespace MultiTablePro.Data
 {
     [Serializable]
     internal class Slot : IEquatable<Slot>, INotifyPropertyChanged

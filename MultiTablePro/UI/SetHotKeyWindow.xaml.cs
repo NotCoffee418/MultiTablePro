@@ -14,8 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Forms;
 using System.Windows.Threading;
+using MultiTablePro.Data;
 
-namespace MultiTablePro
+namespace MultiTablePro.UI
 {
     /// <summary>
     /// Interaction logic for SetHotKeyWindow.xaml

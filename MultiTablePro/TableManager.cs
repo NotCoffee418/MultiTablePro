@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using MultiTablePro.Data;
+using MultiTablePro.PlatformHandlers;
 
 namespace MultiTablePro
 {

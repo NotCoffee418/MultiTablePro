@@ -11,8 +11,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using MultiTablePro.Data;
 
-namespace MultiTablePro
+namespace MultiTablePro.UI
 {
     /// <summary>
     /// Interaction logic for LicenseInfoWindow.xaml

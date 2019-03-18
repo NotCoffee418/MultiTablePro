@@ -78,45 +78,45 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AdvancedSettingsWindow.xaml.cs">
+    <Compile Include="UI\AdvancedSettingsWindow.xaml.cs">
       <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="BwinHandler.cs" />
-    <Compile Include="Config.cs" />
-    <Compile Include="HotKey.cs" />
+    <Compile Include="PlatformHandlers\BwinHandler.cs" />
+    <Compile Include="Data\Config.cs" />
+    <Compile Include="Data\HotKey.cs" />
     <Compile Include="HotKeyHandler.cs" />
-    <Compile Include="License.cs" />
-    <Compile Include="LicenseInfoWindow.xaml.cs">
+    <Compile Include="Data\License.cs" />
+    <Compile Include="UI\LicenseInfoWindow.xaml.cs">
       <DependentUpon>LicenseInfoWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Logger.cs" />
-    <Compile Include="Profile.cs" />
-    <Compile Include="ProfilePreviewControl.xaml.cs">
+    <Compile Include="Data\Profile.cs" />
+    <Compile Include="UI\ProfilePreviewControl.xaml.cs">
       <DependentUpon>ProfilePreviewControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PSLogHandler.cs" />
+    <Compile Include="PlatformHandlers\PSLogHandler.cs" />
     <Compile Include="InputSender.cs" />
-    <Compile Include="SetHotKeyWindow.xaml.cs">
+    <Compile Include="UI\SetHotKeyWindow.xaml.cs">
       <DependentUpon>SetHotKeyWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Slot.cs" />
+    <Compile Include="Data\Slot.cs" />
     <Compile Include="SlotConfigHandler.cs" />
-    <Compile Include="SlotConfigWindow.xaml.cs">
+    <Compile Include="UI\SlotConfigWindow.xaml.cs">
       <DependentUpon>SlotConfigWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Table.cs" />
+    <Compile Include="Data\Table.cs" />
     <Compile Include="TableManager.cs" />
     <Compile Include="WHelper.cs" />
     <Compile Include="WpfScreen.cs" />
-    <Page Include="AdvancedSettingsWindow.xaml">
+    <Page Include="UI\AdvancedSettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="LicenseInfoWindow.xaml">
+    <Page Include="UI\LicenseInfoWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainWindow.xaml">
+    <Page Include="UI\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -124,19 +124,19 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ProfilePreviewControl.xaml">
+    <Page Include="UI\ProfilePreviewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SetHotKeyWindow.xaml">
+    <Page Include="UI\SetHotKeyWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SlotConfigWindow.xaml">
+    <Page Include="UI\SlotConfigWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

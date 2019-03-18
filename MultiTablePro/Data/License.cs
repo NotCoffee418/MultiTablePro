@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using Newtonsoft.Json;
 
-namespace MultiTablePro
+namespace MultiTablePro.Data
 {
     class License : INotifyPropertyChanged
     {

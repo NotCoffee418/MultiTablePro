@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
 
-namespace MultiTablePro
+namespace MultiTablePro.Data
 {    
     internal class HotKey : IEquatable<HotKey>, INotifyPropertyChanged
     {

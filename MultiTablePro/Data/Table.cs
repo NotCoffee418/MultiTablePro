@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MultiTablePro
+namespace MultiTablePro.Data
 {
     [Serializable]
     internal class Table : IEquatable<Table>

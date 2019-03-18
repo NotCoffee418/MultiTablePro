@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace MultiTablePro
+namespace MultiTablePro.Data
 {
     /// <summary>
     /// Contains user-saved or default info about preferred table positions & related variables
