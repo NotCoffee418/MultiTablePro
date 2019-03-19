@@ -22,7 +22,7 @@ namespace MultiTablePro.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace MultiTablePro.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MultiTablePro.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace MultiTablePro.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,9 +61,29 @@ namespace MultiTablePro.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;Slots&quot;:[{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:1,&quot;X&quot;:-10,&quot;Y&quot;:0,&quot;Width&quot;:955,&quot;Height&quot;:691,&quot;CanStack&quot;:false},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:1,&quot;X&quot;:930,&quot;Y&quot;:0,&quot;Width&quot;:955,&quot;Height&quot;:691,&quot;CanStack&quot;:false},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:-8,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:461,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:930,&quot;Y&quot;:682,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:1400,&quot;Y&quot;:683,&quot;Width&quot;:485,&quot;Heigh [rest of string was truncated]&quot;;.
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static string profileDefault1920x1080 {
+        public static System.Drawing.Icon logo {
+            get {
+                object obj = ResourceManager.GetObject("logo", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap mtp_logo_128 {
+            get {
+                object obj = ResourceManager.GetObject("mtp_logo_128", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;Slots&quot;:[{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:1,&quot;X&quot;:-10,&quot;Y&quot;:0,&quot;Width&quot;:960,&quot;Height&quot;:694,&quot;CanStack&quot;:false},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:1,&quot;X&quot;:950,&quot;Y&quot;:0,&quot;Width&quot;:960,&quot;Height&quot;:694,&quot;CanStack&quot;:false},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:-10,&quot;Y&quot;:690,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:465,&quot;Y&quot;:690,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:950,&quot;Y&quot;:690,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:1425,&quot;Y&quot;:690,&quot;Width&quot;:485,&quot;Heig [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string profileDefault1920x1080 {
             get {
                 return ResourceManager.GetString("profileDefault1920x1080", resourceCulture);
             }
@@ -72,7 +92,7 @@ namespace MultiTablePro.Properties {
         /// <summary>
         ///   Looks up a localized string similar to {&quot;Slots&quot;:[{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:1,&quot;X&quot;:0,&quot;Y&quot;:0,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:false},{&quot;Priority&quot;:0,&quot;ActivityUse&quot;:0,&quot;X&quot;:485,&quot;Y&quot;:0,&quot;Width&quot;:485,&quot;Height&quot;:366,&quot;CanStack&quot;:true}]}.
         /// </summary>
-        internal static string profileEmpty {
+        public static string profileEmpty {
             get {
                 return ResourceManager.GetString("profileEmpty", resourceCulture);
             }

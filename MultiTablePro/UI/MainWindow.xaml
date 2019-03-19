@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiTablePro.UI"
         mc:Ignorable="d"
-        Title="MultiTable Pro"  Width="760" MinWidth="760" Height="500" MinHeight="500" Closing="Window_Closing" Background="White" Loaded="Window_Loaded">
+        Title="MultiTable Pro"  Width="760" MinWidth="760" Height="500" MinHeight="500"
+        Closing="Window_Closing" Background="White" Loaded="Window_Loaded" 
+        Icon="/MultiTablePro;component/Resources/mtp-logo-128.png">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="20" />
