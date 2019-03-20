@@ -18,8 +18,14 @@ namespace MultiTablePro
         {
             base.OnStartup(e);
 
+            // Start the updater
+            Updater.Run();
+
+            // Show MainWindow
             MainWindow win = new MainWindow();
             win.Show();
         }
+
+        
     }
 }

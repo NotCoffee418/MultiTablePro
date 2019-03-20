@@ -422,5 +422,10 @@ namespace MultiTablePro.UI
         {
             Process.Start("https://discord.gg/s4QX4zE");
         }
+
+        private void checkForUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            Updater.Run(force:true);
+        }
     }
 }

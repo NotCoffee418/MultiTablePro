@@ -112,6 +112,7 @@
     </Compile>
     <Compile Include="Data\Table.cs" />
     <Compile Include="TableManager.cs" />
+    <Compile Include="Updater.cs" />
     <Compile Include="WHelper.cs" />
     <Compile Include="WpfScreen.cs" />
     <Page Include="UI\AdvancedSettingsWindow.xaml">

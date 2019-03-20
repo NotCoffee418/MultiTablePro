@@ -28,7 +28,7 @@
                 <MenuItem Header="Discord" Click="OpenDiscord_Click" />
             </MenuItem>
             <MenuItem Header="Info">
-                <MenuItem Header="Check for updates" />
+                <MenuItem Header="Check for updates" Click="checkForUpdates_Click" />
                 <MenuItem Header="About" />
             </MenuItem>
         </Menu>
