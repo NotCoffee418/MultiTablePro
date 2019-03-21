@@ -16,11 +16,10 @@ namespace MultiTablePro
         [DllImport("user32.dll")]
         static extern IntPtr BeginDeferWindowPos(int nNumWindows);
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags); // Can't find this, custom written
+        static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool EndDeferWindowPos(IntPtr hWinPosInfo);
-
-
+        
         public TableManager()
         {
             Config.Active.PropertyChanged += ActiveConfig_PropertyChanged;
@@ -34,6 +33,10 @@ namespace MultiTablePro
             public int nWidth;
             public int nHeight;
         }
+
+        // Properties
+        public bool IsRunning { get; set; }
+        Queue<MoveWindowStruct> MoveWindowQueue = new Queue<MoveWindowStruct>();
 
         /// <summary>
         /// Starts the Window Manager
@@ -50,7 +53,7 @@ namespace MultiTablePro
             new Thread(() => ManageTables()).Start();
 
             // Start Window Mover
-            new Thread(() => RunMoveWindowQueueTest()).Start();
+            new Thread(() => RunMoveWindowQueue()).Start();
 
             // Start handlers
             PSLogHandler.Start();
@@ -65,17 +68,92 @@ namespace MultiTablePro
         {
             IsRunning = false;
             PSLogHandler.Stop();
+            BwinHandler.Stop();
         }
 
-        // Properties
-        public bool IsRunning { get; set; }
-
+        /// <summary>
+        /// Finds a slot for all tables.
+        /// </summary>
         private void InitialTablePlacement()
         {
             lock (Table.KnownTables)
             {
                 foreach (Table table in Table.KnownTables)
                     TryMoveTable(table); // Move default activityuse
+            }
+        }
+
+        /// <summary>
+        /// Threaded loop that watches for any table priority changes and request table movements acooordingly
+        /// </summary>
+        private void ManageTables()
+        {
+            // Place all tables in approperiate slots
+            InitialTablePlacement();
+
+            // Our temp vars for the loop
+            Table changedTable = null;
+            int lastQueueCount = 0;
+
+            // while app running and wMgr running
+            while (IsRunning && (bool)App.Current.Properties["IsRunning"])
+            {
+                Thread.Sleep(25); // Wait a tick
+
+                // The queue is empty
+                if (Table.ActionQueue.IsEmpty)
+                    continue;
+
+                lock (Table.ActionQueue)
+                {
+                    // We already tried to move. Wait for another table to do something before retrying.
+                    if (lastQueueCount == Table.ActionQueue.Count())
+                    {
+                        var activeRequestCount = Table.ActionQueue
+                            .Where(t => !t.IsAside && t.Priority >= Table.Status.ActionRequired)
+                            .Count();
+
+                        // This should only apply to active tables - bump aside and inactive requests up the queue
+                        if (activeRequestCount != Table.ActionQueue.Count())
+                        {
+                            // Determine new priority
+                            List<Table> newOrder = new List<Table>();
+                            foreach (Table queuedTable in Table.ActionQueue)
+                            {
+                                if (queuedTable.IsAside || queuedTable.IsAside)
+                                    newOrder.Add(queuedTable);
+                                else newOrder.Insert(0, queuedTable);
+                            }
+
+                            // requeue everything in new order
+                            Table garbage; // No Clear() in ConcurrentQueue.
+                            while (!Table.ActionQueue.IsEmpty)
+                                Table.ActionQueue.TryDequeue(out garbage);
+                            foreach (var t in newOrder)
+                                Table.ActionQueue.Enqueue(t);
+
+                            // Set lastQueueCount to 0 to indicate we should try again
+                            lastQueueCount = 0;
+                        }
+                        else continue;
+                    }
+
+                }
+
+                // Queue has a table, put it in changedTable
+                if (!Table.ActionQueue.TryPeek(out changedTable))
+                    continue;
+
+                // try to move the table, reset temp vars on success
+                if (TryMoveTable(changedTable))
+                {
+                    changedTable = null;
+                    lastQueueCount = -1;
+                    Table.ActionQueue.TryDequeue(out changedTable); // Remove it from the queue
+                }
+
+                // Report that we tried to move the table but couldn't
+                else lock (Table.ActionQueue) { lastQueueCount = Table.ActionQueue.Count(); }
             }
         }
 
@@ -86,7 +164,7 @@ namespace MultiTablePro
         /// </summary>
         /// <param name="activity">The slot type</param>
         /// <param name="status">Used to push aside low priority tables if needed</param>
-        /// <returns></returns>
+        /// <returns>The best suited slot based on the requirements</returns>
         private Slot GetAvailableSlot(Slot.ActivityUses slotType, Table table)
         {
             Slot resultSlot = null;
@@ -319,7 +397,6 @@ namespace MultiTablePro
 
         /// <summary>
         /// Forcibly moves table to a specified slot.
-        /// Handles actual window movement as well.
         /// </summary>
         /// <param name="table"></param>
         /// <param name="toSlot"></param>
@@ -340,110 +417,37 @@ namespace MultiTablePro
                 table.PreferredSlot = toSlot;
 
             // Move the table
-            try
+            // Remove the table from any previous Slot it was in
+            lock (Config.Active.ActiveProfile)
             {
-                // Move the window
-                RequestMoveWindow(table.WindowHandle,
-                    toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height);
+                // Find the table's old slot
+                var foundSlot = Config.Active.ActiveProfile.Slots.FirstOrDefault(
+                    s => s.OccupiedBy.FirstOrDefault(
+                        t => t.WindowHandle == table.WindowHandle) != null
+                    );
 
-                // Remove the table from any previous Slot it was in
-                lock (Config.Active.ActiveProfile)
-                {
-                    // Find the table's old slot
-                    var foundSlot = Config.Active.ActiveProfile.Slots.FirstOrDefault(
-                        s => s.OccupiedBy.FirstOrDefault(
-                            t => t.WindowHandle == table.WindowHandle) != null
-                        );
-
-                    // Unlist the table from the slot, if any
-                    if (foundSlot != null)
-                        foundSlot.UnbindTable(table);
-                }
-
-                // List the table to be in the new Slot
-                toSlot.BindTable(table);
+                // Unlist the table from the slot, if any
+                if (foundSlot != null)
+                    foundSlot.UnbindTable(table);
             }
-            catch (Exception ex)
-            {
-                Logger.Log("WindowHandler: Error while moving table: " + ex.Message, Logger.Status.Error);
-            }
+                
+            // List the table to be in the new Slot
+            toSlot.BindTable(table);
+
+            // Move the window
+            RequestMoveWindow(table.WindowHandle,
+                toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height);
         }
 
-        private void ManageTables()
-        {
-            // Place all tables in approperiate slots
-            InitialTablePlacement();
-
-            // Our temp vars for the loop
-            Table changedTable = null;
-            int lastQueueCount = 0;
-
-            // while app running and wMgr running
-            while (IsRunning && (bool)App.Current.Properties["IsRunning"])
-            {
-                Thread.Sleep(25); // Wait a tick
-
-                // The queue is empty
-                if (Table.ActionQueue.IsEmpty)
-                    continue;
-
-                lock (Table.ActionQueue)
-                {
-                    // We already tried to move. Wait for another table to do something before retrying.
-                    if (lastQueueCount == Table.ActionQueue.Count())
-                    {
-                        var activeRequestCount = Table.ActionQueue
-                            .Where(t => !t.IsAside && t.Priority >= Table.Status.ActionRequired)
-                            .Count();
-
-                        // This should only apply to active tables - bump aside and inactive requests up the queue
-                        if (activeRequestCount != Table.ActionQueue.Count())
-                        {
-                            // Determine new priority
-                            List<Table> newOrder = new List<Table>();
-                            foreach (Table queuedTable in Table.ActionQueue)
-                            {
-                                if (queuedTable.IsAside || queuedTable.IsAside)
-                                    newOrder.Add(queuedTable);
-                                else newOrder.Insert(0, queuedTable);
-                            }
-
-                            // requeue everything in new order
-                            Table garbage; // No Clear() in ConcurrentQueue.
-                            while (!Table.ActionQueue.IsEmpty)
-                                Table.ActionQueue.TryDequeue(out garbage);
-                            foreach (var t in newOrder)
-                                Table.ActionQueue.Enqueue(t);
-
-                            // Set lastQueueCount to 0 to indicate we should try again
-                            lastQueueCount = 0;
-                        }
-                        else continue;
-                    }
-
-                }
-
-                // Queue has a table, put it in changedTable
-                if (!Table.ActionQueue.TryPeek(out changedTable))
-                    continue;
-
-                // try to move the table, reset temp vars on success
-                if (TryMoveTable(changedTable))
-                {
-                    changedTable = null;
-                    lastQueueCount = -1;
-                    Table.ActionQueue.TryDequeue(out changedTable); // Remove it from the queue
-                }
-
-                // Report that we tried to move the table but couldn't
-                else lock (Table.ActionQueue) { lastQueueCount = Table.ActionQueue.Count(); }
-            }
-        }
-
-        
-        bool delayMoveQueueIsBusy = false;
-        Queue<MoveWindowStruct> MoveWindowQueue = new Queue<MoveWindowStruct>();
-        private void RequestMoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight)
+        /// <summary>
+        /// Enqueues a window handle & coordinates for bulk window movement
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="X"></param>
+        /// <param name="Y"></param>
+        /// <param name="nWidth"></param>
+        /// <param name="nHeight"></param>
+        public void RequestMoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight)
         {
             var qs = new MoveWindowStruct();
             qs.hWnd = hWnd;
@@ -454,13 +458,16 @@ namespace MultiTablePro
             MoveWindowQueue.Enqueue(qs);
         }
 
-        private void RunMoveWindowQueueTest()
+        /// <summary>
+        /// Threaded loop to move windows, dequeueing from MoveWindowQueue
+        /// </summary>
+        private void RunMoveWindowQueue()
         {
-            while (IsRunning) // ----- fix loop IsRnning chekc
+            while (IsRunning && (bool)App.Current.Properties["IsRunning"]) // ----- fix loop IsRnning chekc
             {
-                if (delayMoveQueueIsBusy || MoveWindowQueue.Count == 0)
+                if (MoveWindowQueue.Count == 0)
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(Config.Active.TableMovementDelay);
                     continue;
                 }
 

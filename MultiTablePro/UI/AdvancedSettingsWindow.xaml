@@ -19,10 +19,8 @@
                 <StackPanel Orientation="Vertical">
                     <TextBox Margin="5" Height="22" Width="200" HorizontalAlignment="Left" Text="{Binding TableMovementDelay}"/>
                     <TextBlock>
-                    Amount of miliseconds a table spends off-screen.<LineBreak/>
-                    Increase this value if you experience flickering when tables move.<LineBreak/>
-                    Decrease it if you feel the program is "laggy".<LineBreak/>
-                    Default: 100 - Recommended: 0-200
+                    Interval between bulk window movements. (redundant since rework?)<LineBreak />
+                    Default: 50
                     </TextBlock>
                     <StackPanel Orientation="Horizontal">
 
