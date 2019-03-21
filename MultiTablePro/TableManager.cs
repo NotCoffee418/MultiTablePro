@@ -26,8 +26,14 @@ namespace MultiTablePro
             Config.Active.PropertyChanged += ActiveConfig_PropertyChanged;
         }
 
-        // Used to move tables after other tables. (stealing an active slot)
-        Queue<Tuple<Table, Slot, Slot>> delayedMoveQueue = new Queue<Tuple<Table, Slot, Slot>>();
+        struct MoveWindowStruct
+        {
+            public IntPtr hWnd;
+            public int X;
+            public int Y;
+            public int nWidth;
+            public int nHeight;
+        }
 
         /// <summary>
         /// Starts the Window Manager
@@ -148,7 +154,37 @@ namespace MultiTablePro
                 Slot previousSlot = Config.Active.ActiveProfile.Slots
                     .Where(s => s.OccupiedBy.Contains(tableToMove))
                     .FirstOrDefault();
-                delayedMoveQueue.Enqueue(new Tuple<Table, Slot, Slot>(tableToMove, anInactiveSlot, previousSlot));
+                
+                 // Move table in queue
+                MoveTable(tableToMove, anInactiveSlot, previousSlot);
+
+                // Also move any double stacked tables when an inactive slot is available
+                if (Config.Active.PreferSpreadOverStack)
+                {
+                    // if there's a free inactive slot
+                    var freeInactiveSlots = Config.Active.ActiveProfile.Slots.Where(s => s.ActivityUse == Slot.ActivityUses.Inactive && s.OccupiedBy.Count == 0);
+                    if (freeInactiveSlots.Count() > 0)
+                    {
+                        // Find a slot with a table that should be moved, if any
+                        Slot slotWithUnnessecarilyStackedTable = Config.Active.ActiveProfile.Slots
+                            .Where(s => s.ActivityUse == Slot.ActivityUses.Inactive)
+                            .Where(s => s.OccupiedBy.Count > 1)
+                            .FirstOrDefault();
+
+                        // if we found a slot, move the most approperiate table
+                        if (slotWithUnnessecarilyStackedTable != null)
+                        {
+                            Table bestTableToMove = slotWithUnnessecarilyStackedTable.OccupiedBy.
+                                OrderByDescending(t => t.PriorityChangedTime)
+                                .FirstOrDefault();
+                            MoveTable(
+                                bestTableToMove,
+                                freeInactiveSlots.First(),
+                                slotWithUnnessecarilyStackedTable);
+                        }
+
+                    }
+                }
             }
 
             return resultSlot;
@@ -326,44 +362,6 @@ namespace MultiTablePro
 
                 // List the table to be in the new Slot
                 toSlot.BindTable(table);
-
-                // Run the delayed movement queue
-                while (delayedMoveQueue.Count > 0)
-                {
-                    delayMoveQueueIsBusy = true;
-                    // Move table in queue
-                    var tableFromQueue = delayedMoveQueue.Dequeue();
-                    MoveTable(tableFromQueue.Item1, tableFromQueue.Item2, tableFromQueue.Item3);
-
-                    // Also move any double stacked tables when an inactive slot is available
-                    if (Config.Active.PreferSpreadOverStack)
-                    {
-                        // if there's a free inactive slot
-                        var freeInactiveSlots = Config.Active.ActiveProfile.Slots.Where(s => s.ActivityUse == Slot.ActivityUses.Inactive && s.OccupiedBy.Count == 0);
-                        if (freeInactiveSlots.Count() > 0)
-                        {
-                            // Find a slot with a table that should be moved, if any
-                            Slot slotWithUnnessecarilyStackedTable = Config.Active.ActiveProfile.Slots
-                                .Where(s => s.ActivityUse == Slot.ActivityUses.Inactive)
-                                .Where(s => s.OccupiedBy.Count > 1)
-                                .FirstOrDefault();
-
-                            // if we found a slot, move the most approperiate table
-                            if (slotWithUnnessecarilyStackedTable != null)
-                            {
-                                Table bestTableToMove = slotWithUnnessecarilyStackedTable.OccupiedBy.
-                                    OrderByDescending(t => t.PriorityChangedTime)
-                                    .FirstOrDefault();
-                                delayedMoveQueue.Enqueue(new Tuple<Table, Slot, Slot>(
-                                    bestTableToMove,
-                                    freeInactiveSlots.First(),
-                                    slotWithUnnessecarilyStackedTable));
-                            }
-
-                        }
-                    }
-                    delayMoveQueueIsBusy = false;
-                }
             }
             catch (Exception ex)
             {
@@ -442,21 +440,10 @@ namespace MultiTablePro
             }
         }
 
-        /// <summary>
-        /// TESTING!!
-        /// </summary>
-        struct MoveWindowStruct
-        {
-            public IntPtr hWnd;
-            public int X;
-            public int Y;
-            public int nWidth;
-            public int nHeight;
-        }
+        
         bool delayMoveQueueIsBusy = false;
         Queue<MoveWindowStruct> MoveWindowQueue = new Queue<MoveWindowStruct>();
-        // todo: rename this, conflicts with Win32 MoveWindow
-        private bool RequestMoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight)
+        private void RequestMoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight)
         {
             var qs = new MoveWindowStruct();
             qs.hWnd = hWnd;
@@ -465,7 +452,6 @@ namespace MultiTablePro
             qs.nWidth = nWidth;
             qs.nHeight = nHeight;
             MoveWindowQueue.Enqueue(qs);
-            return true;
         }
 
         private void RunMoveWindowQueueTest()
