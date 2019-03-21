@@ -13,22 +13,10 @@ namespace MultiTablePro
 {
     internal class TableManager
     {
-        //[DllImport("user32.dll", SetLastError = true)]
-        //internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ShowWindow(IntPtr hWnd, ShowWindowCommands nCmdShow);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        // Testing
         [DllImport("user32.dll")]
         static extern IntPtr BeginDeferWindowPos(int nNumWindows);
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags); // Can't find this, custom written
-
         [DllImport("user32.dll", SetLastError = true)]
         static extern bool EndDeferWindowPos(IntPtr hWinPosInfo);
 
@@ -37,80 +25,6 @@ namespace MultiTablePro
         {
             Config.Active.PropertyChanged += ActiveConfig_PropertyChanged;
         }
-
-        #region ShowWindowCommands (todo: can't we import this or something?)
-        internal enum ShowWindowCommands
-        {
-            /// <summary>
-            /// Hides the window and activates another window.
-            /// </summary>
-            Hide = 0,
-            /// <summary>
-            /// Activates and displays a window. If the window is minimized or 
-            /// maximized, the system restores it to its original size and position.
-            /// An application should specify this flag when displaying the window 
-            /// for the first time.
-            /// </summary>
-            Normal = 1,
-            /// <summary>
-            /// Activates the window and displays it as a minimized window.
-            /// </summary>
-            ShowMinimized = 2,
-            /// <summary>
-            /// Maximizes the specified window.
-            /// </summary>
-            Maximize = 3, // is this the right value?
-                          /// <summary>
-                          /// Activates the window and displays it as a maximized window.
-                          /// </summary>       
-            ShowMaximized = 3,
-            /// <summary>
-            /// Displays a window in its most recent size and position. This value 
-            /// is similar to <see cref="Win32.ShowWindowCommand.Normal"/>, except 
-            /// the window is not activated.
-            /// </summary>
-            ShowNoActivate = 4,
-            /// <summary>
-            /// Activates the window and displays it in its current size and position. 
-            /// </summary>
-            Show = 5,
-            /// <summary>
-            /// Minimizes the specified window and activates the next top-level 
-            /// window in the Z order.
-            /// </summary>
-            Minimize = 6,
-            /// <summary>
-            /// Displays the window as a minimized window. This value is similar to
-            /// <see cref="Win32.ShowWindowCommand.ShowMinimized"/>, except the 
-            /// window is not activated.
-            /// </summary>
-            ShowMinNoActive = 7,
-            /// <summary>
-            /// Displays the window in its current size and position. This value is 
-            /// similar to <see cref="Win32.ShowWindowCommand.Show"/>, except the 
-            /// window is not activated.
-            /// </summary>
-            ShowNA = 8,
-            /// <summary>
-            /// Activates and displays the window. If the window is minimized or 
-            /// maximized, the system restores it to its original size and position. 
-            /// An application should specify this flag when restoring a minimized window.
-            /// </summary>
-            Restore = 9,
-            /// <summary>
-            /// Sets the show state based on the SW_* value specified in the 
-            /// STARTUPINFO structure passed to the CreateProcess function by the 
-            /// program that started the application.
-            /// </summary>
-            ShowDefault = 10,
-            /// <summary>
-            ///  <b>Windows 2000/XP:</b> Minimizes a window, even if the thread 
-            /// that owns the window is not responding. This flag should only be 
-            /// used when minimizing windows from a different thread.
-            /// </summary>
-            ForceMinimize = 11
-        }
-        #endregion
 
         // Used to move tables after other tables. (stealing an active slot)
         Queue<Tuple<Table, Slot, Slot>> delayedMoveQueue = new Queue<Tuple<Table, Slot, Slot>>();
@@ -125,17 +39,17 @@ namespace MultiTablePro
                 Table.ActionQueue = new ConcurrentQueue<Table>();
             }
             IsRunning = true;
+
+            // Start table manager
             new Thread(() => ManageTables()).Start();
-            if (Config.Active.ForceTablePosition)
-                forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
+
+            // Start Window Mover
+            new Thread(() => RunMoveWindowQueueTest()).Start();
 
             // Start handlers
             PSLogHandler.Start();
             if (Config.Active.BwinSupportEnabled)
                 BwinHandler.Start();
-
-            // Start test mover
-            new Thread(() => RunMoveWindowQueueTest()).Start();
         }
 
         /// <summary>
@@ -144,16 +58,8 @@ namespace MultiTablePro
         public void Stop()
         {
             IsRunning = false;
-            if (forceTablePositionTimer != null)
-            {
-                forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                forceTablePositionTimer.Dispose();
-            }
             PSLogHandler.Stop();
         }
-
-        // private property's vars
-        private Timer forceTablePositionTimer;
 
         // Properties
         public bool IsRunning { get; set; }
@@ -400,25 +306,9 @@ namespace MultiTablePro
             // Move the table
             try
             {
-                // normalize
-                ShowWindow(table.WindowHandle, ShowWindowCommands.Restore);
-                ShowWindow(table.WindowHandle, ShowWindowCommands.Normal);
-
-                // Move table offscreen to resize (fix for annoying flicker) - only when size changes
-                if (previousSlot != null && (previousSlot.Width != toSlot.Width || previousSlot.Height != toSlot.Height))
-                {
-                    MoveWindow(table.WindowHandle, Convert.ToInt32(WpfScreen.OffScreenLocation.Item1),
-                    Convert.ToInt32(WpfScreen.OffScreenLocation.Item2), previousSlot.Width, previousSlot.Height, true);
-                    Thread.Sleep(Config.Active.TableMovementDelay); // If flicker persists, 200 ms did the trick last time - EDIT: Flicker is gone, why?
-                }
-
                 // Move the window
-                MoveWindow(table.WindowHandle,
-                    toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height, true);
-
-                // Bring to foreground if table requires action
-                if (table.Priority >= Table.Status.ActionRequired)
-                    ShowWindow(table.WindowHandle, ShowWindowCommands.Show);
+                RequestMoveWindow(table.WindowHandle,
+                    toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height);
 
                 // Remove the table from any previous Slot it was in
                 lock (Config.Active.ActiveProfile)
@@ -552,37 +442,6 @@ namespace MultiTablePro
             }
         }
 
-        private void ForceTablePosition(object state)
-        {
-            if (IsRunning && Config.Active.ForceTablePosition)
-            {
-                lock (Table.KnownTables)
-                {
-                    foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual))
-                    {
-                        Slot toSlot = Config.Active.ActiveProfile.Slots.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
-                        if (toSlot == null)
-                            return;
-
-                        try
-                        {
-                            // normalize
-                            ShowWindow(table.WindowHandle, ShowWindowCommands.Restore);
-                            ShowWindow(table.WindowHandle, ShowWindowCommands.Normal);
-
-                            // Move the window
-                            MoveWindow(table.WindowHandle,
-                                toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height, true);
-                        }
-                        catch
-                        {
-                            Logger.Log("Table {table.WindowHandle} was closed unexpectedly during ForceTablePosition.");
-                        }
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// TESTING!!
         /// </summary>
@@ -597,7 +456,7 @@ namespace MultiTablePro
         bool delayMoveQueueIsBusy = false;
         Queue<MoveWindowStruct> MoveWindowQueue = new Queue<MoveWindowStruct>();
         // todo: rename this, conflicts with Win32 MoveWindow
-        private bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint)
+        private bool RequestMoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight)
         {
             var qs = new MoveWindowStruct();
             qs.hWnd = hWnd;
@@ -611,7 +470,7 @@ namespace MultiTablePro
 
         private void RunMoveWindowQueueTest()
         {
-            while (true) // ----- fix loop IsRnning chekc
+            while (IsRunning) // ----- fix loop IsRnning chekc
             {
                 if (delayMoveQueueIsBusy || MoveWindowQueue.Count == 0)
                 {
@@ -619,7 +478,28 @@ namespace MultiTablePro
                     continue;
                 }
 
-                // Load stuff from queue
+                // Move all tables when ForceTablePosition is on.
+                if (Config.Active.ForceTablePosition)
+                {
+                    // Empty the queue
+                    MoveWindowQueue.Clear();
+
+                    // Add everything to queue
+                    lock (Table.KnownTables)
+                    {
+                        foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual && t.Priority > Table.Status.Closed))
+                        {
+                            Slot toSlot = Config.Active.ActiveProfile.Slots.Where(s => s.OccupiedBy.Contains(table)).FirstOrDefault();
+                            if (toSlot == null)
+                                return;
+
+                            RequestMoveWindow(table.WindowHandle,
+                                toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height);
+                        }
+                    }
+                }
+
+                // Move all tables in the queue
                 List<MoveWindowStruct> winsToMove = new List<MoveWindowStruct>();
                 while (MoveWindowQueue.Count > 0)
                     winsToMove.Add(MoveWindowQueue.Dequeue());
@@ -628,11 +508,12 @@ namespace MultiTablePro
                 Logger.Log("Attempting to move " + winsToMove.Count + " windows through DeferWindowPos");
                 IntPtr hWinPosInfo = BeginDeferWindowPos(winsToMove.Count);
                 foreach (var wMoveReq in winsToMove)
-                {
                     DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0040);
-                }
-                EndDeferWindowPos(hWinPosInfo);
-                
+                bool moveSuccess = EndDeferWindowPos(hWinPosInfo);
+
+                // Log any errors
+                if (!moveSuccess)
+                    Logger.Log("DeferWindowPos was unsuccessful for some reason", Logger.Status.Warning);
             }
         }
 
@@ -642,20 +523,6 @@ namespace MultiTablePro
             // A new profile was selected, re-initialize
             if (IsRunning && e.PropertyName == "ActiveProfile" && Config.Active.ActiveProfile != null)
                 InitialTablePlacement();
-
-            // ForceTablePosition changed - update the timer acoordingly
-            else if (e.PropertyName == "ForceTablePosition")
-            {
-                if (Config.Active.ForceTablePosition && forceTablePositionTimer == null)
-                {
-                    forceTablePositionTimer = new Timer(ForceTablePosition, null, 0, 500);
-                }
-                else if (!Config.Active.ForceTablePosition && forceTablePositionTimer != null)
-                {
-                    forceTablePositionTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                    forceTablePositionTimer.Dispose();
-                }
-            }
         }
     }
 }
