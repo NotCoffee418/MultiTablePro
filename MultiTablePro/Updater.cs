@@ -15,11 +15,10 @@ namespace MultiTablePro
         {
             try
             {
-                AutoUpdater.ParseUpdateInfoEvent += AutoUpdaterOnParseUpdateInfoEvent;
-                AutoUpdater.ReportErrors = true;
+                AutoUpdater.ParseUpdateInfoEvent += AutoUpdaterOnParseUpdateInfoEvent;                
                 AutoUpdater.Start("https://multitablepro.com/api/get_latest_version/multitable-pro/release", Assembly.GetExecutingAssembly());
                 if (force)
-                    AutoUpdater.ShowUpdateForm();
+                    AutoUpdater.ReportErrors = true;                    
             }
             catch (Exception ex)
             {
