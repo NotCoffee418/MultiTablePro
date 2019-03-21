@@ -13,8 +13,8 @@ namespace MultiTablePro
 {
     internal class TableManager
     {
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+        //[DllImport("user32.dll", SetLastError = true)]
+        //internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -22,6 +22,15 @@ namespace MultiTablePro
 
         [DllImport("user32.dll", SetLastError = true)]
         internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        // Testing
+        [DllImport("user32.dll")]
+        static extern IntPtr BeginDeferWindowPos(int nNumWindows);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr DeferWindowPos(IntPtr hWinPosInfo, IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags); // Can't find this, custom written
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool EndDeferWindowPos(IntPtr hWinPosInfo);
 
 
         public TableManager()
@@ -124,6 +133,9 @@ namespace MultiTablePro
             PSLogHandler.Start();
             if (Config.Active.BwinSupportEnabled)
                 BwinHandler.Start();
+
+            // Start test mover
+            new Thread(() => RunMoveWindowQueueTest()).Start();
         }
 
         /// <summary>
@@ -179,7 +191,7 @@ namespace MultiTablePro
             if (possibleSlots.Count() == 0) {
                 if (slotType == Slot.ActivityUses.Aside)
                     Logger.Log("WindowManager: Attempting to move table aside but there is no aside slot. Add one in config.",
-                        Logger.Status.Warning, showMessageBox:true);
+                        Logger.Status.Warning, showMessageBox: true);
                 else Logger.Log($"WindowManager: An active or inactive slot was missing. Corrupt config?", Logger.Status.Fatal);
 
                 return resultSlot;
@@ -246,7 +258,7 @@ namespace MultiTablePro
         /// <returns>true on success, false on fail</returns>
         private bool TryMoveTable(Table table)
         {
-            
+
             // Count available active slots
             int freeActiveSlotsCount = Config.Active.ActiveProfile.Slots
                 .Where(s => s.ActivityUse == Slot.ActivityUses.Active)
@@ -284,7 +296,7 @@ namespace MultiTablePro
             // Priority table or when there free slots get an active
             else if (isPriorityTable || canUseActiveSlot) // todo: user setting goes here
                 activity = Slot.ActivityUses.Active;
-            
+
             // Was made unaside or low prio
             else if (!isPriorityTable || wasMadeUnaside || isNewTable) // todo: User setting also goes here
                 activity = Slot.ActivityUses.Inactive;
@@ -301,14 +313,14 @@ namespace MultiTablePro
                         Count = grp.Count()
                     })
                     .Where(g => g.Count > 1).Count();
-                
+
                 // count can be 0 if user closes before application has ever moved it
                 // It should never be > 1. If it does, there's a bug.
                 if (slotsWithClosed.Count() > 1 || amountOfTimesDuplicateTableWasFoundInSingleSlot > 0) // is table in multiple slots || table duplicate in one slot.ObbupiedBy
                     // Schrodingers Cat indicates tables were somehow not moved as intended resulting in a table occupying multiple slots at once.
                     // This issue is only relevant if i break something, user does something unexpected with profiles, or stacking breaks things when we enable it.
                     // Request that the user report it since it's hard to find a cause of any strange table movement without the exception.
-                    Logger.Log("Schrodingers Cat. Please report this issue to the developer.", 
+                    Logger.Log("Schrodingers Cat. Please report this issue to the developer.",
                         Logger.Status.Warning, true);
 
                 // Remove any/all instances of the table from slots
@@ -319,7 +331,7 @@ namespace MultiTablePro
             }
 
             // No need to move to inactive (since inactive can be set even when we're not in the hand) or to slots of the same type, claim success
-            else if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) 
+            else if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse))
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
                 return true;
@@ -373,7 +385,7 @@ namespace MultiTablePro
         {
             Logger.Log($"TableManager: Moving table ({table.WindowHandle}) to (Activity:{toSlot.ActivityUse}) " +
                 $"slot ({toSlot.Id}) at ({toSlot.X},{toSlot.Y},{toSlot.Width},{toSlot.Height})");
-            
+
             // If the table or stars client was closed since it was enqueued, don't move it.
             if (table.Priority == Table.Status.Closed)
             {
@@ -398,10 +410,10 @@ namespace MultiTablePro
                     MoveWindow(table.WindowHandle, Convert.ToInt32(WpfScreen.OffScreenLocation.Item1),
                     Convert.ToInt32(WpfScreen.OffScreenLocation.Item2), previousSlot.Width, previousSlot.Height, true);
                     Thread.Sleep(Config.Active.TableMovementDelay); // If flicker persists, 200 ms did the trick last time - EDIT: Flicker is gone, why?
-                }                
+                }
 
                 // Move the window
-                MoveWindow(table.WindowHandle, 
+                MoveWindow(table.WindowHandle,
                     toSlot.X, toSlot.Y, toSlot.Width, toSlot.Height, true);
 
                 // Bring to foreground if table requires action
@@ -428,6 +440,7 @@ namespace MultiTablePro
                 // Run the delayed movement queue
                 while (delayedMoveQueue.Count > 0)
                 {
+                    delayMoveQueueIsBusy = true;
                     // Move table in queue
                     var tableFromQueue = delayedMoveQueue.Dequeue();
                     MoveTable(tableFromQueue.Item1, tableFromQueue.Item2, tableFromQueue.Item3);
@@ -459,6 +472,7 @@ namespace MultiTablePro
 
                         }
                     }
+                    delayMoveQueueIsBusy = false;
                 }
             }
             catch (Exception ex)
@@ -495,7 +509,7 @@ namespace MultiTablePro
                             .Count();
 
                         // This should only apply to active tables - bump aside and inactive requests up the queue
-                        if (activeRequestCount != Table.ActionQueue.Count()) 
+                        if (activeRequestCount != Table.ActionQueue.Count())
                         {
                             // Determine new priority
                             List<Table> newOrder = new List<Table>();
@@ -518,7 +532,7 @@ namespace MultiTablePro
                         }
                         else continue;
                     }
-                        
+
                 }
 
                 // Queue has a table, put it in changedTable
@@ -565,10 +579,64 @@ namespace MultiTablePro
                             Logger.Log("Table {table.WindowHandle} was closed unexpectedly during ForceTablePosition.");
                         }
                     }
-                }                
+                }
             }
         }
-        
+
+        /// <summary>
+        /// TESTING!!
+        /// </summary>
+        struct MoveWindowStruct
+        {
+            public IntPtr hWnd;
+            public int X;
+            public int Y;
+            public int nWidth;
+            public int nHeight;
+        }
+        bool delayMoveQueueIsBusy = false;
+        Queue<MoveWindowStruct> MoveWindowQueue = new Queue<MoveWindowStruct>();
+        // todo: rename this, conflicts with Win32 MoveWindow
+        private bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint)
+        {
+            var qs = new MoveWindowStruct();
+            qs.hWnd = hWnd;
+            qs.X = X;
+            qs.Y = Y;
+            qs.nWidth = nWidth;
+            qs.nHeight = nHeight;
+            MoveWindowQueue.Enqueue(qs);
+            return true;
+        }
+
+        private void RunMoveWindowQueueTest()
+        {
+            while (true) // ----- fix loop IsRnning chekc
+            {
+                if (delayMoveQueueIsBusy || MoveWindowQueue.Count == 0)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
+
+                // Load stuff from queue
+                List<MoveWindowStruct> winsToMove = new List<MoveWindowStruct>();
+                while (MoveWindowQueue.Count > 0)
+                    winsToMove.Add(MoveWindowQueue.Dequeue());
+
+                // Move the windows
+                Logger.Log("Attempting to move " + winsToMove.Count + " windows through DeferWindowPos");
+                IntPtr hWinPosInfo = BeginDeferWindowPos(winsToMove.Count);
+                foreach (var wMoveReq in winsToMove)
+                {
+                    DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0040);
+                }
+                EndDeferWindowPos(hWinPosInfo);
+                
+            }
+        }
+
+
         private void ActiveConfig_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             // A new profile was selected, re-initialize
