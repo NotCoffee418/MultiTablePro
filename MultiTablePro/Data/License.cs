@@ -72,10 +72,19 @@ namespace MultiTablePro.Data
             string responseFromServer = reader.ReadToEnd();
             Logger.Log(responseFromServer);//Remove
             //Transform raw stream into JSON Object.
+            //Access info by apiResult.[JSONTAG].[JSONSUBTAG]....
             dynamic apiResult = JsonConvert.DeserializeObject(responseFromServer);
-            //Set expire date
-            ExpDate = apiResult.result.expires_at;
-            Logger.Log(ExpDate);
+            //Check if posted license is valid.
+            if (apiResult.result.is_valid == 0)
+            {
+                //invalid or expired license
+                //do something
+                Logger.Log(apiResult.result.license_status_message);
+            }
+            else if (apiResult.result.is_valid == 1)
+            {
+                //store all the things the way you want them.
+            }
             //close remaining streams.
             reader.Close();
             dataStream.Close();
