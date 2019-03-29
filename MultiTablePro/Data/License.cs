@@ -72,9 +72,9 @@ namespace MultiTablePro.Data
             string responseFromServer = reader.ReadToEnd();
             Logger.Log(responseFromServer);//Remove
             //Transform raw stream into JSON Object.
-            dynamic jsonDecode = JsonConvert.DeserializeObject(responseFromServer);
+            dynamic apiResult = JsonConvert.DeserializeObject(responseFromServer);
             //Set expire date
-            ExpDate = jsonDecode.result.expires_at;
+            ExpDate = apiResult.result.expires_at;
             Logger.Log(ExpDate);
             //close remaining streams.
             reader.Close();
