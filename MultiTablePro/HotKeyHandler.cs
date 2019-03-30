@@ -33,26 +33,25 @@ namespace MultiTablePro
 
         public const int WM_HOTKEY = 0x0312; // Definition for hotkey MSG
         private static Dictionary<int, HotKey> idMemory = new Dictionary<int, HotKey>();
-        private static int _lastRegisterId = -1;
+        private static int _lastRegisterId = 0;
+        private static bool _handlingKeyPress = false;
 
         private static int LastRegisterId
         {
-            get
-            {
-                // Not sure if starting at 0 is the best idea for hooking into external applications.
-                // Starting at a unique value instead (our MainWindowHandle)
-                if (_lastRegisterId == -1)
-                    _lastRegisterId = Process.GetCurrentProcess().MainWindowHandle.ToInt32();
-                return _lastRegisterId;
-            }
+            get { return _lastRegisterId; }
             set { _lastRegisterId = value; }
         }
         private static IntPtr OurWindowHandle { get; set; }
 
         internal static void HotkeyPressed(ref MSG m, ref bool handled)
         {
-            if (m.message != WM_HOTKEY)
+            // Only accept hotkey messages
+            if (m.message != WM_HOTKEY || _handlingKeyPress)
                 return;
+
+            // Indicate that we're currently processing a HotKeyPressed event & lock it
+            // Hopefully prevents unknown flooding issue #53
+            _handlingKeyPress = true;
 
             // Find the targeted table, if any
             Table table = FindTableUnderMouse();
@@ -78,6 +77,9 @@ namespace MultiTablePro
                     RegisterHotKey(foundHotkey, OurWindowHandle);
                 }
             }
+
+            // Unlock the event handler
+            _handlingKeyPress = false;
         }
 
         public static void RegisterHotKey(HotKey hotKey, IntPtr windowHandle)
