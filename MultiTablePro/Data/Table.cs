@@ -202,8 +202,9 @@ namespace MultiTablePro.Data
                     return;
                 }
 
-                Regex rBwinTourneyWinTitle = new Regex(@"(.+) \(\d+\) Table #\d+ -  (NL|PL)  .+ - \$(\d+?\.\d+) Buy-in");
+                Regex rBwinTourneyWinTitle = new Regex(@"(.+) \(\d+\) Table #\d+ -  (NL|PL)  .+ - \$(\d+?(\.\d+)?) Buy-in");
                 // Tourney: Monster #02-Low: $5K Gtd [Deep, 8-Max] (203102130) Table #132 -  NL  Hold'em - $2.20 Buy-in
+                // Spins: $1 SPINS (206024853) Table #1 -  NL  Hold'em - $1 Buy-in
                 if (rBwinTourneyWinTitle.IsMatch(windowTitle))
                 {
                     var rMatch = rBwinTourneyWinTitle.Match(windowTitle);
