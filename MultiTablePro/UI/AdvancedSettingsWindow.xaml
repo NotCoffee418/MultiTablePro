@@ -46,7 +46,7 @@
                     This should only be enabled to collect data for a bug report.<LineBreak/>
                     Application must be restarted for changes to take effect.
                     </TextBlock>
-                    <Button Content="Open Logs Directory" Margin="5" Click="OpenLocksDirectory_Click"/>
+                    <Button Content="Open Logs Directory" Margin="5" Click="OpenLogsDirectory_Click"/>
                 </StackPanel>
             </GroupBox>
 

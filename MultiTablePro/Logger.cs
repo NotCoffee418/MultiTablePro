@@ -58,8 +58,8 @@ namespace MultiTablePro
         };
 
         static Queue<string> writeQueue = new Queue<string>();
-        static string LogFilePath { get; set; }
-        static Status LogLevel { get; set; }
+        public static string LogFilePath { get; set; }
+        public static Status LogLevel { get; set; }
 
         public static void Log(string message, Status status = Status.Info, bool showMessageBox = false)
         {

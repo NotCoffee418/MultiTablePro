@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using MultiTablePro.Data;
@@ -24,7 +25,7 @@ namespace MultiTablePro
 
             // Notify application started
             App.Current.Properties["IsRunning"] = true;
-            Logger.Log("--- Starting application ---");
+            Logger.Log($"--- MultiTable Pro v{Assembly.GetExecutingAssembly().GetName().Version.ToString()} Started ---");
 
             // Load config & install on first run
             // Config needs to be initialized before the license check
