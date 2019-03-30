@@ -41,7 +41,6 @@ namespace MultiTablePro.Data
         private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
         private int _tableMovementDelay = 50;
         private bool _bwinSupportEnabled = false;
-        private string _licenseKey = "TRIAL";
 
         [JsonIgnore]
         public static Config Active { get; set; }
@@ -187,16 +186,6 @@ namespace MultiTablePro.Data
             {
                 _bwinSupportEnabled = value;
                 RaisePropertyChanged("_bwinSupportEnabled");
-            }
-        }
-         
-        public string LicenseKey
-        {
-            get { return _licenseKey; }
-            set
-            {
-                _licenseKey = value;
-                RaisePropertyChanged("_licenseKey");
             }
         }
 
