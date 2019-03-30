@@ -85,7 +85,7 @@ namespace MultiTablePro.Data
             else if (apiResult.result.is_valid == 1)
             {
                 // todo: Set all result properties to class properties
-                Key = apiResult.result.license_key;
+                Key = apiResult.result.license_key.ToObject<string>());
                 //...
 
                 // Set activelicense and run application
