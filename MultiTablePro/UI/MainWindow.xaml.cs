@@ -29,13 +29,6 @@ namespace MultiTablePro.UI
         public MainWindow()
         {
             InitializeComponent();
-
-            // Cancel if we're already running
-            if (Process.GetProcessesByName("MultiTablePro").Count() > 1)
-            {
-                Logger.Log("BPTM is already running. Try again in a few seconds if you just closed it.", Logger.Status.Warning, true);
-                Application.Current.Shutdown();
-            }
         }
 
         TableManager ActiveTableManager { get; set; }
@@ -75,11 +68,6 @@ namespace MultiTablePro.UI
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
-
-            // Warn user when debug logging is enabled - since it should only be enabled when collecting bug data
-            if (Config.Active.EnableDetailedLogging)
-                Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.", 
-                    Logger.Status.Warning, showMessageBox: true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -421,6 +409,32 @@ namespace MultiTablePro.UI
         private void checkForUpdates_Click(object sender, RoutedEventArgs e)
         {
             Updater.Run(force:true);
+        }
+
+        private void RestartWithLogger_Click(object sender, RoutedEventArgs e)
+        {
+            var mbr = MessageBox.Show(
+                "WARNING: This should only be done if you wish to report a bug or have been asked to do so by support." + Environment.NewLine +
+                "Be careful doing this during a session as may take some time for tables to be detected again after the restart.",
+                "Restart with detailed logging?", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (mbr == MessageBoxResult.Yes)
+            {
+                // Save config value
+                Config.Active.EnableDetailedLogging = true;
+
+                // Stop running & hide
+                App.Current.Properties["IsRunning"] = false;
+                Hide();
+
+                // Create new process
+                Process p = new Process();
+                p.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
+                p.StartInfo.Arguments = "-ignorealreadyrunning";
+                p.Start();
+
+                // Kill this application
+                Application.Current.Shutdown();
+            }            
         }
     }
 }
