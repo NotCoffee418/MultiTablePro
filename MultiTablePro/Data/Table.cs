@@ -193,7 +193,7 @@ namespace MultiTablePro.Data
 
                 // *** BWIN *** //
                 // Cash: Bergen -  NL  Hold'em - $0.01/$0.02
-                Regex rBwinWinTitle = new Regex(@"(\S+) -  (NL|PL|FL)  .+ - \$(\d+?\.\d+)\/\$(\d+?\.\d+)");
+                Regex rBwinWinTitle = new Regex(@"(.+) -  (NL|PL|FL)  .+ - \$(\d+?\.\d+)\/\$(\d+?\.\d+)");
                 if (rBwinWinTitle.IsMatch(windowTitle))
                 {
                     var rMatch = rBwinWinTitle.Match(windowTitle);
