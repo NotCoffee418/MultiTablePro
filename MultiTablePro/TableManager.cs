@@ -50,10 +50,10 @@ namespace MultiTablePro
             IsRunning = true;
 
             // Start table manager
-            new Thread(() => ManageTables()).Start();
+            GHelper.SafeThreadStart(() => ManageTables());
 
             // Start Window Mover
-            new Thread(() => RunMoveWindowQueue()).Start();
+            GHelper.SafeThreadStart(() => RunMoveWindowQueue());
 
             // Start handlers
             PSLogHandler.Start();

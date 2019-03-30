@@ -32,13 +32,13 @@ namespace MultiTablePro
             LogFilePath = Path.Combine(path, string.Format("mtp-{0}.log", DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss")));
 
             // Start log writer
-            new Thread(() => StartLogWriter()).Start();
+            GHelper.SafeThreadStart(() => StartLogWriter());
 
             // Application exit event
             Application.Current.Exit += Application_Exit;
 
             // Clean log files older than 6 months
-            new Thread(() => CleanLogs()).Start();
+            GHelper.SafeThreadStart(() => CleanLogs());
         }
 
         public enum Status

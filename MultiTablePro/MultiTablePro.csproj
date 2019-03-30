@@ -84,6 +84,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="GHelper.cs" />
     <Compile Include="UI\AdvancedSettingsWindow.xaml.cs">
       <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
     </Compile>

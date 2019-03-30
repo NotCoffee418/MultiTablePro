@@ -29,7 +29,7 @@ namespace MultiTablePro.PlatformHandlers
                 lock (activeLogFiles)
                 {
                     foreach (string logFile in activeLogFiles)
-                        new Thread(() => WatchLog(logFile)).Start();
+                        GHelper.SafeThreadStart(() => WatchLog(logFile));
                 }
             }
 
@@ -90,7 +90,7 @@ namespace MultiTablePro.PlatformHandlers
             if (newLogFiles.Count() > 0)
             {
                 foreach (string log in newLogFiles)
-                    new Thread(() => WatchLog(log)).Start();
+                    GHelper.SafeThreadStart(() => WatchLog(log));
                 newLogFiles.Clear();
 
                 // This should only happen while debugging or on a new PS install
