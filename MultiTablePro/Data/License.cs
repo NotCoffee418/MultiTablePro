@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using Newtonsoft.Json;
+using Microsoft.Win32;
 
 namespace MultiTablePro.Data
 {
@@ -63,7 +64,7 @@ namespace MultiTablePro.Data
             //Get the response
             WebResponse wResponse = wReq.GetResponse();
             // Log HTTP Status code
-            Logger.Log(((HttpWebResponse)wResponse).StatusDescription);
+            Logger.Log("ApiRequest HTTP Status:" + ((HttpWebResponse)wResponse).StatusDescription);
             //Get the stream of content getting returned by server
             dataStream = wResponse.GetResponseStream();
             //Open the stream with streamreader for easy access
@@ -72,23 +73,68 @@ namespace MultiTablePro.Data
             string responseFromServer = reader.ReadToEnd();
             Logger.Log(responseFromServer);//Remove
             //Transform raw stream into JSON Object.
-            dynamic jsonDecode = JsonConvert.DeserializeObject(responseFromServer);
-            //Set expire date
-            ExpDate = jsonDecode.result.expires_at;
-            Logger.Log(ExpDate);
+            //Access info by apiResult.[JSONTAG].[JSONSUBTAG]....
+            dynamic apiResult = JsonConvert.DeserializeObject(responseFromServer);
+            //Check if posted license is valid.
+            if (apiResult.result.is_valid == 0)
+            {
+                //invalid or expired license
+                //do something
+                Logger.Log(apiResult.result.license_status_message.ToObject<string>());
+            }
+            else if (apiResult.result.is_valid == 1)
+            {
+                // todo: Set all result properties to class properties
+                Key = apiResult.result.license_key.ToObject<string>());
+                //...
+
+                // Set activelicense and run application
+                Config.Active.ActiveLicense = this;
+            }
             //close remaining streams.
             reader.Close();
             dataStream.Close();
             wResponse.Close();
         }
 
+        /// <summary>
+        /// Saves the current License to registry
+        /// Only call on valid license keys & when license key was changed
+        /// </summary>
+        public void Save()
+        {
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("Software\\MultiTable Pro", true);
+            registryKey.SetValue("licensekey", Key);
+        }
+
+        /// <summary>
+        /// Loads last known license or trial license
+        /// </summary>
+        /// <returns>Instance of License class</returns>
+        public static License GetKnownLicense()
+        {
+            try
+            {
+                RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("Software\\MultiTable Pro", true);
+                object rLicKeyValue = registryKey.GetValue("licensekey"); // null when key doesn't exist,
+                if (rLicKeyValue == null)
+                    return new License("TRIAL");
+                else return new License((string)rLicKeyValue);
+            }
+            catch // can occur when user manually changes registry value to non-string
+            {
+                Logger.Log("Registry error while trying to grab license key. Using TRIAL instead.", Logger.Status.Warning);
+                return new License("TRIAL");
+            }
+        }
+        
         private string GetMac()
         {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
                 .Select(nic => nic.GetPhysicalAddress().ToString())
                 .FirstOrDefault();
-        }
+        }        
 
         public void RaisePropertyChanged(string property)
         {
