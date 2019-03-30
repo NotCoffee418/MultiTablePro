@@ -501,7 +501,7 @@ namespace MultiTablePro
                 Logger.Log("Attempting to move " + winsToMove.Count + " windows through DeferWindowPos");
                 IntPtr hWinPosInfo = BeginDeferWindowPos(winsToMove.Count);
                 foreach (var wMoveReq in winsToMove)
-                    DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0040);
+                    DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0044);
                 bool moveSuccess = EndDeferWindowPos(hWinPosInfo);
 
                 // Log any errors
