@@ -32,6 +32,10 @@ namespace MultiTablePro.PlatformHandlers
                         new Thread(() => WatchLog(logFile)).Start();
                 }
             }
+
+            // Register all open tables on startup / restart
+            WHelper.EnumAllWindows(IntPtr.Zero, "PokerStarsTableFrameClass").ToList()
+                .ForEach(h => Table.Find(h, registerMissing:true));
         }
 
         public static void Stop()

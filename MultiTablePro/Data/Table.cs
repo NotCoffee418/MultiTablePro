@@ -41,7 +41,7 @@ namespace MultiTablePro.Data
         DateTime _priorityChangedTime;
         bool _isVirtual;
         string _name = "";
-        double _bigBlind;
+        double _bigBlind = 0.0;
 
         public IntPtr WindowHandle
         {
@@ -101,7 +101,7 @@ namespace MultiTablePro.Data
             {
                 if (IsVirtual)
                     return 0;
-                else if (_bigBlind == 0)
+                else if (_bigBlind == 0 && _name == "") // 0NL can happen on <$0.50 tourney-types
                     SetNameAndBigBlind();
                 return _bigBlind;
             }
@@ -212,6 +212,11 @@ namespace MultiTablePro.Data
                     _bigBlind = double.Parse(rMatch.Groups[3].Value) / 100;
                     return;
                 }
+                
+
+                // If we reached this point, log a warning and set to invalid title - failed to find it
+                Logger.Log($"Table: SetNameAndBigBlind failed on table with name: {windowTitle}", Logger.Status.Warning);
+                _name = "(UNKNOWN WINDOW TITLE OR NOT LOGGED IN)";
             }
         }
 
