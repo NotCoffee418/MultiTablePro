@@ -113,7 +113,7 @@ namespace MultiTablePro
             }
             catch
             {
-                Logger.Log("Attempting to unregister a hotke<y that was never registered.", Logger.Status.Error);
+                Logger.Log("Attempting to unregister a hotkey that was never registered.", Logger.Status.Error);
                 return;
             }
 
