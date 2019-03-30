@@ -54,12 +54,7 @@ namespace MultiTablePro.UI
             // Set window title to include version
             versionInfoTxt.Text = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
 
-            // Notify application started
-            App.Current.Properties["IsRunning"] = true;
-            Logger.Log("--- Starting application ---");
-
-            // Load config & install on first run
-            Config.Active = Config.FromFile();
+            // Set DataContext
             DataContext = Config.Active;
 
             // Refresh the profile list & select Active

@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using MultiTablePro.Data;
 using MultiTablePro.UI;
 
 namespace MultiTablePro
@@ -21,7 +22,17 @@ namespace MultiTablePro
             // Start the updater
             Updater.Run();
 
-            // Show MainWindow
+            // Notify application started
+            App.Current.Properties["IsRunning"] = true;
+            Logger.Log("--- Starting application ---");
+
+            // Load config & install on first run
+            // Config needs to be initialized before the license check
+            Config.Active = Config.FromFile();
+
+            // todo: RequestLicenseKeyWindow call goes here
+
+            // Show MainWindow (todoDelete this when License Check window exists)
             MainWindow win = new MainWindow();
             win.Show();
         }
