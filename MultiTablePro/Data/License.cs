@@ -80,7 +80,7 @@ namespace MultiTablePro.Data
             {
                 //invalid or expired license
                 //do something
-                Logger.Log(apiResult.result.license_status_message);
+                Logger.Log(apiResult.result.license_status_message.ToObject<string>());
             }
             else if (apiResult.result.is_valid == 1)
             {
