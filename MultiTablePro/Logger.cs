@@ -78,7 +78,7 @@ namespace MultiTablePro
                 MessageBox.Show(message, "Fatal error - closing application", MessageBoxButton.OK, MessageBoxImage.Stop);
                 Application.Current.Shutdown();
             }
-            else if (showMessageBox)
+            else if (showMessageBox || status == Status.Fatal)
                 MessageBox.Show(message, statusNames[(int)status], MessageBoxButton.OK, statusIcons[(int)status]);
         }
 
