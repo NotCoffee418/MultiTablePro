@@ -22,6 +22,9 @@ namespace MultiTablePro
             base.OnStartup(e);
             Dictionary<string, string> startupArgs = CleanStartupArgs(e.Args);
 
+            // test killme
+            Api.test();
+
             // Cancel if we're already running and ignorealreadyrunning is not a startup arg
             if (Process.GetProcessesByName("MultiTablePro").Count() > 1 && !startupArgs.ContainsKey("ignorealreadyrunning"))
             {
