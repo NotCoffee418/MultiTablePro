@@ -174,9 +174,10 @@ namespace MultiTablePro.Data
                 // *** POKERSTARS *** //
                 // eg Cash: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
                 // Tourney non-eng: Oefengeld No Limit Hold'em (Hyper, 10k) - Ciemne 50/100 Ante 10 - Turniej 645665 Stol 82 - Something jako Username
+                // Sat: Sunday Million 13th Anniversary Sat: $2.20+R NLHE [Splash], 1 Seat Gtd - On-Demand! - Blinds $300/$600 Ante $60 - Tournament 2575163794 Table 3 - Logged In as Username123
                 // Spin: PM 10000.00 NLHE Spin &Go - Blinds 10 / 20 - Tournament 45645656456 Table 54 - Logged in as Username
                 // G1: Title, G3: SB, G4: BB, G6: Tourney/cash indication
-                Regex rStarsWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*) - .*");               
+                Regex rStarsWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*)( - .*)?");               
                 if (rStarsWinTitle.IsMatch(windowTitle))
                 { 
                     // Match indicates the table is tourney, spin, sng+
