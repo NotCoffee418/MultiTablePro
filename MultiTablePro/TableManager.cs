@@ -351,7 +351,8 @@ namespace MultiTablePro
             }
 
             // No need to move to inactive (since inactive can be set even when we're not in the hand) or to slots of the same type, claim success
-            else if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse))
+            // Only run this check when force position is off
+            else if ((activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) && !Config.Active.ForceTablePosition)
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
                 return true;
@@ -479,6 +480,7 @@ namespace MultiTablePro
 
                     // Add everything to queue
                     lock (Table.KnownTables)
+
                     {
                         foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual && t.Priority > Table.Status.Closed))
                         {
