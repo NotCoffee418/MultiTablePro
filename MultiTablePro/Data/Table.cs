@@ -186,7 +186,7 @@ namespace MultiTablePro.Data
                     Regex rIsTourney = new Regex(@"\S+ \d+ \S+ \d+");
                     var rMatch = rStarsWinTitle.Match(windowTitle);
                     _name = rMatch.Groups[1].Value;
-                    if (rIsTourney.IsMatch(rMatch.Groups[6].Value))
+                    if (rIsTourney.IsMatch(rMatch.Groups[5].Value))
                         _bigBlind = 0f; // 0 indicates tourney table, change if needed
                     else _bigBlind = double.Parse(rMatch.Groups[4].Value); // cash table
                     return;
