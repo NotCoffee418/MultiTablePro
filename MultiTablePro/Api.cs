@@ -7,67 +7,27 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using MultiTablePro.Data;
+using Newtonsoft.Json.Linq;
 
 namespace MultiTablePro
 {
     sealed class Api
     {   
-        public struct ApiResponse
-        {
-            public ApiResponse(string jsonString)
-            {
-                // Deserialize json & store it
-                try
-                {
-                    dynamic dJson = JsonConvert.DeserializeObject(jsonString);
-                    _result = dJson.result;
-                    _errors = dJson.errors.ToArray();
-                }
-                catch
-                {
-                    Logger.Log($"API: Failed to deserialize or access dynamic object: {jsonString}", Logger.Status.Error);
-                    _result = null;
-                    _errors = new string[] { "Failed to deserialize API response. This may be due to scheduled maintenance. Please try again in a few minutes and contact support if the error persists including your log file." };
-                }
-            }
-
-            public ApiResponse(Exception ex)
-            {
-                // Log the error
-                Logger.Log("API: " + ex.Message, Logger.Status.Error);
-
-                // Store the error
-                _result = null;
-                _errors = new string[] { ex.Message };
-            }
-
-            private readonly dynamic _result;
-            private readonly string[] _errors;
-
-            public dynamic Result
-            {
-                get { return _result; }
-            }
-
-            public string[] Errors
-            {
-                get { return _errors; }
-            }
-        }
-
         public static void test()
         {
-            var x = ApiRequest("test");
+            var x = ApiRequest<string>("test");
 
         }
 
-        /// <summary>
-        /// API request returning JSON dynamic data
+        
+        /// <summary> 
+        /// 
         /// </summary>
-        /// <param name="request">function to be called server side</param>
-        /// <param name="postData">post param dictionary</param>
-        /// <returns>JSON dynamic</returns>
-        internal static ApiResponse ApiRequest(string request, Dictionary<string, string> postData = null)
+        /// <param name="request"></param>
+        /// <param name="postData"></param>
+        /// <returns>JSON string</returns>
+        internal static ApiData.ApiResponse<T> ApiRequest<T>(string request, Dictionary<string, string> postData = null)
         {
             string responseFromServer = "";
             try // Outer exception handler - passes errors to ApiRespones
@@ -75,7 +35,7 @@ namespace MultiTablePro
                 try // inner exception handler - provides custom error messages
                 {
                     // Prepare request to our API
-                    Logger.Log($"API: Creating request {request}");
+                    Logger.Log($"API: Creating request " + request);
                     WebRequest wReq = WebRequest.Create("https://multitablepro.com/api/" + request);
                     wReq.Timeout = 5000;
 
@@ -138,15 +98,24 @@ namespace MultiTablePro
                 {
                     throw new Exception("Undefined API Error (unknown): " + ex.Message);
                 }
+
+                // Attempt to convert to T
+                try
+                {
+                    //return JObject.Parse(responseFromServer).ToObject<ApiData.ApiResponse<T>>();
+                    return JsonConvert.DeserializeObject<ApiData.ApiResponse<T>>(responseFromServer);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log("An API error has occurred. Please upgrade to the latest version and try again.", Logger.Status.Error, showMessageBox:true);
+                    throw new Exception("Failed to parse to " + typeof(T).Name + " - JSON: " + responseFromServer);
+                }
             }
             catch (Exception ex) // Error handler caught an exception
             {
                 // Pass the exception to an ApiResponse
-                return new ApiResponse(ex);
+                return (ApiData.ApiResponse<T>)Activator.CreateInstance(typeof(ApiData.ApiResponse<T>), ex);
             }
-
-            // No errors found, return ApiResponse
-            return new ApiResponse(responseFromServer);
         }
     }
 }

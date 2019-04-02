@@ -85,6 +85,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Api.cs" />
+    <Compile Include="Data\ApiData.cs" />
     <Compile Include="GHelper.cs" />
     <Compile Include="UI\AdvancedSettingsWindow.xaml.cs">
       <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
