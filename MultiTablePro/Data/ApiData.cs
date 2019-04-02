@@ -57,11 +57,12 @@ namespace MultiTablePro.Data
             public string Email { get; private set; }
             public Dictionary<string, string> Restrictions { get; private set; }
             public string LicenseStatusMessage { get; private set; }
+            public bool IsTrial { get; private set; }
 
             [JsonConstructor]
             public ValidateLicense(bool is_valid, DateTime? expires_at, string product_name, 
                 string product_description, string first_name, string last_name, string email, 
-                Dictionary<string, string> restrictions, string license_status_message)
+                Dictionary<string, string> restrictions, string license_status_message, bool is_trial = false)
             {
                 IsValid = is_valid;
                 ExpiresAt = expires_at;
@@ -72,6 +73,7 @@ namespace MultiTablePro.Data
                 Email = email;
                 Restrictions = restrictions;
                 LicenseStatusMessage = license_status_message;
+                IsTrial = is_trial;
             }
         }
     }
