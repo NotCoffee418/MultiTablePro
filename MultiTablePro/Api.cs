@@ -13,20 +13,13 @@ using Newtonsoft.Json.Linq;
 namespace MultiTablePro
 {
     sealed class Api
-    {   
-        public static void test()
-        {
-            var x = ApiRequest<string>("test");
-
-        }
-
-        
+    {
         /// <summary> 
         /// 
         /// </summary>
         /// <param name="request"></param>
         /// <param name="postData"></param>
-        /// <returns>JSON string</returns>
+        /// <returns>ApiResponse</returns>
         internal static ApiData.ApiResponse<T> ApiRequest<T>(string request, Dictionary<string, string> postData = null)
         {
             string responseFromServer = "";

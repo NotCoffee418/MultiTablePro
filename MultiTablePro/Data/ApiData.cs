@@ -11,25 +11,27 @@ namespace MultiTablePro.Data
     {
         internal class ApiResponse<T>
         {
-            protected string[] _errors = new string[0];
-            internal string[] errors {
+            private string[] _errors = new string[0];
+            internal string[] Errors {
                 get { return _errors; }
                 set { _errors = value; }
             }
 
-            protected T _result;
-            internal T result
+            private T _result;
+            internal T Result
             {
                 get { return _result; }
                 set { _result = value; }
             }
 
             // Constructors
-            // public ApiResponse() { } // Empty needed for json
+            public ApiResponse() { }
+
+            // Json constructor
             [JsonConstructor]
             public ApiResponse(T result, string[] errors) {
                 _result = result;
-                _errors = errors.ToArray();
+                _errors = errors;
             }
 
             // Constructor for failed requests
@@ -46,7 +48,31 @@ namespace MultiTablePro.Data
         // License validation data
         internal struct ValidateLicense
         {
+            public bool IsValid { get; set; }
+            public DateTime? ExpiresAt { get; set; }
+            public string ProductName { get; private set; }
+            public string ProductDescription { get; private set; }
+            public string FirstName { get; private set; }
+            public string LastName { get; private set; }
+            public string Email { get; private set; }
+            public Dictionary<string, string> Restrictions { get; private set; }
+            public string LicenseStatusMessage { get; private set; }
 
+            [JsonConstructor]
+            public ValidateLicense(bool is_valid, DateTime? expires_at, string product_name, 
+                string product_description, string first_name, string last_name, string email, 
+                Dictionary<string, string> restrictions, string license_status_message)
+            {
+                IsValid = is_valid;
+                ExpiresAt = expires_at;
+                ProductName = product_name;
+                ProductDescription = product_description;
+                FirstName = first_name;
+                LastName = last_name;
+                Email = email;
+                Restrictions = restrictions;
+                LicenseStatusMessage = license_status_message;
+            }
         }
     }
 }

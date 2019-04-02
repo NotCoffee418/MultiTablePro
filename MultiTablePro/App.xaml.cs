@@ -22,8 +22,6 @@ namespace MultiTablePro
             base.OnStartup(e);
             Dictionary<string, string> startupArgs = CleanStartupArgs(e.Args);
 
-            // test killme
-            Api.test();
 
             // Cancel if we're already running and ignorealreadyrunning is not a startup arg
             if (Process.GetProcessesByName("MultiTablePro").Count() > 1 && !startupArgs.ContainsKey("ignorealreadyrunning"))
@@ -48,11 +46,10 @@ namespace MultiTablePro
                 Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.",
                     Logger.Status.Warning, showMessageBox: true);
 
-
-
             // todo: RequestLicenseKeyWindow call goes here
-
-
+            //License lic = License.GetKnownLicense();
+            License lic = new License("TRIAL"); // test kilme
+            lic.Validate();
 
             // Show MainWindow (todoDelete this when License Check window exists)
             MainWindow win = new MainWindow();

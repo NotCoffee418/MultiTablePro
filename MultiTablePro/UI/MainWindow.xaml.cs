@@ -57,10 +57,6 @@ namespace MultiTablePro.UI
             if (Config.Active.AutoMinimize)
                 WindowState = WindowState.Minimized;
 
-            // check license
-            License testLicense = new License("TEST");
-            testLicense.Start();
-
             // Start watching open tables
             watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
 

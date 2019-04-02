@@ -33,68 +33,18 @@ namespace MultiTablePro.Data
             }
         }
         public string ExpDate { get; set; }
-        public bool IsValid { get; set; }
-        private string MacAd { get; set; }      
+        public bool IsValid { get; set; }   
         
-        public void Start()
+        public void Validate()
         {
-            MacAd = GetMac();
-            ApiRequest(path);
-
-        }
-        private void ApiRequest(string path)
-        {
-            //Create web request with URL that is able to receive a request.
-            WebRequest wReq = WebRequest.Create(path);
-            //Set request method type
-            wReq.Method = "POST";
-            //Create the POST Data and convert it to byteArray
-            string postData = $"macaddr={MacAd}&license_key={Key}&request_product_group=1";
-            Logger.Log(postData.ToString());//remove
-            byte[] byteArray = Encoding.UTF8.GetBytes(postData);
-            //Set the content type property of the web request and it's length.
-            wReq.ContentType = "application/x-www-form-urlencoded";
-            wReq.ContentLength = byteArray.Length;
-            //Get the request stream
-            Stream dataStream = wReq.GetRequestStream();
-            //Write data to the request
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            //Close the stream object
-            dataStream.Close();
-            //Get the response
-            WebResponse wResponse = wReq.GetResponse();
-            // Log HTTP Status code
-            Logger.Log("ApiRequest HTTP Status:" + ((HttpWebResponse)wResponse).StatusDescription);
-            //Get the stream of content getting returned by server
-            dataStream = wResponse.GetResponseStream();
-            //Open the stream with streamreader for easy access
-            StreamReader reader = new StreamReader(dataStream);
-            //Read the content
-            string responseFromServer = reader.ReadToEnd();
-            Logger.Log(responseFromServer);//Remove
-            //Transform raw stream into JSON Object.
-            //Access info by apiResult.[JSONTAG].[JSONSUBTAG]....
-            dynamic apiResult = JsonConvert.DeserializeObject(responseFromServer);
-            //Check if posted license is valid.
-            if (apiResult.result.is_valid == 0)
+            var postData = new Dictionary<string, string>()
             {
-                //invalid or expired license
-                //do something
-                Logger.Log(apiResult.result.license_status_message.ToObject<string>());
-            }
-            else if (apiResult.result.is_valid == 1)
-            {
-                // todo: Set all result properties to class properties
-                Key = apiResult.result.license_key.ToObject<string>();
-                //...
+                { "macaddr", GetMac() },
+                { "license_key", Key },
+                { "request_product_group", "1" }
+            };
+            var apiOutput = Api.ApiRequest<ApiData.ValidateLicense>("validate_license", postData);
 
-                // Set activelicense and run application
-                Config.Active.ActiveLicense = this;
-            }
-            //close remaining streams.
-            reader.Close();
-            dataStream.Close();
-            wResponse.Close();
         }
 
         /// <summary>
