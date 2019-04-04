@@ -44,7 +44,10 @@ namespace MultiTablePro.UI
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Set window title to include version
+            // Set title to product name (from API)
+            Title = Config.Active.ActiveLicense.ProductName;
+
+            // Set footer to include version
             versionInfoTxt.Text = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
 
             // Set DataContext
@@ -64,6 +67,21 @@ namespace MultiTablePro.UI
             IntPtr hWnd = new WindowInteropHelper(this).Handle;
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
+
+            // Listen for license expiration events
+            Config.Active.ActiveLicense.ExpirationEvent += ActiveLicense_ExpirationEvent;
+        }
+
+        private void ActiveLicense_ExpirationEvent(object sender, EventArgs e)
+        {
+            var args = (License.ExpirationEventArgs)e;
+            if (args.IsExpired)
+            {
+                Logger.Log("Your license has expired. Application is shutting down within 30 seconds!", Logger.Status.Warning, showMessageBox:true);
+                Thread.Sleep(30000);
+                RestartApplication();
+            }
+            else Logger.Log($"Your license expires in {args.ExpiresIn.TotalMinutes}. Please upgrade your license or expect MultiTablePro to close at that time..", Logger.Status.Warning, showMessageBox: true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -423,15 +441,21 @@ namespace MultiTablePro.UI
                 App.Current.Properties["IsRunning"] = false;
                 Hide();
 
-                // Create new process
-                Process p = new Process();
-                p.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
-                p.StartInfo.Arguments = "-ignorealreadyrunning";
-                p.Start();
-
-                // Kill this application
-                Application.Current.Shutdown();
+                // Restart
+                RestartApplication();
             }            
+        }
+
+        private void RestartApplication()
+        {
+            // Create new process
+            Process p = new Process();
+            p.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
+            p.StartInfo.Arguments = "-ignorealreadyrunning";
+            p.Start();
+
+            // Kill this application
+            Application.Current.Shutdown();
         }
     }
 }
