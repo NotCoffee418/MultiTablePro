@@ -26,6 +26,7 @@
             </MenuItem>
             <MenuItem Header="Support">
                 <MenuItem Header="Discord" Click="OpenDiscord_Click" />
+                <MenuItem Header="Restart with detailed logging" Click="RestartWithLogger_Click" />
             </MenuItem>
             <MenuItem Header="Info">
                 <MenuItem Header="Check for updates" Click="checkForUpdates_Click" />

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,16 +18,27 @@ namespace MultiTablePro
             // Set log level
             LogLevel = (Status)Properties.Settings.Default.LogLevel;
 
-            // Determine log file location
+            // Get working AppData Local directory
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MultiTablePro");
             if (Debugger.IsAttached) // Seperate directory for debugger
                 path = Path.Combine(path, "Debug");
+
+            // Enter logs subdirectory & create if it doesn't exist.
+            path = Path.Combine(path, "Logs");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
-            LogFilePath = Path.Combine(path, "output.log");
+
+            // Create log filename with timestamp
+            LogFilePath = Path.Combine(path, string.Format("mtp-{0}.log", DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss")));
 
             // Start log writer
-            new Thread(() => StartLogWriter()).Start();
+            GHelper.SafeThreadStart(() => StartLogWriter());
+
+            // Application exit event
+            Application.Current.Exit += Application_Exit;
+
+            // Clean log files older than 6 months
+            GHelper.SafeThreadStart(() => CleanLogs());
         }
 
         public enum Status
@@ -46,8 +58,8 @@ namespace MultiTablePro
         };
 
         static Queue<string> writeQueue = new Queue<string>();
-        static string LogFilePath { get; set; }
-        static Status LogLevel { get; set; }
+        public static string LogFilePath { get; set; }
+        public static Status LogLevel { get; set; }
 
         public static void Log(string message, Status status = Status.Info, bool showMessageBox = false)
         {
@@ -66,13 +78,13 @@ namespace MultiTablePro
                 MessageBox.Show(message, "Fatal error - closing application", MessageBoxButton.OK, MessageBoxImage.Stop);
                 Application.Current.Shutdown();
             }
-            else if (showMessageBox)
+            else if (showMessageBox || status == Status.Fatal)
                 MessageBox.Show(message, statusNames[(int)status], MessageBoxButton.OK, statusIcons[(int)status]);
         }
 
         private static void StartLogWriter()
         {
-            while (App.Current.Properties["IsRunning"] != null && (bool)App.Current.Properties["IsRunning"])
+            while (App.Current != null && App.Current.Properties["IsRunning"] != null && (bool)App.Current.Properties["IsRunning"])
             {
                 if (writeQueue.Count == 0)
                     Thread.Sleep(25);
@@ -84,6 +96,31 @@ namespace MultiTablePro
                     File.AppendAllLines(LogFilePath, newLines);
                 }
             }
+        }
+
+
+        // Removes log files older than 6 months
+        private static void CleanLogs()
+        {
+            string logsDir = Path.GetDirectoryName(LogFilePath);
+
+            // Ensure it's an MTP logfile, not a backup, not some important file that somehow ended up here
+            Regex rValidLogFile = new Regex(@"mtp-\d\d\d\d-\d\d-\d\d-\d\d-\d\d-\d\d.log");
+
+            // Find approperiate files to delete & delete them
+            Directory.EnumerateFiles(logsDir)
+                .Where(s => rValidLogFile.IsMatch(Path.GetFileName(s))) 
+                .Where(s => File.GetCreationTime(s) < DateTime.Now.AddMonths(-6))
+                .ToList() // No foreach in IEnumerable, needs list
+                .ForEach(s => File.Delete(s));
+        }
+
+        private static void Application_Exit(object sender, ExitEventArgs e)
+        {
+            // Delete empty log files when application closes
+            // Also helps to have these empty logfiles as an indication of unclean shutdown
+            if (File.Exists(LogFilePath) && File.ReadAllText(LogFilePath) == "")
+                File.Delete(LogFilePath);
         }
     }
 }

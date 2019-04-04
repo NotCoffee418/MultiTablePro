@@ -9,92 +9,162 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using Newtonsoft.Json;
 using Microsoft.Win32;
+using System.Threading;
 
 namespace MultiTablePro.Data
 {
-    class License : INotifyPropertyChanged
+    sealed class License : INotifyPropertyChanged
     {
-        private string path = "https://multitablepro.com/api/validate_license";
         public License(string key) {
             _key = key;
-            Config.Active.ActiveLicense = this;
         }
 
+        // Events
         public event PropertyChangedEventHandler PropertyChanged;
-        private string _key = "";
+        private Timer ExpireCheckTimer;
+        public event EventHandler ExpirationEvent;
 
+        // fields with defaults
+        private string _key = "";
+        private DateTime? _expiresAt;
+        private int _maxStake = 0;
+        private BuildTypes _buildType = BuildTypes.BETA;
+
+        // License properties
         public string Key {            
             get {
                 return _key;
             }
-            set {
+            private set {
                 _key = value;
                 RaisePropertyChanged("Key");
             }
         }
-        public string ExpDate { get; set; }
-        public bool IsValid { get; set; }
-        private string MacAd { get; set; }      
-        
-        public void Start()
+        public bool IsValid { get; private set; }
+        public bool IsTrial { get; private set; }
+        public DateTime? ExpiresAt
         {
-            MacAd = GetMac();
-            ApiRequest(path);
+            get {
+                return _expiresAt;
+            }
+            private set {
+                bool expChanged = !_expiresAt.HasValue || _expiresAt.Value != value;
+                _expiresAt = value;
 
+                // Start checkign for expiration
+                if (expChanged && ExpiresAt != null && ExpiresAt > DateTime.Now)
+                    ExpireCheckTimer = new Timer(TriggerExpireTimer, null, 900000, 900000); // check every 15 mins
+            }
         }
-        private void ApiRequest(string path)
-        {
-            //Create web request with URL that is able to receive a request.
-            WebRequest wReq = WebRequest.Create(path);
-            //Set request method type
-            wReq.Method = "POST";
-            //Create the POST Data and convert it to byteArray
-            string postData = $"macaddr={MacAd}&license_key={Key}&request_product_group=1";
-            Logger.Log(postData.ToString());//remove
-            byte[] byteArray = Encoding.UTF8.GetBytes(postData);
-            //Set the content type property of the web request and it's length.
-            wReq.ContentType = "application/x-www-form-urlencoded";
-            wReq.ContentLength = byteArray.Length;
-            //Get the request stream
-            Stream dataStream = wReq.GetRequestStream();
-            //Write data to the request
-            dataStream.Write(byteArray, 0, byteArray.Length);
-            //Close the stream object
-            dataStream.Close();
-            //Get the response
-            WebResponse wResponse = wReq.GetResponse();
-            // Log HTTP Status code
-            Logger.Log("ApiRequest HTTP Status:" + ((HttpWebResponse)wResponse).StatusDescription);
-            //Get the stream of content getting returned by server
-            dataStream = wResponse.GetResponseStream();
-            //Open the stream with streamreader for easy access
-            StreamReader reader = new StreamReader(dataStream);
-            //Read the content
-            string responseFromServer = reader.ReadToEnd();
-            Logger.Log(responseFromServer);//Remove
-            //Transform raw stream into JSON Object.
-            //Access info by apiResult.[JSONTAG].[JSONSUBTAG]....
-            dynamic apiResult = JsonConvert.DeserializeObject(responseFromServer);
-            //Check if posted license is valid.
-            if (apiResult.result.is_valid == 0)
-            {
-                //invalid or expired license
-                //do something
-                Logger.Log(apiResult.result.license_status_message.ToObject<string>());
-            }
-            else if (apiResult.result.is_valid == 1)
-            {
-                // todo: Set all result properties to class properties
-                Key = apiResult.result.license_key.ToObject<string>());
-                //...
 
-                // Set activelicense and run application
-                Config.Active.ActiveLicense = this;
+        public string LicenseStatusMessage { get; private set; }
+
+        // User properties
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string Email { get; private set; }
+
+        // Product Properties
+        public string ProductName { get; private set; }
+        public string ProductDescription { get; private set; }
+
+        // Restriction properties
+        public int MaxStake // BB * 100 (buyin)
+        {
+            get { return _maxStake; }
+            private set { _maxStake = value; }
+        }
+        public bool UnlimitedComputers { get; private set; } // NIY
+        public BuildTypes BuildType // opt-in in settings - this is the max allowed
+        {
+            get { return _buildType; }
+            private set { _buildType = value; }
+        }
+
+        // Access to builds through license
+        public enum BuildTypes
+        {
+            RELEASE = 0,
+            BETA = 1,
+            INTERNAL = 2,
+        }
+
+        public bool Validate()
+        {
+            // Make API request
+            var postData = new Dictionary<string, string>()
+            {
+                { "macaddr", GetMac() },
+                { "license_key", Key },
+                { "request_product_group", "1" }
+            };
+            var apiOutput = Api.ApiRequest<ApiData.ValidateLicense>("validate_license", postData);
+
+            // Errors occurred (invalid license, internet connection etc..)
+            if (apiOutput.Errors.Count() > 0)
+            {
+                // Log errors
+                foreach (string err in apiOutput.Errors)
+                    Logger.Log("License Validate: " + err, Logger.Status.Error);
+                return false;
             }
-            //close remaining streams.
-            reader.Close();
-            dataStream.Close();
-            wResponse.Close();
+
+            // Store license data
+            ApiData.ValidateLicense lData = apiOutput.Result;
+            Email = lData.Email;
+            ExpiresAt = lData.ExpiresAt;
+            FirstName = lData.FirstName;
+            LastName = lData.LastName;
+            LicenseStatusMessage = lData.LicenseStatusMessage;
+            IsValid = lData.IsValid;
+            IsTrial = lData.IsTrial;
+            ProductName = lData.ProductName;
+            ProductDescription = lData.ProductDescription;
+            SetRestrictions(lData.Restrictions);
+
+            // Save the key if it's valid
+            if (IsValid)
+                Save();
+            
+            // Return validity
+            return IsValid;
+        }
+
+        private void SetRestrictions(Dictionary<string, string> restrictions)
+        {
+            if (restrictions == null) // happens on trials, assume defaults
+                return;
+
+            // Apply relevant restrictions, use defaults for everything else
+            foreach(var r in restrictions)
+            {
+                switch (r.Key.ToUpper())
+                {
+                    case "MAX_STAKE":
+                        int maxStake;
+                        if (int.TryParse(r.Value, out maxStake))
+                            MaxStake = maxStake;
+                        else Logger.Log($"License: {r.Value} is not a valid integer for license restriction MAX_STAKE. Please contact support.",
+                                Logger.Status.Fatal, showMessageBox: true); // should never happen
+                        break;
+                    case "UNLIMITED_COMPUTERS":
+                        UnlimitedComputers = r.Value.ToUpper() == "TRUE" ? true : false;
+                        break;
+                    case "BUILDTYPE":
+                        BuildTypes buildType;
+                        if (Enum.TryParse(r.Value.ToUpper(), out buildType))
+                            BuildType = buildType;
+                        else Logger.Log($"License: {r.Value} is not a valid build type. Please contact support about this warning.",
+                            Logger.Status.Warning, showMessageBox: true);
+                        break;
+
+                    // restriction NIY
+                    default:
+                        Logger.Log($"License: {r.Key}:{r.Value} is an undefined restriction. User may be on outdated version.",
+                            Logger.Status.Warning, showMessageBox: false);
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -134,12 +204,40 @@ namespace MultiTablePro.Data
                 .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
                 .Select(nic => nic.GetPhysicalAddress().ToString())
                 .FirstOrDefault();
-        }        
+        }
+
+
+        private void TriggerExpireTimer(object irrelevant)
+        {
+            var expireWarningTime = ExpiresAt.Value.Subtract(new TimeSpan(0, 30, 0));
+            bool isExpired = DateTime.Now > ExpiresAt;
+            bool expiresSoon = DateTime.Now > expireWarningTime;
+
+            // Fire expired event
+            if (isExpired || expiresSoon)
+            {
+                IsValid = false;
+                if (ExpirationEvent != null)
+                    ExpirationEvent(this, new ExpirationEventArgs(ExpiresAt.Value.Subtract(DateTime.Now)));
+            }
+        }
 
         public void RaisePropertyChanged(string property)
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        public class ExpirationEventArgs : EventArgs
+        {
+            public ExpirationEventArgs(TimeSpan expiresIn)
+            {
+                ExpiresIn = expiresIn;
+                IsExpired = ExpiresIn < TimeSpan.Zero;
+            }
+
+            public TimeSpan ExpiresIn { get; private set; }
+            public bool IsExpired { get; private set; }
         }
     }
 }

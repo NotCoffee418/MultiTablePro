@@ -41,7 +41,7 @@ namespace MultiTablePro.Data
         DateTime _priorityChangedTime;
         bool _isVirtual;
         string _name = "";
-        double _bigBlind;
+        double _bigBlind = 0.0;
 
         public IntPtr WindowHandle
         {
@@ -101,7 +101,7 @@ namespace MultiTablePro.Data
             {
                 if (IsVirtual)
                     return 0;
-                else if (_bigBlind == 0)
+                else if (_bigBlind == 0 && _name == "") // 0NL can happen on <$0.50 tourney-types
                     SetNameAndBigBlind();
                 return _bigBlind;
             }
@@ -174,9 +174,10 @@ namespace MultiTablePro.Data
                 // *** POKERSTARS *** //
                 // eg Cash: Some Table Name #6 - 50/$0.05 Speelgeld - No Limit Hold'em - Logged In as Username
                 // Tourney non-eng: Oefengeld No Limit Hold'em (Hyper, 10k) - Ciemne 50/100 Ante 10 - Turniej 645665 Stol 82 - Something jako Username
+                // Sat: Sunday Million 13th Anniversary Sat: $2.20+R NLHE [Splash], 1 Seat Gtd - On-Demand! - Blinds $300/$600 Ante $60 - Tournament 2575163794 Table 3 - Logged In as Username123
                 // Spin: PM 10000.00 NLHE Spin &Go - Blinds 10 / 20 - Tournament 45645656456 Table 54 - Logged in as Username
                 // G1: Title, G3: SB, G4: BB, G6: Tourney/cash indication
-                Regex rStarsWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*) - .*");               
+                Regex rStarsWinTitle = new Regex(@"(.*) - (\D+)?([0-9]+[\.|\,]?[0-9]+?)\/\D?([0-9]+[\.|\,]?[0-9]+?)(\ .*)? - (.*)( - .*)?");               
                 if (rStarsWinTitle.IsMatch(windowTitle))
                 { 
                     // Match indicates the table is tourney, spin, sng+
@@ -185,7 +186,7 @@ namespace MultiTablePro.Data
                     Regex rIsTourney = new Regex(@"\S+ \d+ \S+ \d+");
                     var rMatch = rStarsWinTitle.Match(windowTitle);
                     _name = rMatch.Groups[1].Value;
-                    if (rIsTourney.IsMatch(rMatch.Groups[6].Value))
+                    if (rIsTourney.IsMatch(rMatch.Groups[5].Value))
                         _bigBlind = 0f; // 0 indicates tourney table, change if needed
                     else _bigBlind = double.Parse(rMatch.Groups[4].Value); // cash table
                     return;
@@ -193,7 +194,7 @@ namespace MultiTablePro.Data
 
                 // *** BWIN *** //
                 // Cash: Bergen -  NL  Hold'em - $0.01/$0.02
-                Regex rBwinWinTitle = new Regex(@"(\S+) -  (NL|PL|FL)  .+ - \$(\d+?\.\d+)\/\$(\d+?\.\d+)");
+                Regex rBwinWinTitle = new Regex(@"(.+) -  (NL|PL|FL)  .+ - \$(\d+?\.\d+)\/\$(\d+?\.\d+)");
                 if (rBwinWinTitle.IsMatch(windowTitle))
                 {
                     var rMatch = rBwinWinTitle.Match(windowTitle);
@@ -202,8 +203,9 @@ namespace MultiTablePro.Data
                     return;
                 }
 
-                Regex rBwinTourneyWinTitle = new Regex(@"(.+) \(\d+\) Table #\d+ -  (NL|PL)  .+ - \$(\d+?\.\d+) Buy-in");
+                Regex rBwinTourneyWinTitle = new Regex(@"(.+) \(\d+\) Table #\d+ -  (NL|PL)  .+ - \$(\d+?(\.\d+)?) Buy-in");
                 // Tourney: Monster #02-Low: $5K Gtd [Deep, 8-Max] (203102130) Table #132 -  NL  Hold'em - $2.20 Buy-in
+                // Spins: $1 SPINS (206024853) Table #1 -  NL  Hold'em - $1 Buy-in
                 if (rBwinTourneyWinTitle.IsMatch(windowTitle))
                 {
                     var rMatch = rBwinTourneyWinTitle.Match(windowTitle);
@@ -211,6 +213,11 @@ namespace MultiTablePro.Data
                     _bigBlind = double.Parse(rMatch.Groups[3].Value) / 100;
                     return;
                 }
+                
+
+                // If we reached this point, log a warning and set to invalid title - failed to find it
+                Logger.Log($"Table: SetNameAndBigBlind failed on table with name: {windowTitle}", Logger.Status.Warning);
+                _name = "(UNKNOWN WINDOW TITLE OR NOT LOGGED IN)";
             }
         }
 

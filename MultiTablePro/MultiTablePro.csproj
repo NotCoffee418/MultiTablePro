@@ -84,6 +84,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Api.cs" />
+    <Compile Include="Data\ApiData.cs" />
+    <Compile Include="GHelper.cs" />
     <Compile Include="UI\AdvancedSettingsWindow.xaml.cs">
       <DependentUpon>AdvancedSettingsWindow.xaml</DependentUpon>
     </Compile>
@@ -97,6 +100,9 @@
     </Compile>
     <Compile Include="Logger.cs" />
     <Compile Include="Data\Profile.cs" />
+    <Compile Include="UI\LicenseInputWindow.xaml.cs">
+      <DependentUpon>LicenseInputWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\ProfilePreviewControl.xaml.cs">
       <DependentUpon>ProfilePreviewControl.xaml</DependentUpon>
     </Compile>
@@ -120,6 +126,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\LicenseInfoWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\LicenseInputWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -38,7 +38,7 @@ namespace MultiTablePro.Data
         private int _autoLeaveVpip = 15;
         private int _autoLeaveHands = 20;
         private bool _preferSpreadOverStack = true;
-        private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.T);
+        private HotKey _asideHotkey = new HotKey(System.Windows.Forms.Keys.F4);
         private int _tableMovementDelay = 50;
         private bool _bwinSupportEnabled = false;
 
@@ -65,9 +65,6 @@ namespace MultiTablePro.Data
         {
             get
             {
-                // Not set or new license key - change ActiveLicense
-                //if (_activeLicense == null || LicenseKey != ActiveLicense.Key)
-                //    _activeLicense = new License(LicenseKey);
                 return _activeLicense;
             }
             set

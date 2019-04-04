@@ -27,10 +27,10 @@ namespace MultiTablePro.UI
             DataContext = Config.Active;
         }
 
-        private void OpenLocksDirectory_Click(object sender, RoutedEventArgs e)
+        private void OpenLogsDirectory_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start(System.IO.Path.Combine(Environment.GetFolderPath(
-                        Environment.SpecialFolder.LocalApplicationData), "MultiTablePro"));
+            Process.Start(
+                System.IO.Path.GetDirectoryName(Logger.LogFilePath));
         }
     }
 }

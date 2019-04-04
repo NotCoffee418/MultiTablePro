@@ -29,9 +29,13 @@ namespace MultiTablePro.PlatformHandlers
                 lock (activeLogFiles)
                 {
                     foreach (string logFile in activeLogFiles)
-                        new Thread(() => WatchLog(logFile)).Start();
+                        GHelper.SafeThreadStart(() => WatchLog(logFile));
                 }
             }
+
+            // Register all open tables on startup / restart
+            WHelper.EnumAllWindows(IntPtr.Zero, "PokerStarsTableFrameClass").ToList()
+                .ForEach(h => Table.Find(h, registerMissing:true));
         }
 
         public static void Stop()
@@ -86,7 +90,7 @@ namespace MultiTablePro.PlatformHandlers
             if (newLogFiles.Count() > 0)
             {
                 foreach (string log in newLogFiles)
-                    new Thread(() => WatchLog(log)).Start();
+                    GHelper.SafeThreadStart(() => WatchLog(log));
                 newLogFiles.Clear();
 
                 // This should only happen while debugging or on a new PS install

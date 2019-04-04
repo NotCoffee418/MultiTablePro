@@ -29,13 +29,6 @@ namespace MultiTablePro.UI
         public MainWindow()
         {
             InitializeComponent();
-
-            // Cancel if we're already running
-            if (Process.GetProcessesByName("MultiTablePro").Count() > 1)
-            {
-                Logger.Log("BPTM is already running. Try again in a few seconds if you just closed it.", Logger.Status.Warning, true);
-                Application.Current.Shutdown();
-            }
         }
 
         TableManager ActiveTableManager { get; set; }
@@ -51,7 +44,10 @@ namespace MultiTablePro.UI
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Set window title to include version
+            // Set title to product name (from API)
+            Title = Config.Active.ActiveLicense.ProductName;
+
+            // Set footer to include version
             versionInfoTxt.Text = $"MultiTable Pro v{Assembly.GetEntryAssembly().GetName().Version}";
 
             // Set DataContext
@@ -64,10 +60,6 @@ namespace MultiTablePro.UI
             if (Config.Active.AutoMinimize)
                 WindowState = WindowState.Minimized;
 
-            // check license
-            License testLicense = new License("TEST");
-            testLicense.Start();
-
             // Start watching open tables
             watchOpenTablesTimer = new Timer(WatchOpenTables, null, 1000, 1000);
 
@@ -76,10 +68,20 @@ namespace MultiTablePro.UI
             HotKeyHandler.RegisterHotKey(Config.Active.AsideHotKey, hWnd);
             ComponentDispatcher.ThreadFilterMessage += new ThreadMessageEventHandler(HotKeyHandler.HotkeyPressed);
 
-            // Warn user when debug logging is enabled - since it should only be enabled when collecting bug data
-            if (Config.Active.EnableDetailedLogging)
-                Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.", 
-                    Logger.Status.Warning, showMessageBox: true);
+            // Listen for license expiration events
+            Config.Active.ActiveLicense.ExpirationEvent += ActiveLicense_ExpirationEvent;
+        }
+
+        private void ActiveLicense_ExpirationEvent(object sender, EventArgs e)
+        {
+            var args = (License.ExpirationEventArgs)e;
+            if (args.IsExpired)
+            {
+                Logger.Log("Your license has expired. Application is shutting down within 30 seconds!", Logger.Status.Warning, showMessageBox:true);
+                Thread.Sleep(30000);
+                RestartApplication();
+            }
+            else Logger.Log($"Your license expires in {args.ExpiresIn.TotalMinutes}. Please upgrade your license or expect MultiTablePro to close at that time..", Logger.Status.Warning, showMessageBox: true);
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -420,7 +422,40 @@ namespace MultiTablePro.UI
 
         private void checkForUpdates_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log("Manually checking for updates");
             Updater.Run(force:true);
+        }
+
+        private void RestartWithLogger_Click(object sender, RoutedEventArgs e)
+        {
+            var mbr = MessageBox.Show(
+                "WARNING: This should only be done if you wish to report a bug or have been asked to do so by support." + Environment.NewLine +
+                "Be careful doing this during a session as may take some time for tables to be detected again after the restart.",
+                "Restart with detailed logging?", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (mbr == MessageBoxResult.Yes)
+            {
+                // Save config value
+                Config.Active.EnableDetailedLogging = true;
+
+                // Stop running & hide
+                App.Current.Properties["IsRunning"] = false;
+                Hide();
+
+                // Restart
+                RestartApplication();
+            }            
+        }
+
+        private void RestartApplication()
+        {
+            // Create new process
+            Process p = new Process();
+            p.StartInfo.FileName = Assembly.GetExecutingAssembly().Location;
+            p.StartInfo.Arguments = "-ignorealreadyrunning";
+            p.Start();
+
+            // Kill this application
+            Application.Current.Shutdown();
         }
     }
 }

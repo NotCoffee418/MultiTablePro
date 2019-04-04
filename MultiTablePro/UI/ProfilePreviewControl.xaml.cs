@@ -69,7 +69,10 @@ namespace MultiTablePro.UI
         /// <param name="sizeRatio"></param>
         private void DrawSlots(double xOffset, double yOffset, double sizeRatio)
         {
-            foreach (Slot slot in DisplayProfile.Slots)
+            var orderedSlots = DisplayProfile.Slots
+                .OrderByDescending(s => s.Priority)
+                .OrderBy(s => s.ActivityUse);
+            foreach (Slot slot in orderedSlots)
             {
                 Border result = new Border();
                 result.BorderThickness = new Thickness(5);

@@ -39,7 +39,10 @@ namespace MultiTablePro
 
         public void StartConfigHandler()
         {
-            foreach (Slot slot in ActiveProfile.Slots.OrderBy(s => s.Priority))
+            var orderedSlots = ActiveProfile.Slots
+                .OrderByDescending(s => s.Priority)
+                .OrderBy(s => s.ActivityUse);
+            foreach (Slot slot in orderedSlots)
                 AddSlot(slot);
         }
 

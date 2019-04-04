@@ -50,10 +50,10 @@ namespace MultiTablePro
             IsRunning = true;
 
             // Start table manager
-            new Thread(() => ManageTables()).Start();
+            GHelper.SafeThreadStart(() => ManageTables());
 
             // Start Window Mover
-            new Thread(() => RunMoveWindowQueue()).Start();
+            GHelper.SafeThreadStart(() => RunMoveWindowQueue());
 
             // Start handlers
             PSLogHandler.Start();
@@ -351,7 +351,8 @@ namespace MultiTablePro
             }
 
             // No need to move to inactive (since inactive can be set even when we're not in the hand) or to slots of the same type, claim success
-            else if (activity == null || (!isNewTable && activity == previousSlot.ActivityUse))
+            // Only run this check when force position is off
+            else if ((activity == null || (!isNewTable && activity == previousSlot.ActivityUse)) && !Config.Active.ForceTablePosition)
             {
                 Logger.Log($"TableManager: Found no reason to move table ({table.WindowHandle}). Moving on.");
                 return true;
@@ -479,6 +480,7 @@ namespace MultiTablePro
 
                     // Add everything to queue
                     lock (Table.KnownTables)
+
                     {
                         foreach (var table in Table.KnownTables.Where(t => !t.IsVirtual && t.Priority > Table.Status.Closed))
                         {
@@ -501,7 +503,7 @@ namespace MultiTablePro
                 Logger.Log("Attempting to move " + winsToMove.Count + " windows through DeferWindowPos");
                 IntPtr hWinPosInfo = BeginDeferWindowPos(winsToMove.Count);
                 foreach (var wMoveReq in winsToMove)
-                    DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0040);
+                    DeferWindowPos(hWinPosInfo, wMoveReq.hWnd, new IntPtr(0), wMoveReq.X, wMoveReq.Y, wMoveReq.nWidth, wMoveReq.nHeight, 0x0044);
                 bool moveSuccess = EndDeferWindowPos(hWinPosInfo);
 
                 // Log any errors

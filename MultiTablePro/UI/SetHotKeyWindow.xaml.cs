@@ -28,7 +28,6 @@ namespace MultiTablePro.UI
             InitializeComponent();
         }
         HotKey _currentHotKey = null;
-        private HotKey hk;
 
         public string PropertyName { get; set; }
         internal HotKey CurrentHotKey {

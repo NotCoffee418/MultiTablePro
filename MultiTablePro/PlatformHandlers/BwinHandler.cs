@@ -62,7 +62,7 @@ namespace MultiTablePro.PlatformHandlers
                         string winTitle = WHelper.GetWindowTitle(handle);
                         Logger.Log($"Registering new bwin table: {handle} - " + winTitle);
                         Table table = new Table(handle);
-                        new Thread(() => WatchTable(table)).Start();
+                        GHelper.SafeThreadStart(() => WatchTable(table));
                     }
                 }
             }            
