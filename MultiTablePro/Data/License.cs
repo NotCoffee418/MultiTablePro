@@ -106,6 +106,7 @@ namespace MultiTablePro.Data
                 // Log errors
                 foreach (string err in apiOutput.Errors)
                     Logger.Log("License Validate: " + err, Logger.Status.Error);
+                LicenseStatusMessage = apiOutput.Errors.First();
                 return false;
             }
 
