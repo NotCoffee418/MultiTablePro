@@ -17,6 +17,10 @@ namespace MultiTablePro
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Entry point
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -46,17 +50,24 @@ namespace MultiTablePro
                 Logger.Log("Detailed logging is enabled. If you were not asked to enable this by support, please disable it under Config > Advanced Settings.",
                     Logger.Status.Warning, showMessageBox: true);
 
-            // todo: RequestLicenseKeyWindow call goes here
+            // Validate license & either request license input or start
             License lic = License.GetKnownLicense();
-            if (lic.Validate())
-            {
-                MainWindow win = new MainWindow();
-                win.Show();
-            }
+            if (lic.Validate() && !lic.IsTrial)
+                StartApplication(lic);
             else
             {
-
+                LicenseInputWindow win = new LicenseInputWindow();
+                win.LastLicenseCheck = lic;
+                win.Show();
             }            
+        }
+
+        // Start the application after license is approved
+        internal static void StartApplication(License lic)
+        {
+            Config.Active.ActiveLicense = lic;
+            MainWindow win = new MainWindow();
+            win.Show();
         }
 
         /// <summary>

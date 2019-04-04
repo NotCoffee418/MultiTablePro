@@ -404,6 +404,7 @@ namespace MultiTablePro.UI
 
         private void checkForUpdates_Click(object sender, RoutedEventArgs e)
         {
+            Logger.Log("Manually checking for updates");
             Updater.Run(force:true);
         }
 

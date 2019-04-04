@@ -84,7 +84,7 @@ namespace MultiTablePro
 
         private static void StartLogWriter()
         {
-            while (App.Current.Properties["IsRunning"] != null && (bool)App.Current.Properties["IsRunning"])
+            while (App.Current != null && App.Current.Properties["IsRunning"] != null && (bool)App.Current.Properties["IsRunning"])
             {
                 if (writeQueue.Count == 0)
                     Thread.Sleep(25);

@@ -1,0 +1,25 @@
+﻿<Window x:Class="MultiTablePro.UI.LicenseInputWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiTablePro.UI"
+        mc:Ignorable="d" Loaded="Window_Loaded"
+        Title="MultiTable Pro - License Request" Height="265" Width="465" Icon="/MultiTablePro;component/Resources/mtp-logo-128.png">
+    <DockPanel>
+        <StackPanel Margin="5" Orientation="Horizontal" DockPanel.Dock="Top">
+            <TextBlock Text="Enter your license key:" Margin="5" />
+            <TextBox Name="licenseKeyInputTxt" Margin="5" Width="300" />
+        </StackPanel>
+        <StackPanel Margin="5" Orientation="Horizontal" DockPanel.Dock="Top" >
+            <TextBlock Name="statusMsg" Margin="5" />
+        </StackPanel>
+        <StackPanel Margin="5" Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
+            <Button Margin="5" Width="200" Height="40" Name="setLicBtn" Content="Validate License" Click="SetLicBtn_Click"/>
+        </StackPanel>
+        <StackPanel Margin="5" DockPanel.Dock="Bottom" Orientation="Horizontal" VerticalAlignment="Bottom">
+            <Button Margin="5" Width="100" Height="50" Name="buyBtn" Content="Buy License Key" Click="BuyBtn_Click" />
+            <Button Margin="5" Width="100" Height="50" x:Name="cntTrialBtn" Content="Continue Trial" Click="CntTrialBtn_Click" />
+        </StackPanel>
+    </DockPanel>
+</Window>
