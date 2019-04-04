@@ -24,5 +24,9 @@ namespace MultiTablePro
             _threadBag.Add(thread);
         }
 
+        public static List<T> EnumToList<T>() {
+            return Enum.GetValues(typeof(T)).Cast<T>().ToList();
+        }
+
     }
 }

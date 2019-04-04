@@ -19,14 +19,16 @@ namespace MultiTablePro.Data
             _key = key;
         }
 
+        // Events
         public event PropertyChangedEventHandler PropertyChanged;
-        private Timer ExpiresSoonTimer;
-        private Timer ExpiredTimer;
-        public event EventHandler ExpiresSoon;
-        public event EventHandler Expired;
+        private Timer ExpireCheckTimer;
+        public event EventHandler ExpirationEvent;
 
+        // fields with defaults
         private string _key = "";
         private DateTime? _expiresAt;
+        private int _maxStake = 0;
+        private BuildTypes _buildType = BuildTypes.BETA;
 
         // License properties
         public string Key {            
@@ -46,17 +48,12 @@ namespace MultiTablePro.Data
                 return _expiresAt;
             }
             private set {
-                bool expChanged = _expiresAt != value;
+                bool expChanged = !_expiresAt.HasValue || _expiresAt.Value != value;
                 _expiresAt = value;
 
-                // Create expiration events
+                // Start checkign for expiration
                 if (expChanged && ExpiresAt != null && ExpiresAt > DateTime.Now)
-                {
-                    TimeSpan expiresIn = ExpiresAt.Value.Subtract(DateTime.Now);
-                    TimeSpan expiresSoonDiff = new TimeSpan(0, 15, 0);
-                    ExpiresSoonTimer = new Timer(TriggerExpireTimer, false, expiresIn.Subtract(expiresSoonDiff).Milliseconds, Timeout.Infinite);
-                    ExpiredTimer = new Timer(TriggerExpireTimer, true, expiresIn.Milliseconds, Timeout.Infinite);
-                }
+                    ExpireCheckTimer = new Timer(TriggerExpireTimer, null, 900000, 900000); // check every 15 mins
             }
         }
 
@@ -70,7 +67,27 @@ namespace MultiTablePro.Data
         // Product Properties
         public string ProductName { get; private set; }
         public string ProductDescription { get; private set; }
-        public Dictionary<string, string> Restrictions { get; private set; }
+
+        // Restriction properties
+        public int MaxStake // BB * 100 (buyin)
+        {
+            get { return _maxStake; }
+            private set { _maxStake = value; }
+        }
+        public bool UnlimitedComputers { get; private set; } // NIY
+        public BuildTypes BuildType // opt-in in settings - this is the max allowed
+        {
+            get { return _buildType; }
+            private set { _buildType = value; }
+        }
+
+        // Access to builds through license
+        public enum BuildTypes
+        {
+            RELEASE = 0,
+            BETA = 1,
+            INTERNAL = 2,
+        }
 
         public bool Validate()
         {
@@ -103,10 +120,51 @@ namespace MultiTablePro.Data
             IsTrial = lData.IsTrial;
             ProductName = lData.ProductName;
             ProductDescription = lData.ProductDescription;
-            Restrictions = lData.Restrictions;
+            SetRestrictions(lData.Restrictions);
 
+            // Save the key if it's valid
+            if (IsValid)
+                Save();
+            
             // Return validity
             return IsValid;
+        }
+
+        private void SetRestrictions(Dictionary<string, string> restrictions)
+        {
+            if (restrictions == null) // happens on trials, assume defaults
+                return;
+
+            // Apply relevant restrictions, use defaults for everything else
+            foreach(var r in restrictions)
+            {
+                switch (r.Key.ToUpper())
+                {
+                    case "MAX_STAKE":
+                        int maxStake;
+                        if (int.TryParse(r.Value, out maxStake))
+                            MaxStake = maxStake;
+                        else Logger.Log($"License: {r.Value} is not a valid integer for license restriction MAX_STAKE. Please contact support.",
+                                Logger.Status.Fatal, showMessageBox: true); // should never happen
+                        break;
+                    case "UNLIMITED_COMPUTERS":
+                        UnlimitedComputers = r.Value.ToUpper() == "TRUE" ? true : false;
+                        break;
+                    case "BUILDTYPE":
+                        BuildTypes buildType;
+                        if (Enum.TryParse(r.Value.ToUpper(), out buildType))
+                            BuildType = buildType;
+                        else Logger.Log($"License: {r.Value} is not a valid build type. Please contact support about this warning.",
+                            Logger.Status.Warning, showMessageBox: true);
+                        break;
+
+                    // restriction NIY
+                    default:
+                        Logger.Log($"License: {r.Key}:{r.Value} is an undefined restriction. User may be on outdated version.",
+                            Logger.Status.Warning, showMessageBox: false);
+                        break;
+                }
+            }
         }
 
         /// <summary>
@@ -149,28 +207,18 @@ namespace MultiTablePro.Data
         }
 
 
-        private void TriggerExpireTimer(object state)
+        private void TriggerExpireTimer(object irrelevant)
         {
-            // false is warning for expires soon - true means is expired
-            bool isExpired = (bool)state;
-
-            // Don't show warning or shut down if user has renewed since
-            DateTime previousExpTime = ExpiresAt.Value;
-            Validate(); // check with API again
-            if (ExpiresAt.HasValue && previousExpTime < ExpiresAt.Value)
-                return; // new timers are created
+            var expireWarningTime = ExpiresAt.Value.Subtract(new TimeSpan(0, 30, 0));
+            bool isExpired = DateTime.Now > ExpiresAt;
+            bool expiresSoon = DateTime.Now > expireWarningTime;
 
             // Fire expired event
-            if (isExpired)
+            if (isExpired || expiresSoon)
             {
                 IsValid = false;
-                if (Expired != null)
-                    Expired(this, new EventArgs());
-            }
-            else // fire warning event
-            {
-                if (ExpiresSoon != null)
-                    ExpiresSoon(this, new EventArgs());
+                if (ExpirationEvent != null)
+                    ExpirationEvent(this, new ExpirationEventArgs(ExpiresAt.Value.Subtract(DateTime.Now)));
             }
         }
 
@@ -178,6 +226,18 @@ namespace MultiTablePro.Data
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new PropertyChangedEventArgs(property));
+        }
+
+        public class ExpirationEventArgs : EventArgs
+        {
+            public ExpirationEventArgs(TimeSpan expiresIn)
+            {
+                ExpiresIn = expiresIn;
+                IsExpired = ExpiresIn < TimeSpan.Zero;
+            }
+
+            public TimeSpan ExpiresIn { get; private set; }
+            public bool IsExpired { get; private set; }
         }
     }
 }

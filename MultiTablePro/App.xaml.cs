@@ -47,13 +47,16 @@ namespace MultiTablePro
                     Logger.Status.Warning, showMessageBox: true);
 
             // todo: RequestLicenseKeyWindow call goes here
-            //License lic = License.GetKnownLicense();
-            License lic = new License("TRIAL"); // test kilme
-            lic.Validate();
+            License lic = License.GetKnownLicense();
+            if (lic.Validate())
+            {
+                MainWindow win = new MainWindow();
+                win.Show();
+            }
+            else
+            {
 
-            // Show MainWindow (todoDelete this when License Check window exists)
-            MainWindow win = new MainWindow();
-            win.Show();
+            }            
         }
 
         /// <summary>
