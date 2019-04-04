@@ -98,7 +98,7 @@ namespace MultiTablePro
                     //return JObject.Parse(responseFromServer).ToObject<ApiData.ApiResponse<T>>();
                     return JsonConvert.DeserializeObject<ApiData.ApiResponse<T>>(responseFromServer);
                 }
-                catch (Exception ex)
+                catch
                 {
                     Logger.Log("An API error has occurred. Please upgrade to the latest version and try again.", Logger.Status.Error, showMessageBox:true);
                     throw new Exception("Failed to parse to " + typeof(T).Name + " - JSON: " + responseFromServer);
