@@ -174,8 +174,13 @@ namespace MultiTablePro.Data
         /// </summary>
         public void Save()
         {
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("Software\\MultiTable Pro", true);
-            registryKey.SetValue("licensekey", Key);
+            RegistryKey reg = Registry.CurrentUser.OpenSubKey("Software\\MultiTable Pro", true);
+            if (reg == null) // create if missing
+            {
+                Registry.CurrentUser.CreateSubKey("Software\\MultiTable Pro");
+                reg = Registry.CurrentUser.OpenSubKey("Software\\MultiTable Pro", true);
+            }                
+            reg.SetValue("licensekey", Key);
         }
 
         /// <summary>
