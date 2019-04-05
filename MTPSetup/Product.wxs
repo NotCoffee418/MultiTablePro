@@ -17,6 +17,7 @@
             <ComponentRef Id="ApplicationShortcutDesktop" />
         </Feature>
     </Product>
+  
     <Fragment>
         <UI>
             <UIRef Id="WixUI_Minimal" />
@@ -24,17 +25,19 @@
                Control="Finish"
                Event="DoAction"
                Value="LaunchApplication">
-        WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed
-      </Publish>
+                WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed
+              </Publish>
             <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
         </UI>
         <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Start MultiTable Pro" />
+      
         <!-- Step 3: Include the custom action -->
         <Property Id="WixShellExecTarget" Value="[#MultiTablePro.exe]" />
         <CustomAction Id="LaunchApplication"
                   BinaryKey="WixCA"
                   DllEntry="WixShellExec"
                   Impersonate="yes" />
+      
         <!-- Start menu shortcut-->
         <DirectoryRef Id="ApplicationProgramsFolder">
             <Component Id="ApplicationShortcut" Guid="*">
@@ -47,6 +50,8 @@
                 <RegistryValue Root="HKCU" Key="Software\Microsoft\MultiTablePro" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
             </Component>
         </DirectoryRef>
+      
+      
         <Directory Id="TARGETDIR" Name="SourceDir">
             <!-- Desktop shortcut-->
             <Directory Id="DesktopFolder" Name="Desktop">
@@ -58,19 +63,23 @@
                 WorkingDirectory="APPLICATIONROOTDIRECTORY"/>
                     <RemoveFolder Id="DesktopFolder" On="uninstall"/>
                     <RegistryValue
-                  Root="HKCU"
-                  Key="Software/MultiTable Pro"
-                  Name="installed"
-                  Type="integer"
-                  Value="1"
-                  KeyPath="yes"/>
+                      Root="HKCU"
+                      Key="Software/MultiTable Pro"
+                      Name="installed"
+                      Type="integer"
+                      Value="1"
+                      KeyPath="yes"/>
                 </Component>
             </Directory>
             <Directory Id="ProgramFilesFolder">
-                <Directory Id="INSTALLFOLDER" Name="MultiTable Pro" /></Directory>
+                <Directory Id="INSTALLFOLDER" Name="MultiTable Pro" />
+            </Directory>
             <Directory Id="ProgramMenuFolder">
-                <Directory Id="ApplicationProgramsFolder" Name="MultiTable Pro"/></Directory>
+                <Directory Id="ApplicationProgramsFolder" Name="MultiTable Pro"/>
+            </Directory>
         </Directory>
+      
+      
         <DirectoryRef Id="INSTALLFOLDER">
             <Component Id="MultiTablePro.exe">
                 <File Id="MultiTablePro.exe" Source="$(var.MultiTablePro.TargetDir)MultiTablePro.exe" KeyPath="yes" />
@@ -83,6 +92,9 @@
             </Component>
         </DirectoryRef>
     </Fragment>
+  
+  
+  
     <Fragment>
         <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
             <ComponentRef Id="MultiTablePro.exe" />
