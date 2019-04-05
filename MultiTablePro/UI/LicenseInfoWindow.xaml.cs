@@ -25,5 +25,10 @@ namespace MultiTablePro.UI
             InitializeComponent();
             DataContext = Config.Active.ActiveLicense;            
         }
+
+        private void CopyLicenseBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(Config.Active.ActiveLicense.Key);
+        }
     }
 }
