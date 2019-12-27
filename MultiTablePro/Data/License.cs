@@ -91,6 +91,16 @@ namespace MultiTablePro.Data
 
         public bool Validate()
         {
+            // Remove this chunk to implement licensing. Note that the current licensing system is not secure and needs some changes.
+            IsValid = true;
+            ProductName = "MultiTablePro (Open Source)";
+            ProductDescription = "Modify License.cs to implement licensing system.";
+            MaxStake = 100000000; // Only use on play money. I am not liable for damages etc...
+            BuildType = BuildTypes.INTERNAL;
+            IsTrial = false;
+            return IsValid;
+            
+
             // Make API request
             var postData = new Dictionary<string, string>()
             {

@@ -35,7 +35,8 @@ namespace MultiTablePro
             }
 
             // Start the updater
-            Updater.Run();
+            // Updater.Run();
+            // ^ Uncomment this and modify Updater.cs to attach a website
 
             // Notify application started
             App.Current.Properties["IsRunning"] = true;
