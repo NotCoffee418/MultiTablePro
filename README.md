@@ -24,5 +24,26 @@ You will need to do your own research on the platform you intend to use this on 
 
 **Each platform has their own rules regarding third party software. These rules can change at any time and you are responsible for ensuring that you are allowed to use this software.**
 
+## Preview
+![MultiTable Pro Preview](https://user-images.githubusercontent.com/9306304/71512901-6dc52c80-2898-11ea-8d24-af246f17e115.png "MultiTable Pro Preview")
 
 
+## Description
+[logo]: https://user-images.githubusercontent.com/9306304/71512851-3c4c6100-2898-11ea-8d51-c7c1b6ea8caa.png "MultiTable Pro"
+![MultiTable Pro Logo](https://user-images.githubusercontent.com/9306304/71512851-3c4c6100-2898-11ea-8d51-c7c1b6ea8caa.png "MultiTable Pro Logo")
+#### Automatically Move Tables
+MultiTable Pro moves your poker tables to the best possible position. Tables which require you to act become larger, while inactive poker tables are moved to smaller slots.
+
+This will help you make more profitable plays on more tables without having to spend valuable time worrying about the logistics.
+
+
+#### Custom Profiles
+Create custom profiles to support your computer setup. Choose where priority and inactive tables will be placed on your screen. It also supports multiple monitors.
+
+
+#### Move Priority Tables Aside
+If you've every played more than 4 tables you probably know what it's like to be stuck on a hand while other tables keep piling up.
+
+With MultiTable Pro you can just press a button which moves your table aside while continuing to play on other tables while you consider the best course of action for your aside table.
+
+When you're done, you can simply press the hotkey again to move it back into the normal rotation.
