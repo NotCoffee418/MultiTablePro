@@ -5,21 +5,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MultiTablePro"
         mc:Ignorable="d" Icon="/MultiTablePro;component/Resources/mtp-logo-128.png"
-        Title="LicenseInfoWindow" Height="450" Width="800">
+        Title="License Info" Height="221" Width="459">
     <WrapPanel>
-        <GroupBox Margin="5" Width="400" Header="License Info" Height="140">
-          <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" Margin="5">
-              <TextBlock Text="Key" Width="100" />
-              <TextBox Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding Key}"/>
-            </StackPanel>
+        <GroupBox Margin="5" Width="429" Header="License Info" Height="172">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock Text="Key" Width="100" />
+                    <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding Key}"/>
+                    <Button Name="CopyLicenseBtn"  Content="Copy" Width="50" Click="CopyLicenseBtn_Click" />
+                </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Margin="5">
-              <TextBlock Text="Expiry Date" Width="100" />
-              <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding ExpDate}"/>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock Text="Expiry Date" Width="100" />
+                    <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding ExpiresAt}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock Text="Owner" Width="100" />
+                    <TextBlock Height="22" HorizontalAlignment="Left" Text="{Binding FirstName}"/>
+                    <TextBlock Height="22" HorizontalAlignment="Left" Text="{Binding LastName}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock Text="Registered Email" Width="100" />
+                    <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding Email}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="5">
+                    <TextBlock Text="Maximum Buyin" Width="100" />
+                    <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="$/€/£"/>
+                    <TextBlock Height="22" Width="250" HorizontalAlignment="Left" Text="{Binding MaxStake}"/>
+                </StackPanel>
+
             </StackPanel>
-            
-          </StackPanel>
         </GroupBox>
     </WrapPanel>
 </Window>
